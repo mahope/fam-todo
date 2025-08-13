@@ -56,7 +56,20 @@ const withPWA = require('next-pwa')({
 
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
+  experimental: {
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+    reactCompiler: true, // React 19 compiler
+  },
+  compiler: {
+    reactRemoveProperties: true,
+  },
 };
 
 module.exports = withPWA(nextConfig);
