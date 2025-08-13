@@ -66,7 +66,7 @@ export default function RegisterPage() {
       });
 
       if (result.error) {
-        setError(result.error.message);
+        setError(result.error.message || "Registration failed");
       } else {
         // Auto sign-in is enabled, so redirect to dashboard
         router.push("/dashboard");

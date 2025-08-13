@@ -39,7 +39,7 @@ class ApiClient {
     return url.toString();
   }
 
-  private async buildHeaders(token?: string): Promise<Record<string, string>> {
+  private async buildHeaders(token?: string | null): Promise<Record<string, string>> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };

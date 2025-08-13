@@ -17,7 +17,7 @@ services:
       - ./supabase/init:/docker-entrypoint-initdb.d
 
   postgrest:
-    image: postgrest/postgrest:v12.1.0
+    image: postgrest/postgrest:v12.0.2
     container_name: famtodo_postgrest
     restart: unless-stopped
     depends_on:
@@ -33,7 +33,7 @@ services:
       - "3001:3000"
 
   realtime:
-    image: supabase/realtime:v2.25.63
+    image: supabase/realtime:v2.25.50
     container_name: famtodo_realtime
     restart: unless-stopped
     depends_on:
@@ -57,7 +57,7 @@ services:
       SLOT_NAME: famtodo_slot
 
   storage:
-    image: supabase/storage-api:v1.0.8
+    image: supabase/storage-api:v0.46.4
     container_name: famtodo_storage
     restart: unless-stopped
     depends_on:
@@ -81,7 +81,7 @@ services:
       - storage_data:/var/lib/storage
 
   imgproxy:
-    image: darthsim/imgproxy:v3.22.0
+    image: darthsim/imgproxy:v3.21.0
     container_name: famtodo_imgproxy
     restart: unless-stopped
     environment:
@@ -114,6 +114,7 @@ services:
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
     volumes:
       - ./apps/web:/app
+      - /app/node_modules
 
 volumes:
   db_data:

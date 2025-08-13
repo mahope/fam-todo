@@ -61,7 +61,7 @@ export default function LoginPage() {
       });
 
       if (result.error) {
-        setError(result.error.message);
+        setError(result.error.message || "Login failed");
       } else {
         router.push("/dashboard");
       }

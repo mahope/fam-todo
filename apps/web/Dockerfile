@@ -2,9 +2,15 @@
 # apps/web/Dockerfile
 FROM node:20-alpine
 WORKDIR /app
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install dependencies
 RUN npm install
+
+# Copy source code
 COPY . .
-RUN npm run build || true
+
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
