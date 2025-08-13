@@ -1,0 +1,122 @@
+
+version: '3.9'
+
+services:
+  db:
+    image: supabase/postgres:15.1.0.89
+    container_name: famtodo_db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      JWT_SECRET: ${JWT_SECRET}
+      # Required for Realtime (logical replication)
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./supabase/init:/docker-entrypoint-initdb.d
+
+  postgrest:
+    image: postgrest/postgrest:v12.1.0
+    container_name: famtodo_postgrest
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PGRST_DB_URI: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-postgres}
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_OPENAPI_SERVER_PROXY_URI: ${PUBLIC_BASE_URL}
+    ports:
+      - "3001:3000"
+
+  realtime:
+    image: supabase/realtime:v2.25.63
+    container_name: famtodo_realtime
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "4000:4000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-postgres}
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_SSL: "false"
+      PORT: 4000
+      SECURE_CHANNELS: "false"
+      JWT_SECRET: ${JWT_SECRET}
+      REaltime_SLOTS_MAX_BYTES: "0"
+      # publication must match what's created in 02_functions.sql
+      DB_PUBLICATION: supabase_realtime
+      DB_ENC_KEY: ${REALTIME_ENC_KEY:-dev_local_key}
+      SLOT_NAME: famtodo_slot
+
+  storage:
+    image: supabase/storage-api:v1.0.8
+    container_name: famtodo_storage
+    restart: unless-stopped
+    depends_on:
+      - db
+      - postgrest
+    environment:
+      ANON_KEY: ${ANON_KEY:-dev_anon_key}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY:-dev_service_key}
+      POSTGREST_URL: http://postgrest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-postgres}
+      JWT_SECRET: ${JWT_SECRET}
+      REGION: local
+      GLOBAL_S3_BUCKET: famtodo-storage
+      ENABLE_IMAGE_TRANSFORMATION: "true"
+      TENANT_ID: "stub"
+      ENABLE_DB_V2: "true"
+    ports:
+      - "5000:5000"
+    volumes:
+      - storage_data:/var/lib/storage
+
+  imgproxy:
+    image: darthsim/imgproxy:v3.22.0
+    container_name: famtodo_imgproxy
+    restart: unless-stopped
+    environment:
+      IMGPROXY_BIND: ":5001"
+    ports:
+      - "5001:5001"
+
+  web:
+    build: ./apps/web
+    container_name: famtodo_web
+    restart: unless-stopped
+    depends_on:
+      - postgrest
+      - realtime
+      - storage
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_POSTGREST_URL: http://localhost:3001
+      NEXT_PUBLIC_REALTIME_URL: ws://localhost:4000/socket
+      NEXT_PUBLIC_STORAGE_URL: http://localhost:5000
+      NEXT_PUBLIC_JWT_AUD: postgrest
+      JWT_SECRET: ${JWT_SECRET}
+      BETTERAUTH_SECRET: ${BETTERAUTH_SECRET}
+      BETTERAUTH_JWT_AUD: postgrest
+      BETTERAUTH_JWT_ISS: famtodo
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
+    volumes:
+      - ./apps/web:/app
+
+volumes:
+  db_data:
+  storage_data:
