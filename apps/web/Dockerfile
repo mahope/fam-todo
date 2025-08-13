@@ -3,11 +3,9 @@
 FROM node:20-alpine
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* ./
-
 # Install dependencies
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps
 
 # Copy source code
 COPY . .

@@ -1,7 +1,7 @@
 
 services:
   db:
-    image: supabase/postgres:15.1.0.89
+    image: supabase/postgres:15.1.0.117
     container_name: famtodo_db
     restart: unless-stopped
     ports:
@@ -15,13 +15,19 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./supabase/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   postgrest:
-    image: postgrest/postgrest:v12.0.2
+    image: postgrest/postgrest:v12.2.3
     container_name: famtodo_postgrest
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       PGRST_DB_URI: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-postgres}
       PGRST_DB_SCHEMAS: public
@@ -33,11 +39,12 @@ services:
       - "3001:3000"
 
   realtime:
-    image: supabase/realtime:v2.25.50
+    image: supabase/realtime:v2.30.23
     container_name: famtodo_realtime
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "4000:4000"
     environment:
@@ -50,19 +57,22 @@ services:
       PORT: 4000
       SECURE_CHANNELS: "false"
       JWT_SECRET: ${JWT_SECRET}
-      REaltime_SLOTS_MAX_BYTES: "0"
+      RLIMIT_NOFILE: 1048576
+      REALTIME_SLOTS_MAX_BYTES: "0"
       # publication must match what's created in 02_functions.sql
       DB_PUBLICATION: supabase_realtime
       DB_ENC_KEY: ${REALTIME_ENC_KEY:-dev_local_key}
       SLOT_NAME: famtodo_slot
 
   storage:
-    image: supabase/storage-api:v0.46.4
+    image: supabase/storage-api:v1.11.13
     container_name: famtodo_storage
     restart: unless-stopped
     depends_on:
-      - db
-      - postgrest
+      db:
+        condition: service_healthy
+      postgrest:
+        condition: service_started
     environment:
       ANON_KEY: ${ANON_KEY:-dev_anon_key}
       SERVICE_KEY: ${SERVICE_ROLE_KEY:-dev_service_key}
@@ -81,7 +91,7 @@ services:
       - storage_data:/var/lib/storage
 
   imgproxy:
-    image: darthsim/imgproxy:v3.21.0
+    image: darthsim/imgproxy:v3.25.0
     container_name: famtodo_imgproxy
     restart: unless-stopped
     environment:
@@ -94,9 +104,12 @@ services:
     container_name: famtodo_web
     restart: unless-stopped
     depends_on:
-      - postgrest
-      - realtime
-      - storage
+      postgrest:
+        condition: service_started
+      realtime:
+        condition: service_started
+      storage:
+        condition: service_started
     ports:
       - "3000:3000"
     environment:
