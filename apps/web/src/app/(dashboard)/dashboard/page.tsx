@@ -1,0 +1,270 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "@/lib/auth-client";
+import { useApi } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, ListTodo, CheckSquare, Clock, Users, ShoppingCart } from "lucide-react";
+import Link from "next/link";
+
+export default function DashboardPage() {
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const api = useApi();
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isPending && !session?.user) {
+      router.push("/login");
+    }
+  }, [session, isPending, router]);
+
+  // Fetch user's lists and tasks
+  const { data: lists, isLoading: listsLoading } = useQuery({
+    queryKey: ["lists"],
+    queryFn: async () => {
+      const response = await api.get("/lists?select=*&order=updated_at.desc&limit=5");
+      return response.data || [];
+    },
+    enabled: !!api.token,
+  });
+
+  const { data: tasks, isLoading: tasksLoading } = useQuery({
+    queryKey: ["recent-tasks"],
+    queryFn: async () => {
+      const response = await api.get("/tasks?select=*,list_id(name)&status=neq.done&order=due_at.asc.nullslast,created_at.desc&limit=10");
+      return response.data || [];
+    },
+    enabled: !!api.token,
+  });
+
+  const { data: completedToday, isLoading: completedTodayLoading } = useQuery({
+    queryKey: ["completed-today"],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const response = await api.get(`/tasks?select=count&completed_at=gte.${today}T00:00:00&completed_at=lt.${today}T23:59:59`);
+      return response.data?.[0]?.count || 0;
+    },
+    enabled: !!api.token,
+  });
+
+  if (isPending || !session?.user) {
+    return (
+      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+        <div className="text-center space-y-4">
+          <ListTodo className="h-12 w-12 mx-auto animate-pulse" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const user = session.user;
+
+  return (
+    <div className="container mx-auto px-4 py-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">
+            Welcome back, {user.name?.split(' ')[0] || 'there'}!
+          </h1>
+          <p className="text-muted-foreground">
+            Here's what's happening with your family's tasks today.
+          </p>
+        </div>
+        <div className="flex gap-2 mt-4 sm:mt-0">
+          <Button asChild>
+            <Link href="/lists/new">
+              <Plus className="h-4 w-4 mr-2" />
+              New List
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Lists</CardTitle>
+            <ListTodo className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {listsLoading ? "..." : lists?.length || 0}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Tasks</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {tasksLoading ? "..." : tasks?.filter((t: any) => t.status !== 'done').length || 0}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
+            <CheckSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {completedTodayLoading ? "..." : completedToday}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Family Members</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {/* We'll implement family member count later */}
+              1
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Tasks */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Upcoming Tasks
+            </CardTitle>
+            <CardDescription>
+              Your next tasks sorted by due date
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {tasksLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-4 bg-muted rounded w-3/4 mb-1"></div>
+                    <div className="h-3 bg-muted rounded w-1/2"></div>
+                  </div>
+                ))}
+              </div>
+            ) : tasks && tasks.length > 0 ? (
+              <div className="space-y-3">
+                {tasks.slice(0, 5).map((task: any) => (
+                  <div key={task.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{task.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {task.list_id?.name} • {
+                          task.due_at 
+                            ? new Date(task.due_at).toLocaleDateString()
+                            : "No due date"
+                        }
+                      </p>
+                    </div>
+                    <div className={`px-2 py-1 text-xs rounded-full ${
+                      task.priority === 'high' 
+                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' 
+                        : task.priority === 'medium'
+                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                    }`}>
+                      {task.priority}
+                    </div>
+                  </div>
+                ))}
+                {tasks.length > 5 && (
+                  <Button variant="ghost" size="sm" asChild className="w-full mt-4">
+                    <Link href="/tasks">View all tasks</Link>
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                <p className="text-muted-foreground mb-4">No tasks yet</p>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/lists">Create your first list</Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Lists */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ListTodo className="h-5 w-5" />
+              Your Lists
+            </CardTitle>
+            <CardDescription>
+              Recently updated lists
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {listsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-4 bg-muted rounded w-3/4 mb-1"></div>
+                    <div className="h-3 bg-muted rounded w-1/2"></div>
+                  </div>
+                ))}
+              </div>
+            ) : lists && lists.length > 0 ? (
+              <div className="space-y-3">
+                {lists.map((list: any) => (
+                  <Link 
+                    key={list.id} 
+                    href={`/lists/${list.id}`}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        {list.type === 'shopping' ? (
+                          <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ListTodo className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <p className="text-sm font-medium truncate">{list.name}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {list.visibility === 'private' ? 'Private' : 
+                         list.visibility === 'family' ? 'Family' : 'Adults only'} • 
+                        {new Date(list.updated_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+                <Button variant="ghost" size="sm" asChild className="w-full mt-4">
+                  <Link href="/lists">View all lists</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <ListTodo className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                <p className="text-muted-foreground mb-4">No lists yet</p>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/lists/new">Create your first list</Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
