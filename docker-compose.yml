@@ -57,6 +57,8 @@ services:
       PORT: 4000
       SECURE_CHANNELS: "false"
       JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY_BASE: ${JWT_SECRET}
+      APP_NAME: famtodo
       RLIMIT_NOFILE: 1048576
       REALTIME_SLOTS_MAX_BYTES: "0"
       # publication must match what's created in 02_functions.sql
@@ -82,6 +84,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       REGION: local
       GLOBAL_S3_BUCKET: famtodo-storage
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
       ENABLE_IMAGE_TRANSFORMATION: "true"
       TENANT_ID: "stub"
       ENABLE_DB_V2: "true"
