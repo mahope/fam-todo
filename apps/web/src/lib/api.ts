@@ -26,7 +26,19 @@ class ApiClient {
   }
 
   private async buildURL(endpoint: string, searchParams?: Record<string, any>): Promise<string> {
-    const url = new URL(endpoint, this.baseURL);
+    // Handle relative URLs by combining with window.location.origin
+    let url: URL;
+    if (endpoint.startsWith('/')) {
+      // Relative URL - use current origin
+      url = new URL(endpoint, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+    } else if (endpoint.startsWith('http')) {
+      // Absolute URL
+      url = new URL(endpoint);
+    } else {
+      // Relative to base URL
+      const baseURL = this.baseURL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+      url = new URL(endpoint, baseURL);
+    }
     
     if (searchParams) {
       Object.entries(searchParams).forEach(([key, value]) => {
