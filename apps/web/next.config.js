@@ -1,5 +1,9 @@
 
 /** @type {import('next').NextConfig} */
+// const withNextIntl = require('next-intl/plugin')(
+//   // This is the default location for the i18n config
+//   './src/i18n.ts'
+// );
 const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,

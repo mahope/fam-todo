@@ -1,0 +1,77 @@
+{
+  "app": {
+    "title": "FamTodo",
+    "description": "Family Task Management"
+  },
+  "landing": {
+    "title": "FamTodo",
+    "description": "Family Task Management",
+    "createAccount": "Create Account",
+    "signIn": "Sign In"
+  },
+  "auth": {
+    "register": {
+      "title": "Create Account",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "submit": "Create Account",
+      "alreadyHaveAccount": "Already have an account?",
+      "signIn": "Sign in here"
+    },
+    "login": {
+      "title": "Sign In",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signUp": "Create one here",
+      "rememberMe": "Remember me"
+    }
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "lists": "Lists",
+    "shopping": "Shopping",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to FamTodo",
+    "noLists": "You don't have any lists yet",
+    "createFirst": "Create your first list",
+    "recentTasks": "Recent Tasks",
+    "upcomingDeadlines": "Upcoming Deadlines"
+  },
+  "lists": {
+    "title": "My Lists",
+    "new": "New List",
+    "private": "Private",
+    "family": "Family",
+    "adults": "Adults",
+    "noTasks": "No tasks yet",
+    "addTask": "Add task"
+  },
+  "shopping": {
+    "title": "Shopping List",
+    "addItem": "Add item",
+    "categories": {
+      "groceries": "Groceries",
+      "household": "Household",
+      "personal": "Personal",
+      "other": "Other"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "close": "Close",
+    "search": "Search"
+  }
+}

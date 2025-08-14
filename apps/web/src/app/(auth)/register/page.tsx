@@ -28,12 +28,12 @@ import {
 import { ListTodo } from "lucide-react";
 
 const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(2, "Navn skal være mindst 2 tegn"),
+  email: z.string().email("Ugyldig e-mail adresse"),
+  password: z.string().min(6, "Adgangskode skal være mindst 6 tegn"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: "Adgangskoderne matcher ikke",
   path: ["confirmPassword"],
 });
 
@@ -66,13 +66,13 @@ export default function RegisterPage() {
       });
 
       if (result.error) {
-        setError(result.error.message || "Registration failed");
+        setError(result.error.message || "Registrering mislykkedes");
       } else {
         // Auto sign-in is enabled, so redirect to dashboard
         router.push("/dashboard");
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError("Der opstod en fejl. Prøv igen.");
     } finally {
       setIsLoading(false);
     }
@@ -85,9 +85,9 @@ export default function RegisterPage() {
           <div className="flex items-center justify-center mb-4">
             <ListTodo className="h-8 w-8" />
           </div>
-          <CardTitle className="text-2xl text-center">Create account</CardTitle>
+          <CardTitle className="text-2xl text-center">Opret Konto</CardTitle>
           <CardDescription className="text-center">
-            Enter your information to create your family account
+            Indtast dine oplysninger for at oprette din familiekonto
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -98,7 +98,7 @@ export default function RegisterPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Navn</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="John Doe"
@@ -115,11 +115,11 @@ export default function RegisterPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>E-mail</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="name@example.com"
+                        placeholder="navn@eksempel.dk"
                         disabled={isLoading}
                         {...field}
                       />
@@ -133,11 +133,11 @@ export default function RegisterPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Adgangskode</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Create a password"
+                        placeholder="Opret en adgangskode"
                         disabled={isLoading}
                         {...field}
                       />
@@ -151,11 +151,11 @@ export default function RegisterPage() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel>Bekræft Adgangskode</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Confirm your password"
+                        placeholder="Bekræft din adgangskode"
                         disabled={isLoading}
                         {...field}
                       />
@@ -170,16 +170,16 @@ export default function RegisterPage() {
                 </div>
               )}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Sign up"}
+                {isLoading ? "Opretter konto..." : "Opret Konto"}
               </Button>
             </form>
           </Form>
         </CardContent>
         <CardFooter>
           <div className="text-sm text-muted-foreground text-center w-full">
-            Already have an account?{" "}
+            Har du allerede en konto?{" "}
             <Link href="/login" className="text-primary hover:underline">
-              Sign in
+              Log ind her
             </Link>
           </div>
         </CardFooter>

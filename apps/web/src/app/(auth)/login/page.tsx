@@ -28,8 +28,8 @@ import {
 import { ListTodo } from "lucide-react";
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Ugyldig e-mail adresse"),
+  password: z.string().min(6, "Adgangskode skal være mindst 6 tegn"),
   rememberMe: z.boolean().default(true),
 });
 
@@ -61,12 +61,12 @@ export default function LoginPage() {
       });
 
       if (result.error) {
-        setError(result.error.message || "Login failed");
+        setError(result.error.message || "Login mislykkedes");
       } else {
         router.push("/dashboard");
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError("Der opstod en fejl. Prøv igen.");
     } finally {
       setIsLoading(false);
     }
@@ -79,9 +79,9 @@ export default function LoginPage() {
           <div className="flex items-center justify-center mb-4">
             <ListTodo className="h-8 w-8" />
           </div>
-          <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
+          <CardTitle className="text-2xl text-center">Log Ind</CardTitle>
           <CardDescription className="text-center">
-            Enter your email and password to login
+            Indtast din e-mail og adgangskode for at logge ind
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -92,11 +92,11 @@ export default function LoginPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>E-mail</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="name@example.com"
+                        placeholder="navn@eksempel.dk"
                         disabled={isLoading}
                         {...field}
                       />
@@ -110,11 +110,11 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Adgangskode</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Enter your password"
+                        placeholder="Indtast din adgangskode"
                         disabled={isLoading}
                         {...field}
                       />
@@ -138,7 +138,7 @@ export default function LoginPage() {
                       />
                     </FormControl>
                     <FormLabel className="text-sm font-normal cursor-pointer">
-                      Remember me
+                      Husk mig
                     </FormLabel>
                   </FormItem>
                 )}
@@ -149,16 +149,16 @@ export default function LoginPage() {
                 </div>
               )}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Sign in"}
+                {isLoading ? "Logger ind..." : "Log Ind"}
               </Button>
             </form>
           </Form>
         </CardContent>
         <CardFooter>
           <div className="text-sm text-muted-foreground text-center w-full">
-            Don't have an account?{" "}
+            Har du ikke en konto?{" "}
             <Link href="/register" className="text-primary hover:underline">
-              Sign up
+              Opret en her
             </Link>
           </div>
         </CardFooter>

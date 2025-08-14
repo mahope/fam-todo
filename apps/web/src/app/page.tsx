@@ -24,7 +24,7 @@ export default function HomePage() {
       <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
         <div className="text-center space-y-4">
           <ListTodo className="h-12 w-12 mx-auto animate-pulse" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">Indlæser...</p>
         </div>
       </div>
     );
@@ -44,19 +44,19 @@ export default function HomePage() {
               FamTodo
             </CardTitle>
             <CardDescription className="text-lg mt-2">
-              Family Task Management
+              Familie Opgave Håndtering
             </CardDescription>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button size="lg" className="w-full" asChild>
             <Link href="/register">
-              Create Account
+              Opret Konto
             </Link>
           </Button>
           <Button variant="outline" size="lg" className="w-full" asChild>
             <Link href="/login">
-              Sign In
+              Log Ind
             </Link>
           </Button>
         </CardContent>
