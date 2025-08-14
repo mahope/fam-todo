@@ -64,7 +64,7 @@
     "deleteCancel": "Cancel",
     "deleteConfirmButton": "Delete"
   },
-  "lists.new": {
+  "listsNew": {
     "title": "Create New List",
     "subtitle": "Set up a new task or shopping list for your family",
     "details": "List Details",
