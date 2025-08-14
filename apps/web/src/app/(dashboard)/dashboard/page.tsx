@@ -30,7 +30,8 @@ export default function DashboardPage() {
     queryKey: ["lists"],
     queryFn: async () => {
       const response = await api.get("/lists", { limit: 5 });
-      return response.data || [];
+      const data = response.data || [];
+      return Array.isArray(data) ? data : [];
     },
     enabled: !!session,
   });
@@ -44,7 +45,8 @@ export default function DashboardPage() {
         sortOrder: "asc",
         limit: 10 
       });
-      return response.data || [];
+      const data = response.data || [];
+      return Array.isArray(data) ? data : [];
     },
     enabled: !!session,
   });
@@ -119,7 +121,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {tasksLoading ? "..." : tasks?.filter((t: any) => !t.completed).length || 0}
+              {tasksLoading ? "..." : (Array.isArray(tasks) ? tasks.filter((t: any) => !t.completed).length : 0)}
             </div>
           </CardContent>
         </Card>
@@ -172,7 +174,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-            ) : tasks && tasks.length > 0 ? (
+            ) : tasks && Array.isArray(tasks) && tasks.length > 0 ? (
               <div className="space-y-3">
                 {tasks.slice(0, 5).map((task: any) => (
                   <div key={task.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
@@ -236,7 +238,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-            ) : lists && lists.length > 0 ? (
+            ) : lists && Array.isArray(lists) && lists.length > 0 ? (
               <div className="space-y-3">
                 {lists.map((list: any) => (
                   <Link 
