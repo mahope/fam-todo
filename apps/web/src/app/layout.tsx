@@ -2,11 +2,8 @@
 import React from "react";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, getLocale } from 'next-intl/server';
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { Header } from "@/components/header";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,23 +23,16 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Load messages and locale for the current user
-  const locale = await getLocale();
-  const messages = await getMessages(locale);
-
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang="da" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <Header />
-            <main className="flex-1">{children}</main>
-          </NextIntlClientProvider>
+          <main className="flex-1">{children}</main>
         </Providers>
       </body>
     </html>
