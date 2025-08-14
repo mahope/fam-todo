@@ -2,7 +2,7 @@
 
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function DashboardLayout({
   children,
@@ -11,14 +11,20 @@ export default function DashboardLayout({
 }) {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    if (!isPending && !session?.user) {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (isHydrated && !isPending && !session?.user) {
       router.push("/login");
     }
-  }, [session, isPending, router]);
+  }, [session, isPending, router, isHydrated]);
 
-  if (isPending) {
+  // Always show loading on server and until hydrated to prevent mismatch
+  if (!isHydrated || isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center space-y-4">

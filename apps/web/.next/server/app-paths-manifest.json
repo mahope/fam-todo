@@ -1,8 +1,17 @@
 {
+  "/api/health/route": "app/api/health/route.js",
   "/_not-found/page": "app/_not-found/page.js",
   "/api/auth/[...all]/route": "app/api/auth/[...all]/route.js",
   "/page": "app/page.js",
+  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
   "/(auth)/register/page": "app/(auth)/register/page.js",
+  "/(dashboard)/lists/[id]/page": "app/(dashboard)/lists/[id]/page.js",
   "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js"
+  "/(dashboard)/family/page": "app/(dashboard)/family/page.js",
+  "/(dashboard)/lists/new/page": "app/(dashboard)/lists/new/page.js",
+  "/(dashboard)/lists/[id]/tasks/[taskId]/edit/page": "app/(dashboard)/lists/[id]/tasks/[taskId]/edit/page.js",
+  "/(dashboard)/profile/page": "app/(dashboard)/profile/page.js",
+  "/(dashboard)/lists/page": "app/(dashboard)/lists/page.js",
+  "/(dashboard)/shopping/page": "app/(dashboard)/shopping/page.js",
+  "/(dashboard)/settings/page": "app/(dashboard)/settings/page.js"
 }
