@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { signUp } from "@/lib/auth-client";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -59,16 +59,33 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      const result = await signUp.email({
-        email: data.email,
-        password: data.password,
-        name: data.name,
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        }),
       });
 
-      if (result.error) {
-        setError(result.error.message || "Registrering mislykkedes");
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error || "Registrering mislykkedes");
+        return;
+      }
+
+      // Auto sign-in after successful registration
+      const signInResult = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        setError("Konto oprettet, men login mislykkedes");
       } else {
-        // Auto sign-in is enabled, so redirect to dashboard
         router.push("/dashboard");
       }
     } catch (err) {

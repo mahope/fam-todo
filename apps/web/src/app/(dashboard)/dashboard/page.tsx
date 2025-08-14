@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/lib/auth-client";
+import { useSession } from "next-auth/react";
 import { useApi } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,8 @@ import { useTranslations } from 'next-intl';
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
-  const { data: session, isPending } = useSession();
+  const { data: session, status } = useSession();
+  const isPending = status === "loading";
   const router = useRouter();
   const api = useApi();
 
@@ -28,29 +29,38 @@ export default function DashboardPage() {
   const { data: lists, isLoading: listsLoading } = useQuery({
     queryKey: ["lists"],
     queryFn: async () => {
-      const response = await api.get("/lists?select=*&order=updated_at.desc&limit=5");
+      const response = await api.get("/lists", { limit: 5 });
       return response.data || [];
     },
-    enabled: !!api.token,
+    enabled: !!session,
   });
 
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: ["recent-tasks"],
     queryFn: async () => {
-      const response = await api.get("/tasks?select=*,list_id(name)&status=neq.done&order=due_at.asc.nullslast,created_at.desc&limit=10");
+      const response = await api.get("/tasks", { 
+        completed: false, 
+        sortBy: "deadline",
+        sortOrder: "asc",
+        limit: 10 
+      });
       return response.data || [];
     },
-    enabled: !!api.token,
+    enabled: !!session,
   });
 
   const { data: completedToday, isLoading: completedTodayLoading } = useQuery({
     queryKey: ["completed-today"],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
-      const response = await api.get(`/tasks?select=count&completed_at=gte.${today}T00:00:00&completed_at=lt.${today}T23:59:59`);
-      return response.data?.[0]?.count || 0;
+      const response = await api.get("/tasks", { 
+        completed: true,
+        completedAfter: `${today}T00:00:00Z`,
+        completedBefore: `${today}T23:59:59Z`
+      });
+      return response.data?.length || 0;
     },
-    enabled: !!api.token,
+    enabled: !!session,
   });
 
   if (isPending || !session?.user) {
@@ -109,7 +119,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {tasksLoading ? "..." : tasks?.filter((t: any) => t.status !== 'done').length || 0}
+              {tasksLoading ? "..." : tasks?.filter((t: any) => !t.completed).length || 0}
             </div>
           </CardContent>
         </Card>
@@ -169,21 +179,21 @@ export default function DashboardPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{task.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {task.list_id?.name} • {
-                          task.due_at 
-                            ? new Date(task.due_at).toLocaleDateString()
+                        {task.list?.name || 'List'} • {
+                          task.deadline 
+                            ? new Date(task.deadline).toLocaleDateString()
                             : t('no_due_date')
                         }
                       </p>
                     </div>
                     <div className={`px-2 py-1 text-xs rounded-full ${
-                      task.priority === 'high' 
+                      task.priority === 'HIGH' 
                         ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' 
-                        : task.priority === 'medium'
+                        : task.priority === 'MEDIUM'
                         ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                         : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                     }`}>
-                      {task.priority}
+                      {task.priority?.toLowerCase() || 'low'}
                     </div>
                   </div>
                 ))}
@@ -236,7 +246,7 @@ export default function DashboardPage() {
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        {list.type === 'shopping' ? (
+                        {list.listType === 'SHOPPING' ? (
                           <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                         ) : (
                           <ListTodo className="h-4 w-4 text-muted-foreground" />
@@ -244,8 +254,8 @@ export default function DashboardPage() {
                         <p className="text-sm font-medium truncate">{list.name}</p>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {list.visibility === 'private' ? t('private') : 
-                         list.visibility === 'family' ? t('family') : t('adults_only')} • 
+                        {list.visibility === 'PRIVATE' ? t('private') : 
+                         list.visibility === 'FAMILY' ? t('family') : t('adults_only')} • 
                         {new Date(list.updated_at).toLocaleDateString()}
                       </p>
                     </div>

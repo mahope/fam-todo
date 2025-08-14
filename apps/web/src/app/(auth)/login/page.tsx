@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { signIn } from "@/lib/auth-client";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -54,14 +54,14 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const result = await signIn.email({
+      const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
-        rememberMe: data.rememberMe,
+        redirect: false,
       });
 
-      if (result.error) {
-        setError(result.error.message || "Login mislykkedes");
+      if (result?.error) {
+        setError("Ugyldig e-mail eller adgangskode");
       } else {
         router.push("/dashboard");
       }

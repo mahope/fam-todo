@@ -19,9 +19,11 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.email) {
           return null;
         }
+
+        console.log('NextAuth authorize called with:', credentials.email);
 
         // Simple auth check - find user by email
         const user = await prisma.user.findUnique({
@@ -29,13 +31,20 @@ export const authOptions: NextAuthOptions = {
           include: { appUser: true },
         });
 
+        console.log('Found user:', user ? 'Yes' : 'No');
+
         if (!user) {
           return null;
         }
 
-        // For now, we'll accept any password (should be hashed comparison in production)
-        // You can implement proper password hashing later
+        // For now, we'll accept any non-empty password since we don't store passwords yet
+        // This is temporary until we implement proper password storage
+        if (!credentials?.password || credentials.password.length < 1) {
+          console.log('No password provided');
+          return null;
+        }
         
+        console.log('Login successful for:', user.email);
         return {
           id: user.id,
           email: user.email,

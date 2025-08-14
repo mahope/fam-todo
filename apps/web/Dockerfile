@@ -3,15 +3,12 @@
 FROM node:23-alpine
 WORKDIR /app
 
-# Copy package files and scripts for patching
+# Copy package files and prisma schema
 COPY package.json package-lock.json ./
-COPY scripts ./scripts
+COPY prisma ./prisma
 
 # Install dependencies
 RUN npm ci --legacy-peer-deps
-
-# Apply Zod patch directly (ensuring it runs)
-RUN node scripts/patch-zod.js
 
 # Copy source code
 COPY . .

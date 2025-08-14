@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as z from "zod";
 import { useApi } from "@/lib/api";
-import { useSession } from "@/lib/auth-client";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -58,10 +58,13 @@ export default function ProfilePage() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ["user-profile"],
     queryFn: async () => {
-      const response = await api.get<UserProfile[]>(`/app_users?id=eq.${session?.user?.id}&select=*`);
-      return response.data?.[0];
+      const response = await fetch(`/api/profile`, {
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error('Failed to fetch profile');
+      return await response.json();
     },
-    enabled: !!api.token && !!session?.user?.id,
+    enabled: !!session?.user?.id,
   });
 
   const form = useForm<ProfileFormValues>({
@@ -82,16 +85,18 @@ export default function ProfilePage() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormValues) => {
-      const response = await api.patch(`/app_users?id=eq.${profile?.id}`, {
-        name: data.name,
-        email: data.email,
+      const response = await fetch(`/api/profile`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
       
-      if (response.error) {
-        throw new Error(response.error);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update profile');
       }
       
-      return response.data;
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
