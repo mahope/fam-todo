@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { Priority, Recurrence } from '@prisma/client';
 
 async function getSessionData() {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     throw new Error('Unauthorized');
   }
@@ -353,6 +354,14 @@ export async function PUT(
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+// PATCH /api/tasks/[id] - Update a specific task (alias for PUT)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  return PUT(request, { params });
 }
 
 // DELETE /api/tasks/[id] - Delete a specific task
