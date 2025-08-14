@@ -72,6 +72,7 @@ model Family {
   lists       List[]
   tasks       Task[]
   shoppingItems ShoppingItem[]
+  invites     FamilyInvite[]
 
   @@map("families")
 }
@@ -94,6 +95,7 @@ model AppUser {
   ownedLists   List[]   @relation("ListOwner")
   ownedTasks   Task[]   @relation("TaskOwner")
   assignedTasks Task[]  @relation("TaskAssignee")
+  sentInvites  FamilyInvite[]
 
   @@map("app_users")
 }
@@ -204,6 +206,26 @@ model ShoppingDictionary {
   category String
   
   @@map("shopping_dictionary")
+}
+
+model FamilyInvite {
+  id          String   @id @default(uuid())
+  familyId    String
+  email       String
+  role        Role     @default(ADULT)
+  invitedBy   String
+  token       String   @unique
+  accepted    Boolean  @default(false)
+  expires_at  DateTime
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  
+  // Relations
+  family      Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  inviter     AppUser  @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
+  
+  @@unique([familyId, email])
+  @@map("family_invites")
 }
 
 // Enums
