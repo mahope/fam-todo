@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{\"../node_modules/@supabase/realtime-js/dist/module/RealtimeClient.js -> @supabase/node-fetch\":{\"id\":\"../node_modules/@supabase/realtime-js/dist/module/RealtimeClient.js -> @supabase/node-fetch\",\"files\":[\"static/chunks/_app-pages-browser_node_modules_supabase_node-fetch_browser_js.js\"]}}"
+self.__REACT_LOADABLE_MANIFEST="{}"

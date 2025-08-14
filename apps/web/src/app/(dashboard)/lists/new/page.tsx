@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import * as z from "zod";
 import { useApi } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -53,6 +54,7 @@ const LIST_COLORS = [
 export default function NewListPage() {
   const router = useRouter();
   const api = useApi();
+  const { data: session } = useSession();
 
   const form = useForm<CreateListFormValues>({
     resolver: zodResolver(createListSchema),
@@ -67,11 +69,34 @@ export default function NewListPage() {
 
   const createListMutation = useMutation({
     mutationFn: async (data: CreateListFormValues) => {
-      const response = await api.post("/lists", {
+      // Get JWT claims for family_id and owner_id
+      const token = (session as any)?.postgrestToken;
+      let familyId = null;
+      let ownerId = null;
+      
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          familyId = payload.family_id;
+          ownerId = payload.app_user_id;
+          console.log('JWT Payload:', payload);
+          console.log('Extracted familyId:', familyId);
+          console.log('Extracted ownerId:', ownerId);
+        } catch (e) {
+          console.error('Failed to parse JWT token:', e);
+        }
+      }
+      
+      const listData = {
         ...data,
         description: data.description || null,
         color: data.color || null,
-      });
+        family_id: familyId,
+        owner_id: ownerId,
+      };
+      
+      console.log('Sending list data:', listData);
+      const response = await api.post("/lists", listData);
       
       if (response.error) {
         throw new Error(response.error);

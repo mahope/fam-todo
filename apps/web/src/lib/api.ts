@@ -130,6 +130,10 @@ export const apiClient = new ApiClient();
 export function useApi() {
   const { data: session } = useSession();
   const token = (session as any)?.postgrestToken;
+  
+  // Debug logging
+  console.log('useApi session:', session);
+  console.log('useApi token:', token);
 
   return {
     async get<T = any>(endpoint: string, searchParams?: Record<string, any>): Promise<ApiResponse<T>> {
@@ -140,6 +144,7 @@ export function useApi() {
       });
     },
     async post<T = any>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+      console.log('POST request to:', endpoint, 'with token:', token ? 'present' : 'missing');
       return apiClient.request<T>(endpoint, {
         method: "POST",
         body: JSON.stringify(data),

@@ -75,6 +75,7 @@ export const auth = betterAuth({
           const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 
           const token = await new SignJWT({
+            role: "authenticated", // Required by PostgREST
             app_user_id: appUser.id,
             family_id: appUser.family_id,
             role_name: appUser.role,
