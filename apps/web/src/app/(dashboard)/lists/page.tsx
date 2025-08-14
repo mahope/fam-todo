@@ -40,7 +40,7 @@ export default function ListsPage() {
   
   // Memoized filtering for better performance
   const filteredLists = useMemo(() => {
-    if (!lists) return [];
+    if (!lists || !Array.isArray(lists)) return [];
     
     return lists.filter(list => {
       const matchesSearch = !searchQuery || 

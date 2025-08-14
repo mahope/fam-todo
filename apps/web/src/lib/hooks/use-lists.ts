@@ -14,7 +14,9 @@ export function useLists() {
       if (response.error) {
         throw new Error(response.error);
       }
-      return response.data as List[];
+      // Ensure we always return an array
+      const data = response.data;
+      return Array.isArray(data) ? data as List[] : [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     cacheTime: 10 * 60 * 1000, // 10 minutes
