@@ -70,6 +70,14 @@ const nextConfig = {
   compiler: {
     reactRemoveProperties: true,
   },
+  webpack: (config) => {
+    // Fix for BetterAuth trying to import from 'zod/v4'
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'zod/v4': 'zod',
+    };
+    return config;
+  },
 };
 
 module.exports = withPWA(nextConfig);

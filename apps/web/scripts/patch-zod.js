@@ -14,13 +14,29 @@ if (!fs.existsSync(zodPath)) {
   process.exit(1);
 }
 
-// Create v4.js file as a complete mirror with email compatibility
+// Create v4.js file as a complete mirror with meta compatibility
 const v4JsContent = `// Complete compatibility shim - re-export everything from zod
 const zod = require('./lib/index.js');
 module.exports = zod;
 
 // Add the email function that BetterAuth expects
-module.exports.email = () => zod.string().email();`;
+module.exports.email = () => zod.string().email();
+
+// Extend ZodString prototype with meta method for BetterAuth compatibility
+if (zod.ZodString && !zod.ZodString.prototype.meta) {
+  zod.ZodString.prototype.meta = function(metadata) {
+    this._def.metadata = metadata;
+    return this;
+  };
+}
+
+// Extend ZodType prototype with meta method for BetterAuth compatibility
+if (zod.ZodType && !zod.ZodType.prototype.meta) {
+  zod.ZodType.prototype.meta = function(metadata) {
+    this._def.metadata = metadata;
+    return this;
+  };
+}`;
 
 const v4JsPath = path.join(zodPath, 'v4.js');
 fs.writeFileSync(v4JsPath, v4JsContent);
@@ -30,15 +46,30 @@ console.log('✅ Created v4.js file');
 const v4MjsContent = `// Complete compatibility shim - re-export everything from zod
 export * from './lib/index.mjs';
 
-// Import the string function to create email validator
-import { string as stringType } from './lib/index.mjs';
+// Import Zod to extend with missing methods
+import * as zod from './lib/index.mjs';
 
 // Add the email function that BetterAuth expects
-export const email = () => stringType().email();
+export const email = () => zod.string().email();
+
+// Extend ZodString prototype with meta method for BetterAuth compatibility
+if (zod.ZodString && !zod.ZodString.prototype.meta) {
+  zod.ZodString.prototype.meta = function(metadata) {
+    this._def.metadata = metadata;
+    return this;
+  };
+}
+
+// Extend ZodType prototype with meta method for BetterAuth compatibility
+if (zod.ZodType && !zod.ZodType.prototype.meta) {
+  zod.ZodType.prototype.meta = function(metadata) {
+    this._def.metadata = metadata;
+    return this;
+  };
+}
 
 // Also provide default export for compatibility
-import zodDefault from './lib/index.mjs';
-export default zodDefault;`;
+export default zod;`;
 
 const v4MjsPath = path.join(zodPath, 'v4.mjs');
 fs.writeFileSync(v4MjsPath, v4MjsContent);
