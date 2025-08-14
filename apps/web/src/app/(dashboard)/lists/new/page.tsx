@@ -30,8 +30,8 @@ import { ArrowLeft, ListTodo, ShoppingCart, Lock, Eye, Users } from "lucide-reac
 import Link from "next/link";
 
 const createListSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name is too long"),
-  description: z.string().max(500, "Description is too long").optional(),
+  name: z.string().min(1, "Navn er påkrævet").max(100, "Navn er for langt"),
+  description: z.string().max(500, "Beskrivelse er for lang").optional(),
   type: z.enum(["generic", "shopping"]),
   visibility: z.enum(["private", "family", "adults"]),
   color: z.string().optional(),
@@ -40,11 +40,11 @@ const createListSchema = z.object({
 type CreateListFormValues = z.infer<typeof createListSchema>;
 
 const LIST_COLORS = [
-  { value: "#3b82f6", name: "Blue" },
-  { value: "#10b981", name: "Green" },
-  { value: "#f59e0b", name: "Yellow" },
-  { value: "#ef4444", name: "Red" },
-  { value: "#8b5cf6", name: "Purple" },
+  { value: "#3b82f6", name: "Blå" },
+  { value: "#10b981", name: "Grøn" },
+  { value: "#f59e0b", name: "Gul" },
+  { value: "#ef4444", name: "Rød" },
+  { value: "#8b5cf6", name: "Lilla" },
   { value: "#06b6d4", name: "Cyan" },
   { value: "#f97316", name: "Orange" },
   { value: "#84cc16", name: "Lime" },
@@ -103,18 +103,18 @@ export default function NewListPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Create New List</h1>
+          <h1 className="text-2xl font-bold">Opret Ny Liste</h1>
           <p className="text-muted-foreground">
-            Set up a new task or shopping list for your family
+            Opsæt en ny opgave- eller indkøbsliste til din familie
           </p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>List Details</CardTitle>
+          <CardTitle>Liste Detaljer</CardTitle>
           <CardDescription>
-            Configure your list settings and visibility
+            Konfigurer dine liste indstillinger og synlighed
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -125,10 +125,10 @@ export default function NewListPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Navn</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g., Grocery List, Weekend Tasks"
+                        placeholder="f.eks. Indkøbsliste, Weekend Opgaver"
                         {...field}
                       />
                     </FormControl>
@@ -142,10 +142,10 @@ export default function NewListPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormLabel>Beskrivelse (Valgfri)</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Add a description for your list..."
+                        placeholder="Tilføj en beskrivelse til din liste..."
                         className="resize-none"
                         rows={3}
                         {...field}
@@ -162,32 +162,32 @@ export default function NewListPage() {
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>List Type</FormLabel>
+                      <FormLabel>Liste Type</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Choose list type" />
+                            <SelectValue placeholder="Vælg liste type" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="generic">
                             <div className="flex items-center gap-2">
                               <ListTodo className="h-4 w-4" />
-                              Task List
+                              Opgaveliste
                             </div>
                           </SelectItem>
                           <SelectItem value="shopping">
                             <div className="flex items-center gap-2">
                               <ShoppingCart className="h-4 w-4" />
-                              Shopping List
+                              Indkøbsliste
                             </div>
                           </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormDescription>
                         {selectedType === "shopping" 
-                          ? "Shopping lists have smart categorization and suggestions"
-                          : "Task lists are great for organizing to-dos and projects"
+                          ? "Indkøbslister har smart kategorisering og forslag"
+                          : "Opgavelister er fantastiske til at organisere to-do's og projekter"
                         }
                       </FormDescription>
                       <FormMessage />
@@ -200,38 +200,38 @@ export default function NewListPage() {
                   name="visibility"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Visibility</FormLabel>
+                      <FormLabel>Synlighed</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Who can see this list?" />
+                            <SelectValue placeholder="Hvem kan se denne liste?" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="private">
                             <div className="flex items-center gap-2">
                               <Lock className="h-4 w-4" />
-                              Private
+                              Privat
                             </div>
                           </SelectItem>
                           <SelectItem value="family">
                             <div className="flex items-center gap-2">
                               <Eye className="h-4 w-4" />
-                              Family
+                              Familie
                             </div>
                           </SelectItem>
                           <SelectItem value="adults">
                             <div className="flex items-center gap-2">
                               <Users className="h-4 w-4" />
-                              Adults Only
+                              Kun Voksne
                             </div>
                           </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        {selectedVisibility === "private" && "Only you can see and edit this list"}
-                        {selectedVisibility === "family" && "All family members can see and edit this list"}
-                        {selectedVisibility === "adults" && "Only adult family members can see and edit this list"}
+                        {selectedVisibility === "private" && "Kun du kan se og redigere denne liste"}
+                        {selectedVisibility === "family" && "Alle familiemedlemmer kan se og redigere denne liste"}
+                        {selectedVisibility === "adults" && "Kun voksne familiemedlemmer kan se og redigere denne liste"}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -244,7 +244,7 @@ export default function NewListPage() {
                 name="color"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Color Theme</FormLabel>
+                    <FormLabel>Farvetema</FormLabel>
                     <FormControl>
                       <div className="flex gap-2 flex-wrap">
                         {LIST_COLORS.map((color) => (
@@ -264,7 +264,7 @@ export default function NewListPage() {
                       </div>
                     </FormControl>
                     <FormDescription>
-                      Choose a color to help identify your list
+                      Vælg en farve til at hjælpe med at identificere din liste
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -283,7 +283,7 @@ export default function NewListPage() {
                   disabled={createListMutation.isPending}
                   className="flex-1"
                 >
-                  {createListMutation.isPending ? "Creating..." : "Create List"}
+                  {createListMutation.isPending ? "Opretter..." : "Opret Liste"}
                 </Button>
                 <Button
                   type="button"
@@ -291,7 +291,7 @@ export default function NewListPage() {
                   asChild
                   disabled={createListMutation.isPending}
                 >
-                  <Link href="/lists">Cancel</Link>
+                  <Link href="/lists">Annuller</Link>
                 </Button>
               </div>
             </form>

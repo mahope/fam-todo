@@ -105,16 +105,16 @@ export default function ShoppingPage() {
         <div>
           <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
             <ShoppingCart className="h-8 w-8" />
-            Shopping Lists
+            Indkøbslister
           </h1>
           <p className="text-muted-foreground">
-            Smart shopping lists with auto-categorization
+            Smarte indkøbslister med auto-kategorisering
           </p>
         </div>
         <Button asChild className="mt-4 sm:mt-0">
           <Link href="/lists/new">
             <Plus className="h-4 w-4 mr-2" />
-            New Shopping List
+            Ny Indkøbsliste
           </Link>
         </Button>
       </div>
@@ -124,7 +124,7 @@ export default function ShoppingPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search shopping lists..."
+            placeholder="Søg indkøbslister..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -151,9 +151,9 @@ export default function ShoppingPage() {
         <Card>
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
-              <p className="text-destructive mb-2">Failed to load shopping lists</p>
+              <p className="text-destructive mb-2">Kunne ikke indlæse indkøbslister</p>
               <p className="text-sm text-muted-foreground">
-                Please check your connection and try again
+                Tjek venligst din forbindelse og prøv igen
               </p>
             </div>
           </CardContent>
@@ -198,7 +198,7 @@ export default function ShoppingPage() {
                         <div className="space-y-1">
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">
-                              {list.purchased_items || 0} of {list.total_items || 0} items
+                              {list.purchased_items || 0} af {list.total_items || 0} varer
                             </span>
                             <span className="font-medium">{list.progress || 0}%</span>
                           </div>
@@ -215,7 +215,11 @@ export default function ShoppingPage() {
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <VisibilityIcon className={`h-4 w-4 ${getVisibilityColor(list.visibility)}`} />
-                          <span className="capitalize">{list.visibility}</span>
+                          <span className="capitalize">
+                            {list.visibility === 'private' ? 'Privat' :
+                             list.visibility === 'family' ? 'Familie' :
+                             list.visibility === 'adults' ? 'Kun voksne' : list.visibility}
+                          </span>
                         </div>
                         <div className="flex items-center gap-4">
                           <span>{new Date(list.updated_at).toLocaleDateString()}</span>
@@ -233,16 +237,16 @@ export default function ShoppingPage() {
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
               <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No shopping lists found</h3>
+              <h3 className="text-lg font-semibold mb-2">Ingen indkøbslister fundet</h3>
               <p className="text-muted-foreground mb-6">
                 {searchQuery 
-                  ? "Try adjusting your search terms" 
-                  : "Get started by creating your first shopping list"}
+                  ? "Prøv at justere dine søgeord" 
+                  : "Kom i gang ved at oprette din første indkøbsliste"}
               </p>
               <Button asChild>
                 <Link href="/lists/new">
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Shopping List
+                  Opret Indkøbsliste
                 </Link>
               </Button>
             </div>

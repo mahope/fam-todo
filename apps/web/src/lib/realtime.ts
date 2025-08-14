@@ -1,4 +1,4 @@
-import { RealtimeClient, RealtimeSubscription } from "@supabase/realtime-js";
+import { RealtimeClient } from "@supabase/realtime-js";
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
@@ -18,7 +18,7 @@ export interface RealtimeEvent {
 }
 
 function getRealtimeClient(token?: string): RealtimeClient {
-  if (!realtimeClient || (token && realtimeClient.accessToken !== token)) {
+  if (!realtimeClient || (token && (realtimeClient as any).accessToken !== token)) {
     // Close existing connection
     if (realtimeClient) {
       realtimeClient.disconnect();
@@ -35,7 +35,7 @@ export function useRealtime() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [isConnected, setIsConnected] = useState(false);
-  const subscriptionsRef = useRef<Map<string, RealtimeSubscription>>(new Map());
+  const subscriptionsRef = useRef<Map<string, any>>(new Map());
 
   const token = (session as any)?.postgrestToken;
 
@@ -62,9 +62,9 @@ export function useRealtime() {
       setIsConnected(false);
     };
 
-    client.onOpen(handleOpen);
-    client.onClose(handleClose);
-    client.onError(handleError);
+    (client as any).onOpen(handleOpen);
+    (client as any).onClose(handleClose);
+    (client as any).onError(handleError);
 
     // Connect
     client.connect();

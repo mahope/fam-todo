@@ -63,7 +63,7 @@ export const auth = betterAuth({
   },
   callbacks: {
     session: {
-      create: async ({ session, user }) => {
+      create: async ({ session, user }: { session: any; user: any }) => {
         // Create JWT token with custom claims for PostgREST
         const appUsers = await queryDatabase(
           `SELECT id, family_id, role FROM app_users WHERE auth_user_id = $1`,
@@ -96,7 +96,7 @@ export const auth = betterAuth({
       },
     },
     user: {
-      create: async ({ user }) => {
+      create: async ({ user }: { user: any }) => {
         // After BetterAuth creates the auth user, create an app_user
         const familyName = user.email.split("@")[0] + "'s Family";
         

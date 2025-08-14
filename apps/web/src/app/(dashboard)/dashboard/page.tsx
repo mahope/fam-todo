@@ -56,7 +56,7 @@ export default function DashboardPage() {
       <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
         <div className="text-center space-y-4">
           <ListTodo className="h-12 w-12 mx-auto animate-pulse" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">Indlæser...</p>
         </div>
       </div>
     );
@@ -70,17 +70,17 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">
-            Welcome back, {user.name?.split(' ')[0] || 'there'}!
+            Velkommen tilbage, {user.name?.split(' ')[0] || 'der'}!
           </h1>
           <p className="text-muted-foreground">
-            Here's what's happening with your family's tasks today.
+            Her er hvad der sker med din families opgaver i dag.
           </p>
         </div>
         <div className="flex gap-2 mt-4 sm:mt-0">
           <Button asChild>
             <Link href="/lists/new">
               <Plus className="h-4 w-4 mr-2" />
-              New List
+              Ny Liste
             </Link>
           </Button>
         </div>
@@ -90,7 +90,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Lists</CardTitle>
+            <CardTitle className="text-sm font-medium">Totale Lister</CardTitle>
             <ListTodo className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Tasks</CardTitle>
+            <CardTitle className="text-sm font-medium">Aktive Opgaver</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -114,7 +114,7 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
+            <CardTitle className="text-sm font-medium">Fuldført I Dag</CardTitle>
             <CheckSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -126,7 +126,7 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Family Members</CardTitle>
+            <CardTitle className="text-sm font-medium">Familiemedlemmer</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -144,10 +144,10 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              Upcoming Tasks
+              Kommende Opgaver
             </CardTitle>
             <CardDescription>
-              Your next tasks sorted by due date
+              Dine næste opgaver sorteret efter forfaldsdato
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -170,7 +170,7 @@ export default function DashboardPage() {
                         {task.list_id?.name} • {
                           task.due_at 
                             ? new Date(task.due_at).toLocaleDateString()
-                            : "No due date"
+                            : "Ingen forfaldsdato"
                         }
                       </p>
                     </div>
@@ -187,16 +187,16 @@ export default function DashboardPage() {
                 ))}
                 {tasks.length > 5 && (
                   <Button variant="ghost" size="sm" asChild className="w-full mt-4">
-                    <Link href="/tasks">View all tasks</Link>
+                    <Link href="/tasks">Se alle opgaver</Link>
                   </Button>
                 )}
               </div>
             ) : (
               <div className="text-center py-6">
                 <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                <p className="text-muted-foreground mb-4">No tasks yet</p>
+                <p className="text-muted-foreground mb-4">Ingen opgaver endnu</p>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href="/lists">Create your first list</Link>
+                  <Link href="/lists">Opret din første liste</Link>
                 </Button>
               </div>
             )}
@@ -208,10 +208,10 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ListTodo className="h-5 w-5" />
-              Your Lists
+              Dine Lister
             </CardTitle>
             <CardDescription>
-              Recently updated lists
+              Senest opdaterede lister
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -242,23 +242,23 @@ export default function DashboardPage() {
                         <p className="text-sm font-medium truncate">{list.name}</p>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {list.visibility === 'private' ? 'Private' : 
-                         list.visibility === 'family' ? 'Family' : 'Adults only'} • 
+                        {list.visibility === 'private' ? 'Privat' : 
+                         list.visibility === 'family' ? 'Familie' : 'Kun voksne'} • 
                         {new Date(list.updated_at).toLocaleDateString()}
                       </p>
                     </div>
                   </Link>
                 ))}
                 <Button variant="ghost" size="sm" asChild className="w-full mt-4">
-                  <Link href="/lists">View all lists</Link>
+                  <Link href="/lists">Se alle lister</Link>
                 </Button>
               </div>
             ) : (
               <div className="text-center py-6">
                 <ListTodo className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                <p className="text-muted-foreground mb-4">No lists yet</p>
+                <p className="text-muted-foreground mb-4">Ingen lister endnu</p>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href="/lists/new">Create your first list</Link>
+                  <Link href="/lists/new">Opret din første liste</Link>
                 </Button>
               </div>
             )}

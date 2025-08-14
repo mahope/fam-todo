@@ -83,7 +83,7 @@ export default function ListsPage() {
   });
 
   const handleDeleteList = async (listId: string, listName: string) => {
-    if (window.confirm(`Are you sure you want to delete "${listName}"? This action cannot be undone.`)) {
+    if (window.confirm(`Er du sikker på at du vil slette "${listName}"? Denne handling kan ikke fortrydes.`)) {
       deleteListMutation.mutate(listId);
     }
   };
@@ -121,15 +121,15 @@ export default function ListsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Your Lists</h1>
+          <h1 className="text-3xl font-bold mb-2">Dine Lister</h1>
           <p className="text-muted-foreground">
-            Manage your task lists and shopping lists
+            Håndter dine opgavelister og indkøbslister
           </p>
         </div>
         <Button asChild className="mt-4 sm:mt-0">
           <Link href="/lists/new">
             <Plus className="h-4 w-4 mr-2" />
-            New List
+            Ny Liste
           </Link>
         </Button>
       </div>
@@ -139,7 +139,7 @@ export default function ListsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search lists..."
+            placeholder="Søg lister..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -151,20 +151,20 @@ export default function ListsPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <Filter className="h-4 w-4 mr-2" />
-                Type: {filter === "all" ? "All" : filter === "generic" ? "Tasks" : "Shopping"}
+                Type: {filter === "all" ? "Alle" : filter === "generic" ? "Opgaver" : "Indkøb"}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => setFilter("all")}>
-                All Types
+                Alle Typer
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setFilter("generic")}>
                 <ListTodo className="h-4 w-4 mr-2" />
-                Task Lists
+                Opgavelister
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setFilter("shopping")}>
                 <ShoppingCart className="h-4 w-4 mr-2" />
-                Shopping Lists
+                Indkøbslister
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -173,24 +173,26 @@ export default function ListsPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <Eye className="h-4 w-4 mr-2" />
-                {visibility === "all" ? "All" : visibility.charAt(0).toUpperCase() + visibility.slice(1)}
+                {visibility === "all" ? "Alle" : 
+                 visibility === "private" ? "Privat" :
+                 visibility === "family" ? "Familie" : "Kun voksne"}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => setVisibility("all")}>
-                All Lists
+                Alle Lister
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setVisibility("private")}>
                 <Lock className="h-4 w-4 mr-2" />
-                Private
+                Privat
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setVisibility("family")}>
                 <Eye className="h-4 w-4 mr-2" />
-                Family
+                Familie
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setVisibility("adults")}>
                 <Users className="h-4 w-4 mr-2" />
-                Adults Only
+                Kun Voksne
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -216,9 +218,9 @@ export default function ListsPage() {
         <Card>
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
-              <p className="text-destructive mb-2">Failed to load lists</p>
+              <p className="text-destructive mb-2">Kunne ikke indlæse lister</p>
               <p className="text-sm text-muted-foreground">
-                Please check your connection and try again
+                Tjek venligst din forbindelse og prøv igen
               </p>
             </div>
           </CardContent>
@@ -266,7 +268,7 @@ export default function ListsPage() {
                         <DropdownMenuItem asChild>
                           <Link href={`/lists/${list.id}/edit`}>
                             <Edit className="h-4 w-4 mr-2" />
-                            Edit
+                            Rediger
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -275,7 +277,7 @@ export default function ListsPage() {
                           className="text-destructive"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
+                          Slet
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -286,7 +288,11 @@ export default function ListsPage() {
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <VisibilityIcon className={`h-4 w-4 ${getVisibilityColor(list.visibility)}`} />
-                      <span className="capitalize">{list.visibility}</span>
+                      <span className="capitalize">
+                        {list.visibility === 'private' ? 'Privat' :
+                         list.visibility === 'family' ? 'Familie' :
+                         list.visibility === 'adults' ? 'Kun voksne' : list.visibility}
+                      </span>
                     </div>
                     <div className="flex items-center gap-4">
                       <span>{new Date(list.updated_at).toLocaleDateString()}</span>
@@ -302,16 +308,16 @@ export default function ListsPage() {
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
               <ListTodo className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No lists found</h3>
+              <h3 className="text-lg font-semibold mb-2">Ingen lister fundet</h3>
               <p className="text-muted-foreground mb-6">
                 {searchQuery || filter !== "all" || visibility !== "all" 
-                  ? "Try adjusting your filters or search terms" 
-                  : "Get started by creating your first list"}
+                  ? "Prøv at justere dine filtre eller søgetermer" 
+                  : "Kom i gang ved at oprette din første liste"}
               </p>
               <Button asChild>
                 <Link href="/lists/new">
                   <Plus className="h-4 w-4 mr-2" />
-                  Create List
+                  Opret Liste
                 </Link>
               </Button>
             </div>

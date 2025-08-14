@@ -22,7 +22,7 @@ export default function DashboardLayout({
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="animate-pulse">Loading...</div>
+          <div className="animate-pulse">Indlæser...</div>
         </div>
       </div>
     );
