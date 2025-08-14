@@ -40,7 +40,10 @@ export default function ListsPage() {
   
   // Memoized filtering for better performance
   const filteredLists = useMemo(() => {
-    if (!lists || !Array.isArray(lists)) return [];
+    // Handle case where lists is an error object or not an array
+    if (!lists || !Array.isArray(lists) || typeof lists === 'object' && 'error' in lists) {
+      return [];
+    }
     
     return lists.filter(list => {
       const matchesSearch = !searchQuery || 
