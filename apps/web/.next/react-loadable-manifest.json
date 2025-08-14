@@ -1,20 +1,8 @@
 {
-  "..\\node_modules\\@supabase\\realtime-js\\dist\\module\\RealtimeClient.js -> @supabase/node-fetch": {
-    "id": 9477,
+  "../node_modules/@supabase/realtime-js/dist/module/RealtimeClient.js -> @supabase/node-fetch": {
+    "id": "../node_modules/@supabase/realtime-js/dist/module/RealtimeClient.js -> @supabase/node-fetch",
     "files": [
-      "static/chunks/477.b69a0d873fa2b5a0.js"
-    ]
-  },
-  "..\\node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
-    "id": 4708,
-    "files": [
-      "static/chunks/708.f44c2ea4849e823b.js"
-    ]
-  },
-  "..\\node_modules\\next\\dist\\client\\index.js -> ../pages/_error": {
-    "id": 8037,
-    "files": [
-      "static/chunks/37.375b1dafd307238e.js"
+      "static/chunks/_app-pages-browser_node_modules_supabase_node-fetch_browser_js.js"
     ]
   }
 }

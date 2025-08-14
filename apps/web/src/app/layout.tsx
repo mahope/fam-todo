@@ -7,6 +7,7 @@ import { getMessages, getLocale } from 'next-intl/server';
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Header } from "@/components/header";
+import { ClientOnly } from "@/components/client-only";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,7 +41,9 @@ export default async function RootLayout({
       <body className={inter.className}>
         <Providers>
           <NextIntlClientProvider locale={locale} messages={messages}>
-            <Header />
+            <ClientOnly fallback={<div className="h-14 border-b bg-background"></div>}>
+              <Header />
+            </ClientOnly>
             <main className="flex-1">{children}</main>
           </NextIntlClientProvider>
         </Providers>
