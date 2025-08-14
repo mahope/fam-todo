@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, ListTodo, CheckSquare, Clock, Users, ShoppingCart } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 
 export default function DashboardPage() {
+  const t = useTranslations('dashboard');
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const api = useApi();
@@ -56,7 +58,7 @@ export default function DashboardPage() {
       <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
         <div className="text-center space-y-4">
           <ListTodo className="h-12 w-12 mx-auto animate-pulse" />
-          <p className="text-muted-foreground">Indlæser...</p>
+          <p className="text-muted-foreground">{t('loading')}</p>
         </div>
       </div>
     );
@@ -70,17 +72,17 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">
-            Velkommen tilbage, {user.name?.split(' ')[0] || 'der'}!
+            {t('welcome_back', { name: user.name?.split(' ')[0] || t('there') })}
           </h1>
           <p className="text-muted-foreground">
-            Her er hvad der sker med din families opgaver i dag.
+            {t('welcome_subtitle')}
           </p>
         </div>
         <div className="flex gap-2 mt-4 sm:mt-0">
           <Button asChild>
             <Link href="/lists/new">
               <Plus className="h-4 w-4 mr-2" />
-              Ny Liste
+              {t('new_list')}
             </Link>
           </Button>
         </div>
@@ -90,7 +92,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Totale Lister</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('total_lists')}</CardTitle>
             <ListTodo className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -102,7 +104,7 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aktive Opgaver</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('active_tasks')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -114,7 +116,7 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fuldført I Dag</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('completed_today')}</CardTitle>
             <CheckSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -126,7 +128,7 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Familiemedlemmer</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('family_members')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -144,10 +146,10 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              Kommende Opgaver
+              {t('upcoming_tasks')}
             </CardTitle>
             <CardDescription>
-              Dine næste opgaver sorteret efter forfaldsdato
+              {t('upcoming_tasks_description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -170,7 +172,7 @@ export default function DashboardPage() {
                         {task.list_id?.name} • {
                           task.due_at 
                             ? new Date(task.due_at).toLocaleDateString()
-                            : "Ingen forfaldsdato"
+                            : t('no_due_date')
                         }
                       </p>
                     </div>
@@ -187,16 +189,16 @@ export default function DashboardPage() {
                 ))}
                 {tasks.length > 5 && (
                   <Button variant="ghost" size="sm" asChild className="w-full mt-4">
-                    <Link href="/tasks">Se alle opgaver</Link>
+                    <Link href="/tasks">{t('see_all_tasks')}</Link>
                   </Button>
                 )}
               </div>
             ) : (
               <div className="text-center py-6">
                 <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                <p className="text-muted-foreground mb-4">Ingen opgaver endnu</p>
+                <p className="text-muted-foreground mb-4">{t('no_tasks_yet')}</p>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href="/lists">Opret din første liste</Link>
+                  <Link href="/lists">{t('create_first_list')}</Link>
                 </Button>
               </div>
             )}
@@ -208,10 +210,10 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ListTodo className="h-5 w-5" />
-              Dine Lister
+              {t('your_lists')}
             </CardTitle>
             <CardDescription>
-              Senest opdaterede lister
+              {t('recently_updated_lists')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -242,23 +244,23 @@ export default function DashboardPage() {
                         <p className="text-sm font-medium truncate">{list.name}</p>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {list.visibility === 'private' ? 'Privat' : 
-                         list.visibility === 'family' ? 'Familie' : 'Kun voksne'} • 
+                        {list.visibility === 'private' ? t('private') : 
+                         list.visibility === 'family' ? t('family') : t('adults_only')} • 
                         {new Date(list.updated_at).toLocaleDateString()}
                       </p>
                     </div>
                   </Link>
                 ))}
                 <Button variant="ghost" size="sm" asChild className="w-full mt-4">
-                  <Link href="/lists">Se alle lister</Link>
+                  <Link href="/lists">{t('see_all_lists')}</Link>
                 </Button>
               </div>
             ) : (
               <div className="text-center py-6">
                 <ListTodo className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                <p className="text-muted-foreground mb-4">Ingen lister endnu</p>
+                <p className="text-muted-foreground mb-4">{t('no_lists_yet')}</p>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href="/lists/new">Opret din første liste</Link>
+                  <Link href="/lists/new">{t('create_first_list')}</Link>
                 </Button>
               </div>
             )}

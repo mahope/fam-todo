@@ -27,6 +27,7 @@ import {
   Eye,
   Filter,
 } from "lucide-react";
+import { useTranslations } from 'next-intl';
 
 type ListWithTasks = List & {
   task_count?: number;
@@ -34,6 +35,7 @@ type ListWithTasks = List & {
 };
 
 export default function ListsPage() {
+  const t = useTranslations('lists');
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "generic" | "shopping">("all");
   const [visibility, setVisibility] = useState<"all" | "private" | "family" | "adults">("all");
@@ -83,7 +85,7 @@ export default function ListsPage() {
   });
 
   const handleDeleteList = async (listId: string, listName: string) => {
-    if (window.confirm(`Er du sikker på at du vil slette "${listName}"? Denne handling kan ikke fortrydes.`)) {
+    if (window.confirm(t('deleteConfirm', { name: listName }))) {
       deleteListMutation.mutate(listId);
     }
   };
@@ -121,15 +123,15 @@ export default function ListsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Dine Lister</h1>
+          <h1 className="text-3xl font-bold mb-2">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Håndter dine opgavelister og indkøbslister
+            {t('subtitle')}
           </p>
         </div>
         <Button asChild className="mt-4 sm:mt-0">
           <Link href="/lists/new">
             <Plus className="h-4 w-4 mr-2" />
-            Ny Liste
+            {t('createNew')}
           </Link>
         </Button>
       </div>
@@ -139,7 +141,7 @@ export default function ListsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Søg lister..."
+            placeholder={t('search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -151,20 +153,20 @@ export default function ListsPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <Filter className="h-4 w-4 mr-2" />
-                Type: {filter === "all" ? "Alle" : filter === "generic" ? "Opgaver" : "Indkøb"}
+                {t('type')}: {filter === "all" ? t('all') : filter === "generic" ? t('tasks') : t('shopping')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => setFilter("all")}>
-                Alle Typer
+                {t('allTypes')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setFilter("generic")}>
                 <ListTodo className="h-4 w-4 mr-2" />
-                Opgavelister
+                {t('taskLists')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setFilter("shopping")}>
                 <ShoppingCart className="h-4 w-4 mr-2" />
-                Indkøbslister
+                {t('shoppingLists')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -173,26 +175,26 @@ export default function ListsPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <Eye className="h-4 w-4 mr-2" />
-                {visibility === "all" ? "Alle" : 
-                 visibility === "private" ? "Privat" :
-                 visibility === "family" ? "Familie" : "Kun voksne"}
+                {visibility === "all" ? t('all') : 
+                 visibility === "private" ? t('private') :
+                 visibility === "family" ? t('family') : t('adultsOnly')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => setVisibility("all")}>
-                Alle Lister
+                {t('allLists')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setVisibility("private")}>
                 <Lock className="h-4 w-4 mr-2" />
-                Privat
+                {t('private')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setVisibility("family")}>
                 <Eye className="h-4 w-4 mr-2" />
-                Familie
+                {t('family')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setVisibility("adults")}>
                 <Users className="h-4 w-4 mr-2" />
-                Kun Voksne
+                {t('adultsOnly')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -218,9 +220,9 @@ export default function ListsPage() {
         <Card>
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
-              <p className="text-destructive mb-2">Kunne ikke indlæse lister</p>
+              <p className="text-destructive mb-2">{t('errorLoading')}</p>
               <p className="text-sm text-muted-foreground">
-                Tjek venligst din forbindelse og prøv igen
+                {t('checkConnection')}
               </p>
             </div>
           </CardContent>
@@ -268,7 +270,7 @@ export default function ListsPage() {
                         <DropdownMenuItem asChild>
                           <Link href={`/lists/${list.id}/edit`}>
                             <Edit className="h-4 w-4 mr-2" />
-                            Rediger
+                            {t('edit')}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -277,7 +279,7 @@ export default function ListsPage() {
                           className="text-destructive"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Slet
+                          {t('delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -289,9 +291,9 @@ export default function ListsPage() {
                     <div className="flex items-center gap-2">
                       <VisibilityIcon className={`h-4 w-4 ${getVisibilityColor(list.visibility)}`} />
                       <span className="capitalize">
-                        {list.visibility === 'private' ? 'Privat' :
-                         list.visibility === 'family' ? 'Familie' :
-                         list.visibility === 'adults' ? 'Kun voksne' : list.visibility}
+                        {list.visibility === 'private' ? t('private') :
+                         list.visibility === 'family' ? t('family') :
+                         list.visibility === 'adults' ? t('adultsOnly') : list.visibility}
                       </span>
                     </div>
                     <div className="flex items-center gap-4">
@@ -308,16 +310,16 @@ export default function ListsPage() {
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
               <ListTodo className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Ingen lister fundet</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('noLists')}</h3>
               <p className="text-muted-foreground mb-6">
                 {searchQuery || filter !== "all" || visibility !== "all" 
-                  ? "Prøv at justere dine filtre eller søgetermer" 
-                  : "Kom i gang ved at oprette din første liste"}
+                  ? t('noListsSearch') 
+                  : t('noListsEmpty')}
               </p>
               <Button asChild>
                 <Link href="/lists/new">
                   <Plus className="h-4 w-4 mr-2" />
-                  Opret Liste
+                  {t('createList')}
                 </Link>
               </Button>
             </div>

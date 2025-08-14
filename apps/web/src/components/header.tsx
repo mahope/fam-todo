@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTheme } from "next-themes";
+import { useTranslations } from 'next-intl';
 import { 
   Home, 
   ListTodo, 
@@ -33,6 +34,7 @@ export function Header() {
   const { data: session, isPending } = useSession();
   const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const t = useTranslations('navigation');
 
   const user = session?.user;
   const initials = user?.name
@@ -58,28 +60,28 @@ export function Header() {
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               <Home className="h-4 w-4 inline mr-1" />
-              Overblik
+              {t('overview')}
             </Link>
             <Link
               href="/lists"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               <ListTodo className="h-4 w-4 inline mr-1" />
-              Lister
+              {t('lists')}
             </Link>
             <Link
               href="/shopping"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               <ShoppingCart className="h-4 w-4 inline mr-1" />
-              Indkøb
+              {t('shopping')}
             </Link>
             <Link
               href="/family"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               <Users className="h-4 w-4 inline mr-1" />
-              Familie
+              {t('family')}
             </Link>
           </nav>
         )}
@@ -137,13 +139,13 @@ export function Header() {
                   <DropdownMenuItem asChild>
                     <Link href="/profile">
                       <User className="mr-2 h-4 w-4" />
-                      Profil
+                      {t('profile')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/settings">
                       <Settings className="mr-2 h-4 w-4" />
-                      Indstillinger
+                      {t('settings')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -152,7 +154,7 @@ export function Header() {
                     className="text-destructive"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    Log ud
+                    {t('logout')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -161,10 +163,10 @@ export function Header() {
             !isPending && (
               <div className="flex items-center space-x-2">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href="/login">Log ind</Link>
+                  <Link href="/login">{t('login')}</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link href="/register">Tilmeld</Link>
+                  <Link href="/register">{t('register')}</Link>
                 </Button>
               </div>
             )
@@ -182,7 +184,7 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <Home className="mr-3 h-4 w-4" />
-              Overblik
+              {t('overview')}
             </Link>
             <Link
               href="/lists"
@@ -190,7 +192,7 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <ListTodo className="mr-3 h-4 w-4" />
-              Lister
+              {t('lists')}
             </Link>
             <Link
               href="/shopping"
@@ -198,7 +200,7 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <ShoppingCart className="mr-3 h-4 w-4" />
-              Indkøb
+              {t('shopping')}
             </Link>
             <Link
               href="/family"
@@ -206,7 +208,7 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <Users className="mr-3 h-4 w-4" />
-              Familie
+              {t('family')}
             </Link>
             <div className="my-2 h-px bg-border" />
             <Link
@@ -215,7 +217,7 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <User className="mr-3 h-4 w-4" />
-              Profil
+              {t('profile')}
             </Link>
             <Link
               href="/settings"
@@ -223,7 +225,7 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <Settings className="mr-3 h-4 w-4" />
-              Indstillinger
+              {t('settings')}
             </Link>
             <button
               onClick={() => {
@@ -233,7 +235,7 @@ export function Header() {
               className="flex items-center rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent text-destructive"
             >
               <LogOut className="mr-3 h-4 w-4" />
-              Log ud
+              {t('logout')}
             </button>
           </nav>
         </div>

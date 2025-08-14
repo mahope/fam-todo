@@ -19,6 +19,7 @@ import {
   Calendar,
   Activity
 } from "lucide-react";
+import { useTranslations } from 'next-intl';
 
 type FamilyMember = {
   id: string;
@@ -37,6 +38,7 @@ type Family = {
 };
 
 export default function FamilyPage() {
+  const t = useTranslations('family');
   const api = useApi();
 
   // Fetch family information

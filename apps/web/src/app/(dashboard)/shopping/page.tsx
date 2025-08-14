@@ -18,6 +18,7 @@ import {
   Circle,
 } from "lucide-react";
 import { useRealtimeSubscription } from "@/lib/realtime";
+import { useTranslations } from 'next-intl';
 
 type ShoppingListWithStats = List & {
   total_items?: number;
@@ -26,6 +27,7 @@ type ShoppingListWithStats = List & {
 };
 
 export default function ShoppingPage() {
+  const t = useTranslations('shopping');
   const [searchQuery, setSearchQuery] = useState("");
   
   const api = useApi();
@@ -105,16 +107,16 @@ export default function ShoppingPage() {
         <div>
           <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
             <ShoppingCart className="h-8 w-8" />
-            Indkøbslister
+            {t('title')}
           </h1>
           <p className="text-muted-foreground">
-            Smarte indkøbslister med auto-kategorisering
+            {t('subtitle')}
           </p>
         </div>
         <Button asChild className="mt-4 sm:mt-0">
           <Link href="/lists/new">
             <Plus className="h-4 w-4 mr-2" />
-            Ny Indkøbsliste
+            {t('createNew')}
           </Link>
         </Button>
       </div>
@@ -124,7 +126,7 @@ export default function ShoppingPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Søg indkøbslister..."
+            placeholder={t('search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -151,9 +153,9 @@ export default function ShoppingPage() {
         <Card>
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
-              <p className="text-destructive mb-2">Kunne ikke indlæse indkøbslister</p>
+              <p className="text-destructive mb-2">{t('errorLoading')}</p>
               <p className="text-sm text-muted-foreground">
-                Tjek venligst din forbindelse og prøv igen
+                {t('checkConnection')}
               </p>
             </div>
           </CardContent>
@@ -198,7 +200,7 @@ export default function ShoppingPage() {
                         <div className="space-y-1">
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">
-                              {list.purchased_items || 0} af {list.total_items || 0} varer
+                              {list.purchased_items || 0} {t('of')} {list.total_items || 0} {t('items')}
                             </span>
                             <span className="font-medium">{list.progress || 0}%</span>
                           </div>
@@ -216,9 +218,9 @@ export default function ShoppingPage() {
                         <div className="flex items-center gap-2">
                           <VisibilityIcon className={`h-4 w-4 ${getVisibilityColor(list.visibility)}`} />
                           <span className="capitalize">
-                            {list.visibility === 'private' ? 'Privat' :
-                             list.visibility === 'family' ? 'Familie' :
-                             list.visibility === 'adults' ? 'Kun voksne' : list.visibility}
+                            {list.visibility === 'private' ? t('private') :
+                             list.visibility === 'family' ? t('family') :
+                             list.visibility === 'adults' ? t('adultsOnly') : list.visibility}
                           </span>
                         </div>
                         <div className="flex items-center gap-4">
@@ -237,16 +239,16 @@ export default function ShoppingPage() {
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
               <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Ingen indkøbslister fundet</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('noLists')}</h3>
               <p className="text-muted-foreground mb-6">
                 {searchQuery 
-                  ? "Prøv at justere dine søgeord" 
-                  : "Kom i gang ved at oprette din første indkøbsliste"}
+                  ? t('noListsSearch') 
+                  : t('noListsEmpty')}
               </p>
               <Button asChild>
                 <Link href="/lists/new">
                   <Plus className="h-4 w-4 mr-2" />
-                  Opret Indkøbsliste
+                  {t('createShopping')}
                 </Link>
               </Button>
             </div>

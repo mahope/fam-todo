@@ -1,0 +1,16 @@
+import createMiddleware from 'next-intl/middleware';
+
+export default createMiddleware({
+  locales: ['da', 'en'],
+  defaultLocale: 'da',
+  localePrefix: 'never'
+});
+
+export const config = {
+  // Match all pathnames except for
+  // - api routes
+  // - _next/static (static files)
+  // - _next/image (image optimization files) 
+  // - favicon.ico (favicon file)
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|manifest.json|icon).*)']
+};
