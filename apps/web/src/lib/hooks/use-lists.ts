@@ -11,18 +11,20 @@ export function useLists() {
     queryKey: [LISTS_QUERY_KEY],
     queryFn: async () => {
       const response = await api.get('/lists');
-      console.log('API response:', response);
+      
+      // Check if we got HTML instead of JSON (indicates redirect to login)
+      if (response.data && typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+        throw new Error('Not authenticated - redirected to HTML page');
+      }
       
       // Check if the response itself is an error object
       if (response.error || (response.data && typeof response.data === 'object' && 'error' in response.data)) {
         const errorMsg = response.error || response.data?.error || 'Unknown error';
-        console.error('API error:', errorMsg);
         throw new Error(errorMsg);
       }
       
       // Ensure we always return an array
       const data = response.data;
-      console.log('Lists data:', data, 'Type:', typeof data, 'IsArray:', Array.isArray(data));
       return Array.isArray(data) ? data as List[] : [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

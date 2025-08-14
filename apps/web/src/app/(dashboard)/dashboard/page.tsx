@@ -30,17 +30,19 @@ export default function DashboardPage() {
     queryKey: ["lists"],
     queryFn: async () => {
       const response = await api.get("/lists", { limit: 5 });
-      console.log('Dashboard API response:', response);
+      
+      // Check if we got HTML instead of JSON (indicates redirect to login)
+      if (response.data && typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+        throw new Error('Not authenticated - redirected to HTML page');
+      }
       
       // Handle error responses
       if (response.error || (response.data && typeof response.data === 'object' && 'error' in response.data)) {
         const errorMsg = response.error || response.data?.error || 'Unknown error';
-        console.error('Dashboard API error:', errorMsg);
         throw new Error(errorMsg);
       }
       
       const data = response.data || [];
-      console.log('Dashboard lists data:', data, 'Type:', typeof data, 'IsArray:', Array.isArray(data));
       return Array.isArray(data) ? data : [];
     },
     enabled: !!session,
@@ -55,6 +57,11 @@ export default function DashboardPage() {
         sortOrder: "asc",
         limit: 10 
       });
+      
+      // Check if we got HTML instead of JSON (indicates redirect to login)
+      if (response.data && typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+        throw new Error('Not authenticated - redirected to HTML page');
+      }
       
       // Handle error responses
       if (response.error || (response.data && typeof response.data === 'object' && 'error' in response.data)) {

@@ -1,3 +1,6 @@
 {
-  "/api/lists/route": "app/api/lists/route.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/lists/route": "app/api/lists/route.js",
+  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
+  "/(dashboard)/lists/page": "app/(dashboard)/lists/page.js"
 }
