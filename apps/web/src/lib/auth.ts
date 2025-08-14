@@ -1,31 +1,32 @@
 import { betterAuth } from "better-auth";
 import { SignJWT } from "jose";
+import { Pool } from "pg";
+
+// Database connection for BetterAuth
+const pool = new Pool({
+  host: process.env.DB_HOST || "db",
+  port: 5432,
+  database: process.env.POSTGRES_DB || "postgres",
+  user: "postgres",
+  password: process.env.POSTGRES_PASSWORD,
+});
 
 // Database helper for direct queries
 async function queryDatabase(sql: string, params: any[] = []) {
-  const { Pool } = await import("pg");
-  const pool = new Pool({
-    host: process.env.DB_HOST || "localhost",
-    port: 5432,
-    database: process.env.POSTGRES_DB || "postgres",
-    user: "postgres",
-    password: process.env.POSTGRES_PASSWORD,
-  });
-
   try {
     const result = await pool.query(sql, params);
     return result.rows;
-  } finally {
-    await pool.end();
+  } catch (error) {
+    console.error("Database query error:", error);
+    throw error;
   }
 }
 
 export const auth = betterAuth({
-  database: {
-    type: "postgres",
-    url: `postgresql://postgres:${process.env.POSTGRES_PASSWORD}@${
-      process.env.DB_HOST || "localhost"
-    }:5432/${process.env.POSTGRES_DB || "postgres"}`,
+  database: pool,
+  logger: {
+    verboseLogging: true,
+    level: "debug",
   },
   session: {
     expiresIn: 60 * 60 * 24 * 365, // 1 year for "remember me"
