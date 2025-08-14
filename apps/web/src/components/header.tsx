@@ -26,12 +26,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useSession, signOut } from "@/lib/auth-client";
+import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export function Header() {
-  const { data: session, isPending } = useSession();
+  const { data: session, status } = useSession();
+  const isPending = status === "loading";
   const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const t = useTranslations('navigation');
@@ -57,6 +58,7 @@ export function Header() {
           <nav className="hidden md:flex flex-1 items-center space-x-6 text-sm font-medium">
             <Link
               href="/dashboard"
+              prefetch={true}
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               <Home className="h-4 w-4 inline mr-1" />
@@ -64,6 +66,7 @@ export function Header() {
             </Link>
             <Link
               href="/lists"
+              prefetch={true}
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               <ListTodo className="h-4 w-4 inline mr-1" />
@@ -71,6 +74,7 @@ export function Header() {
             </Link>
             <Link
               href="/shopping"
+              prefetch={true}
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               <ShoppingCart className="h-4 w-4 inline mr-1" />
@@ -78,6 +82,7 @@ export function Header() {
             </Link>
             <Link
               href="/family"
+              prefetch={true}
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               <Users className="h-4 w-4 inline mr-1" />

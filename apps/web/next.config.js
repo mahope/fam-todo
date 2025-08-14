@@ -60,6 +60,7 @@ const withPWA = require('next-pwa')({
 
 const nextConfig = {
   reactStrictMode: true,
+  
   experimental: {
     turbo: {
       rules: {
@@ -69,18 +70,44 @@ const nextConfig = {
         },
       },
     },
-    reactCompiler: true, // React 19 compiler
+    reactCompiler: true,
+    // Enable optimistic bundling
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
+  
   compiler: {
     reactRemoveProperties: true,
+    removeConsole: process.env.NODE_ENV === 'production',
   },
-  webpack: (config) => {
-    // Fix for BetterAuth trying to import from 'zod/v4'
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'zod/v4': 'zod',
-    };
+  
+  // Image optimization
+  images: {
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 31536000, // 1 year
+  },
+  
+  // Bundle optimization (simpler approach)
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      // Enable tree shaking
+      config.optimization.sideEffects = false;
+    }
     return config;
+  },
+  
+  // Headers for better caching
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, stale-while-revalidate=60',
+          },
+        ],
+      },
+    ];
   },
 };
 

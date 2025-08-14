@@ -1,7 +1,7 @@
-import { useSession } from "@/lib/auth-client";
+import { useSession } from "next-auth/react";
 
-// Base URL for PostgREST API
-const API_BASE_URL = process.env.NEXT_PUBLIC_POSTGREST_URL || "http://localhost:3001";
+// Base URL for Next.js API routes
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export interface ApiResponse<T = any> {
   data?: T;
@@ -21,7 +21,7 @@ class ApiClient {
   }
 
   private async getAuthToken(): Promise<string | null> {
-    // This will be called from React context
+    // NextAuth handles authentication via cookies
     return null;
   }
 
@@ -126,52 +126,42 @@ class ApiClient {
 
 export const apiClient = new ApiClient();
 
-// Hook for authenticated API requests
+// Hook for authenticated API requests  
 export function useApi() {
-  const { data: session } = useSession();
-  const token = (session as any)?.postgrestToken;
+  const { data: session, status } = useSession();
   
-  // Debug logging
-  console.log('useApi session:', session);
-  console.log('useApi token:', token);
-
   return {
     async get<T = any>(endpoint: string, searchParams?: Record<string, any>): Promise<ApiResponse<T>> {
       return apiClient.request<T>(endpoint, { 
         method: "GET", 
         searchParams,
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
     },
     async post<T = any>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
-      console.log('POST request to:', endpoint, 'with token:', token ? 'present' : 'missing');
       return apiClient.request<T>(endpoint, {
         method: "POST",
         body: JSON.stringify(data),
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
     },
     async patch<T = any>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
       return apiClient.request<T>(endpoint, {
         method: "PATCH",
         body: JSON.stringify(data),
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
     },
     async put<T = any>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
       return apiClient.request<T>(endpoint, {
         method: "PUT",
         body: JSON.stringify(data),
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
     },
     async delete<T = any>(endpoint: string): Promise<ApiResponse<T>> {
       return apiClient.request<T>(endpoint, { 
         method: "DELETE",
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
     },
-    token,
+    session,
+    status,
   };
 }
 

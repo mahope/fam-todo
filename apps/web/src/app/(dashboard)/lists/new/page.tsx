@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import * as z from "zod";
 import { useApi } from "@/lib/api";
-import { useSession } from "@/lib/auth-client";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,8 +33,8 @@ import Link from "next/link";
 const createListSchema = z.object({
   name: z.string().min(1, "Navn er påkrævet").max(100, "Navn er for langt"),
   description: z.string().max(500, "Beskrivelse er for lang").optional(),
-  type: z.enum(["generic", "shopping"]),
-  visibility: z.enum(["private", "family", "adults"]),
+  listType: z.enum(["TODO", "SHOPPING"]),
+  visibility: z.enum(["PRIVATE", "FAMILY", "ADULT"]),
   color: z.string().optional(),
 });
 
@@ -61,42 +61,21 @@ export default function NewListPage() {
     defaultValues: {
       name: "",
       description: "",
-      type: "generic",
-      visibility: "family",
+      listType: "TODO",
+      visibility: "FAMILY",
       color: LIST_COLORS[0].value,
     },
   });
 
   const createListMutation = useMutation({
     mutationFn: async (data: CreateListFormValues) => {
-      // Get JWT claims for family_id and owner_id
-      const token = (session as any)?.postgrestToken;
-      let familyId = null;
-      let ownerId = null;
-      
-      if (token) {
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          familyId = payload.family_id;
-          ownerId = payload.app_user_id;
-          console.log('JWT Payload:', payload);
-          console.log('Extracted familyId:', familyId);
-          console.log('Extracted ownerId:', ownerId);
-        } catch (e) {
-          console.error('Failed to parse JWT token:', e);
-        }
-      }
-      
-      const listData = {
-        ...data,
+      const response = await api.post("/lists", {
+        name: data.name,
         description: data.description || null,
         color: data.color || null,
-        family_id: familyId,
-        owner_id: ownerId,
-      };
-      
-      console.log('Sending list data:', listData);
-      const response = await api.post("/lists", listData);
+        visibility: data.visibility,
+        listType: data.listType,
+      });
       
       if (response.error) {
         throw new Error(response.error);
@@ -105,8 +84,8 @@ export default function NewListPage() {
       return response.data;
     },
     onSuccess: (data) => {
-      // Redirect to the new list
-      router.push(`/lists/${data[0]?.id || ''}`);
+      // Redirect to lists page
+      router.push("/lists");
     },
   });
 
@@ -114,7 +93,7 @@ export default function NewListPage() {
     createListMutation.mutate(data);
   }
 
-  const selectedType = form.watch("type");
+  const selectedType = form.watch("listType");
   const selectedVisibility = form.watch("visibility");
   const selectedColor = form.watch("color");
 
@@ -184,7 +163,7 @@ export default function NewListPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="type"
+                  name="listType"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Liste Type</FormLabel>
@@ -195,13 +174,13 @@ export default function NewListPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="generic">
+                          <SelectItem value="TODO">
                             <div className="flex items-center gap-2">
                               <ListTodo className="h-4 w-4" />
                               Opgaveliste
                             </div>
                           </SelectItem>
-                          <SelectItem value="shopping">
+                          <SelectItem value="SHOPPING">
                             <div className="flex items-center gap-2">
                               <ShoppingCart className="h-4 w-4" />
                               Indkøbsliste
@@ -210,7 +189,7 @@ export default function NewListPage() {
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        {selectedType === "shopping" 
+                        {selectedType === "SHOPPING" 
                           ? "Indkøbslister har smart kategorisering og forslag"
                           : "Opgavelister er fantastiske til at organisere to-do's og projekter"
                         }
@@ -233,19 +212,19 @@ export default function NewListPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="private">
+                          <SelectItem value="PRIVATE">
                             <div className="flex items-center gap-2">
                               <Lock className="h-4 w-4" />
                               Privat
                             </div>
                           </SelectItem>
-                          <SelectItem value="family">
+                          <SelectItem value="FAMILY">
                             <div className="flex items-center gap-2">
                               <Eye className="h-4 w-4" />
                               Familie
                             </div>
                           </SelectItem>
-                          <SelectItem value="adults">
+                          <SelectItem value="ADULT">
                             <div className="flex items-center gap-2">
                               <Users className="h-4 w-4" />
                               Kun Voksne
@@ -254,9 +233,9 @@ export default function NewListPage() {
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        {selectedVisibility === "private" && "Kun du kan se og redigere denne liste"}
-                        {selectedVisibility === "family" && "Alle familiemedlemmer kan se og redigere denne liste"}
-                        {selectedVisibility === "adults" && "Kun voksne familiemedlemmer kan se og redigere denne liste"}
+                        {selectedVisibility === "PRIVATE" && "Kun du kan se og redigere denne liste"}
+                        {selectedVisibility === "FAMILY" && "Alle familiemedlemmer kan se og redigere denne liste"}
+                        {selectedVisibility === "ADULT" && "Kun voksne familiemedlemmer kan se og redigere denne liste"}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

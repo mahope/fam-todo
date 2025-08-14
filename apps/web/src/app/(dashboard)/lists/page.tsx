@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useApi, type List } from "@/lib/api";
+import { useLists, useDeleteList } from "@/lib/hooks/use-lists";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ListSkeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,76 +29,47 @@ import {
 } from "lucide-react";
 import { useTranslations } from 'next-intl';
 
-type ListWithTasks = List & {
-  task_count?: number;
-  incomplete_count?: number;
-};
-
 export default function ListsPage() {
   const t = useTranslations('lists');
   const [searchQuery, setSearchQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | "generic" | "shopping">("all");
-  const [visibility, setVisibility] = useState<"all" | "private" | "family" | "adults">("all");
+  const [filter, setFilter] = useState<"all" | "TODO" | "SHOPPING">("all");
+  const [visibility, setVisibility] = useState<"all" | "PRIVATE" | "FAMILY" | "ADULT">("all");
   
-  const api = useApi();
-  const queryClient = useQueryClient();
-
-  // Fetch lists with task counts
-  const { data: lists, isLoading, error } = useQuery({
-    queryKey: ["lists", searchQuery, filter, visibility],
-    queryFn: async () => {
-      let endpoint = "/lists?select=*";
+  // Fetch lists with optimized caching
+  const { data: lists, isLoading, error } = useLists();
+  
+  // Memoized filtering for better performance
+  const filteredLists = useMemo(() => {
+    if (!lists) return [];
+    
+    return lists.filter(list => {
+      const matchesSearch = !searchQuery || 
+        list.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        list.description?.toLowerCase().includes(searchQuery.toLowerCase());
       
-      // Add filters
-      if (filter !== "all") {
-        endpoint += `&type=eq.${filter}`;
-      }
+      const matchesFilter = filter === "all" || list.listType === filter;
+      const matchesVisibility = visibility === "all" || list.visibility === visibility;
       
-      if (visibility !== "all") {
-        endpoint += `&visibility=eq.${visibility}`;
-      }
-      
-      if (searchQuery) {
-        endpoint += `&name=ilike.*${searchQuery}*`;
-      }
-      
-      endpoint += "&order=updated_at.desc";
-      
-      const response = await api.get<ListWithTasks[]>(endpoint);
-      return response.data || [];
-    },
-    enabled: !!api.token,
-  });
-
-  // Delete list mutation
-  const deleteListMutation = useMutation({
-    mutationFn: async (listId: string) => {
-      const response = await api.delete(`/lists?id=eq.${listId}`);
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["lists"] });
-    },
-  });
+      return matchesSearch && matchesFilter && matchesVisibility;
+    });
+  }, [lists, searchQuery, filter, visibility]);
 
   const handleDeleteList = async (listId: string, listName: string) => {
     if (window.confirm(t('deleteConfirm', { name: listName }))) {
-      deleteListMutation.mutate(listId);
+      const deleteList = useDeleteList(listId);
+      deleteList.mutate();
     }
   };
 
   const getListIcon = (type: string) => {
-    return type === "shopping" ? ShoppingCart : ListTodo;
+    return type === "SHOPPING" ? ShoppingCart : ListTodo;
   };
 
   const getVisibilityIcon = (vis: string) => {
     switch (vis) {
-      case "private":
+      case "PRIVATE":
         return Lock;
-      case "adults":
+      case "ADULT":
         return Users;
       default:
         return Eye;
@@ -107,16 +78,14 @@ export default function ListsPage() {
 
   const getVisibilityColor = (vis: string) => {
     switch (vis) {
-      case "private":
+      case "PRIVATE":
         return "text-red-600 dark:text-red-400";
-      case "adults":
+      case "ADULT":
         return "text-orange-600 dark:text-orange-400";
       default:
         return "text-green-600 dark:text-green-400";
     }
   };
-
-  const filteredLists = lists || [];
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -160,11 +129,11 @@ export default function ListsPage() {
               <DropdownMenuItem onClick={() => setFilter("all")}>
                 {t('allTypes')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilter("generic")}>
+              <DropdownMenuItem onClick={() => setFilter("TODO")}>
                 <ListTodo className="h-4 w-4 mr-2" />
                 {t('taskLists')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilter("shopping")}>
+              <DropdownMenuItem onClick={() => setFilter("SHOPPING")}>
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 {t('shoppingLists')}
               </DropdownMenuItem>
@@ -184,15 +153,15 @@ export default function ListsPage() {
               <DropdownMenuItem onClick={() => setVisibility("all")}>
                 {t('allLists')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setVisibility("private")}>
+              <DropdownMenuItem onClick={() => setVisibility("PRIVATE")}>
                 <Lock className="h-4 w-4 mr-2" />
                 {t('private')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setVisibility("family")}>
+              <DropdownMenuItem onClick={() => setVisibility("FAMILY")}>
                 <Eye className="h-4 w-4 mr-2" />
                 {t('family')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setVisibility("adults")}>
+              <DropdownMenuItem onClick={() => setVisibility("ADULT")}>
                 <Users className="h-4 w-4 mr-2" />
                 {t('adultsOnly')}
               </DropdownMenuItem>
@@ -205,15 +174,7 @@ export default function ListsPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-muted rounded w-3/4"></div>
-                <div className="h-3 bg-muted rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-3 bg-muted rounded w-1/3"></div>
-              </CardContent>
-            </Card>
+            <ListSkeleton key={i} />
           ))}
         </div>
       ) : error ? (
@@ -230,7 +191,7 @@ export default function ListsPage() {
       ) : filteredLists.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredLists.map((list) => {
-            const ListIcon = getListIcon(list.type);
+            const ListIcon = getListIcon(list.listType);
             const VisibilityIcon = getVisibilityIcon(list.visibility);
             
             return (
@@ -291,9 +252,9 @@ export default function ListsPage() {
                     <div className="flex items-center gap-2">
                       <VisibilityIcon className={`h-4 w-4 ${getVisibilityColor(list.visibility)}`} />
                       <span className="capitalize">
-                        {list.visibility === 'private' ? t('private') :
-                         list.visibility === 'family' ? t('family') :
-                         list.visibility === 'adults' ? t('adultsOnly') : list.visibility}
+                        {list.visibility === 'PRIVATE' ? t('private') :
+                         list.visibility === 'FAMILY' ? t('family') :
+                         list.visibility === 'ADULT' ? t('adultsOnly') : list.visibility}
                       </span>
                     </div>
                     <div className="flex items-center gap-4">

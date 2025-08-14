@@ -1,12 +1,5 @@
-import { createAuthClient } from "better-auth/react";
+// Re-export NextAuth functions for compatibility with existing components
+export { signIn, signOut, useSession, getSession } from 'next-auth/react';
 
-export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-});
-
-export const { 
-  signIn, 
-  signUp, 
-  signOut, 
-  useSession,
-} = authClient;
+// Note: signUp is handled through our custom registration endpoint
+// Components should redirect to /register instead of using signUp
