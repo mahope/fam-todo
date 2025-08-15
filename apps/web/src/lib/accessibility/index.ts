@@ -30,7 +30,7 @@ export {
   LandmarkRegion,
   KeyboardHints,
   RouteAnnouncer,
-} from '../components/accessibility/skip-links';
+} from '@/components/accessibility/skip-links';
 
 export {
   Dialog,
@@ -40,7 +40,7 @@ export {
   DialogTitle,
   DialogDescription,
   ConfirmDialog,
-} from '../components/ui/accessible-dialog';
+} from '@/components/ui/accessible-dialog';
 
 import { FocusVisible } from './focus-management';
 import { globalShortcuts } from './keyboard-navigation';

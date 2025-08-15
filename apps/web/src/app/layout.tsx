@@ -9,7 +9,7 @@ import { Providers } from "@/components/providers";
 import { Header } from "@/components/header";
 import { ClientOnly } from "@/components/client-only";
 import { initializeMonitoring } from '@/lib/monitoring';
-import { SkipLinks, KeyboardHints, RouteAnnouncer } from '@/lib/accessibility';
+import { SkipLinks, KeyboardHints, RouteAnnouncer } from '@/components/accessibility/skip-links';
 
 // Initialize monitoring on app start (server-side only)
 if (typeof window === 'undefined') {
