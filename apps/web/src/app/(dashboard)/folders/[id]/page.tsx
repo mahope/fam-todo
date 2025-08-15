@@ -69,7 +69,7 @@ type ListType = {
 
 export default function FolderDetailPage() {
   const params = useParams();
-  const router = useRouter();
+  // const router = useRouter(); // Unused for now
   const folderId = params?.id as string;
   
   const [searchQuery, setSearchQuery] = useState("");

@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useApi, type List, type Task, type ShoppingItem } from "@/lib/api";
 import { useRealtimeSubscription } from "@/lib/realtime";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -23,14 +23,8 @@ import {
   MoreVertical, 
   Edit, 
   Trash2, 
-  Clock,
-  User,
-  CheckSquare,
-  Square,
   ListTodo,
   ShoppingCart,
-  Search,
-  Filter,
   Calendar,
 } from "lucide-react";
 
@@ -44,12 +38,12 @@ type ShoppingItemWithCategory = ShoppingItem & {
 
 export default function ListDetailPage() {
   const params = useParams();
-  const router = useRouter();
+  // const router = useRouter(); // Unused for now
   const listId = params?.id as string;
   
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [filter, setFilter] = useState<"all" | "open" | "done">("all");
-  const [isAddingTask, setIsAddingTask] = useState(false);
+  // const [isAddingTask, setIsAddingTask] = useState(false); // Unused for now
   
   const api = useApi();
   const queryClient = useQueryClient();

@@ -40,7 +40,7 @@ type Family = {
 };
 
 export default function FamilyPage() {
-  const t = useTranslations('family');
+  // const t = useTranslations('family'); // Unused for now
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const api = useApi();
 

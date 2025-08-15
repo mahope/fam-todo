@@ -11,6 +11,7 @@ import { ArrowLeft, Edit } from "lucide-react";
 import { toast } from "sonner";
 
 type TaskWithSubtasks = Task & {
+  assigneeId?: string; // Add for compatibility with form
   subtasks?: Array<{
     id: string;
     title: string;
@@ -140,7 +141,7 @@ export default function EditTaskPage() {
   const initialData: Partial<TaskFormData> = {
     title: task.title,
     description: task.description || "",
-    assigneeId: task.assigneeId || undefined,
+    assigneeId: task.assigned_user_id || undefined,
     priority: task.priority || "NONE",
     deadline: task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : "",
     tags: task.tags || [],

@@ -65,7 +65,7 @@ export default function LoginPage() {
       } else {
         router.push("/dashboard");
       }
-    } catch (err) {
+    } catch {
       setError("Der opstod en fejl. Prøv igen.");
     } finally {
       setIsLoading(false);
