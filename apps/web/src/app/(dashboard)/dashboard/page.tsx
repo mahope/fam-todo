@@ -7,7 +7,7 @@ import { useApi } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, ListTodo, CheckSquare, Clock, Users, ShoppingCart } from "lucide-react";
+import { Plus, ListTodo, CheckSquare, Clock, Users, ShoppingCart, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from 'next-intl';
 
@@ -115,6 +115,18 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex gap-2 mt-4 sm:mt-0">
+          <Button variant="outline" asChild>
+            <Link href="/calendar">
+              <Calendar className="h-4 w-4 mr-2" />
+              Kalender
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/tasks/board">
+              <CheckSquare className="h-4 w-4 mr-2" />
+              Opgave Tavle
+            </Link>
+          </Button>
           <Button asChild>
             <Link href="/lists/new">
               <Plus className="h-4 w-4 mr-2" />

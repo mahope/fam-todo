@@ -142,6 +142,15 @@ export async function GET(request: NextRequest) {
     const { familyId, appUserId, role } = await getSessionData();
     const { searchParams } = new URL(request.url);
     const filters = parseTaskFilters(searchParams);
+    
+    // Check for special calendar mode
+    const withDeadlines = searchParams.get('with_deadlines') === 'true';
+
+    // For calendar view, force filter to only tasks with deadlines
+    if (withDeadlines) {
+      filters.hasDeadline = 'true';
+      filters.completed = 'false'; // Only show active tasks
+    }
 
     // Build where clause with all filters
     const where = buildTaskWhereClause(familyId, appUserId, role, filters);
@@ -207,9 +216,6 @@ export async function GET(request: NextRequest) {
       skip,
     });
 
-    // Get total count for pagination
-    const totalCount = await prisma.task.count({ where });
-
     // Add computed fields
     const tasksWithComputed = tasks.map(task => ({
       ...task,
@@ -220,6 +226,14 @@ export async function GET(request: NextRequest) {
         ? (task.subtasks.filter(st => st.completed).length / task.subtasks.length) * 100 
         : 0,
     }));
+
+    // For calendar mode, return simple array
+    if (withDeadlines) {
+      return NextResponse.json(tasksWithComputed);
+    }
+
+    // Get total count for pagination
+    const totalCount = await prisma.task.count({ where });
 
     return NextResponse.json({
       tasks: tasksWithComputed,
