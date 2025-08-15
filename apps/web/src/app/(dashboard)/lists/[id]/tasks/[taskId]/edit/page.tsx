@@ -21,8 +21,8 @@ type TaskWithSubtasks = Task & {
 export default function EditTaskPage() {
   const params = useParams();
   const router = useRouter();
-  const listId = params.id as string;
-  const taskId = params.taskId as string;
+  const listId = params?.id as string;
+  const taskId = params?.taskId as string;
   
   const api = useApi();
   const queryClient = useQueryClient();
@@ -31,70 +31,54 @@ export default function EditTaskPage() {
   const { data: task, isLoading: taskLoading, error } = useQuery({
     queryKey: ["task", taskId],
     queryFn: async () => {
-      const response = await fetch(`/api/tasks/${taskId}`, {
-        headers: {
-          'Authorization': `Bearer ${api.token}`,
-        },
-      });
+      const response = await api.get(`/api/tasks/${taskId}`);
 
-      if (!response.ok) {
+      if (response.error) {
         if (response.status === 404) {
           throw new Error('Task not found');
         }
         throw new Error('Failed to fetch task');
       }
 
-      return response.json() as Promise<TaskWithSubtasks>;
+      return response.data as TaskWithSubtasks;
     },
-    enabled: !!api.token && !!taskId,
+    enabled: api.status === "authenticated" && !!taskId,
   });
 
   // Fetch subtasks
   const { data: subtasks } = useQuery({
     queryKey: ["task-subtasks", taskId],
     queryFn: async () => {
-      const response = await fetch(`/api/tasks/${taskId}/subtasks`, {
-        headers: {
-          'Authorization': `Bearer ${api.token}`,
-        },
-      });
+      const response = await api.get(`/api/tasks/${taskId}/subtasks`);
 
-      if (!response.ok) {
+      if (response.error) {
         return [];
       }
 
-      return response.json();
+      return response.data;
     },
-    enabled: !!api.token && !!taskId,
+    enabled: api.status === "authenticated" && !!taskId,
   });
 
   // Update task mutation
   const updateTaskMutation = useMutation({
     mutationFn: async (data: TaskFormData) => {
-      const response = await fetch(`/api/tasks/${taskId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${api.token}`,
-        },
-        body: JSON.stringify({
-          title: data.title,
-          description: data.description,
-          assigneeId: data.assigneeId,
-          priority: data.priority,
-          deadline: data.deadline,
-          tags: data.tags,
-          recurrence: data.recurrence,
-          // Note: Subtasks are handled separately through the subtasks API
-        }),
+      const response = await api.patch(`/api/tasks/${taskId}`, {
+        title: data.title,
+        description: data.description,
+        assigneeId: data.assigneeId,
+        priority: data.priority,
+        deadline: data.deadline,
+        tags: data.tags,
+        recurrence: data.recurrence,
+        // Note: Subtasks are handled separately through the subtasks API
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update task");
+      if (response.error) {
+        throw new Error(response.error || "Failed to update task");
       }
 
-      return response.json();
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });

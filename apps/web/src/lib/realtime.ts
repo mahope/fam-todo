@@ -208,7 +208,7 @@ export function useRealtime() {
 
 export function useRealtimeSubscription(
   eventType: string,
-  callback: (event: RealtimeEvent) => void,
+  callback?: (event: RealtimeEvent) => void,
   enabled: boolean = true
 ) {
   const { isConnected, subscribe } = useRealtime();
@@ -218,7 +218,7 @@ export function useRealtimeSubscription(
     if (!enabled || !isConnected) return;
 
     const unsubscribe = subscribe(eventType, (event) => {
-      callback(event);
+      callback?.(event);
       
       // Auto-invalidate related queries
       if (event.type.includes('list')) {
