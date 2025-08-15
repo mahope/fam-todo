@@ -24,7 +24,7 @@ Appen skal være **simpel, minimalistisk, flot designet** og fungere optimalt p�
 - Admin kan oprette brugere inden for en familie.
 - Brugere har roller: **Admin**, **Voksen**, **Barn**.
 - Roller styrer adgang til visse lister (fx voksenlister).
-- Login via **BetterAuth** med e-mail/kodeord.
+- Login via **NextAuth.js** med e-mail/kodeord.
 - "Husk mig" = uendelig session (persistent login), indtil manuel log ud.
 
 ### 4.2 Lister og mapper
@@ -72,7 +72,7 @@ Appen skal være **simpel, minimalistisk, flot designet** og fungere optimalt p�
 - Aktivitetshistorik: hvem ændrede hvad og hvornår.
 
 ### 4.9 Brugerprofiler
-- Profilbillede (avatar upload via Supabase Storage).
+- Profilbillede (avatar upload via custom API endpoint).
 
 ### 4.10 Datahåndtering
 - Eksport/backup af data til JSON eller CSV.
@@ -83,21 +83,26 @@ Appen skal være **simpel, minimalistisk, flot designet** og fungere optimalt p�
 - Minimalistisk UI med **shadcn/ui**.
 - Deployment via **Dokploy**.
 - Docker-baseret opsætning.
-- Self-hosted **Supabase** (Postgres, PostgREST, Realtime, Storage).
-- **RLS** (Row Level Security) for datasikkerhed.
-- JWT claims styrer adgang til data.
+- **PostgreSQL** database med **Prisma ORM**.
+- **Application-level** access control for datasikkerhed.
+- JWT tokens via NextAuth.js styrer adgang til data.
 
 ## 6. Teknisk arkitektur
 
 **Frontend:**
-- Next.js 14 (TypeScript)
-- shadcn/ui
-- BetterAuth integration
+- Next.js 15.4.6 (TypeScript) med App Router
+- shadcn/ui komponenter
+- NextAuth.js integration
+- Socket.io client for real-time
+- Serwist for PWA funktionalitet
 
 **Backend:**
-- Self-hosted Supabase (Postgres + PostgREST + Realtime + Storage)
-- RLS policies i Postgres
-- JWT håndtering via BetterAuth
+- PostgreSQL database
+- Prisma ORM for database access
+- Next.js API routes
+- Socket.io for real-time kommunikation
+- Application-level access control
+- JWT håndtering via NextAuth.js
 
 **Hosting & Deploy:**
 - Docker-compose til lokal udvikling
@@ -108,8 +113,8 @@ Appen skal være **simpel, minimalistisk, flot designet** og fungere optimalt p�
 | # | User Story | Acceptkriterier | Tekniske noter |
 |---|------------|----------------|----------------|
 | 1 | Som admin vil jeg kunne oprette en ny familie, så vi kan have separate data. | Kan oprette/slette familier. Unik data pr. familie. | `families` tabel, relation til `users.family_id`. |
-| 2 | Som admin vil jeg kunne tildele roller (Admin, Voksen, Barn) til brugere. | Roller vises i UI og styrer adgang. | `users.role`. Access control via RLS. |
-| 3 | Som bruger vil jeg kunne logge ind og blive husket uendeligt. | Login via BetterAuth, persistent session. | JWT refresh tokens + Supabase session store. |
+| 2 | Som admin vil jeg kunne tildele roller (Admin, Voksen, Barn) til brugere. | Roller vises i UI og styrer adgang. | `app_users.role`. Access control via middleware. |
+| 3 | Som bruger vil jeg kunne logge ind og blive husket uendeligt. | Login via NextAuth.js, persistent session. | JWT tokens med NextAuth.js session management. |
 | 4 | Som bruger vil jeg kunne oprette private lister. | Kun ejer ser listen. | `lists.visibility='private'`. |
 | 5 | Som bruger vil jeg kunne oprette familie-lister. | Alle i familien ser listen. | `lists.visibility='family'`. |
 | 6 | Som voksen vil jeg kunne oprette voksenlister. | Kun voksne i familien ser listen. | `lists.visibility='adults'`. |
@@ -118,7 +123,7 @@ Appen skal være **simpel, minimalistisk, flot designet** og fungere optimalt p�
 | 9 | Som bruger vil jeg kunne sortere/filtrere opgaver. | UI med sorterings-/filtermuligheder. | SQL queries med indeksering. |
 | 10 | Som familie vil vi kunne bruge en delt indkøbsliste med kategorisering. | Varer grupperes automatisk. | `shopping_items` tabel med kategori. |
 | 11 | Som bruger vil jeg kunne markere varer som købt. | Købte varer flyttes til separat sektion. | `is_purchased` flag. |
-| 12 | Som bruger vil jeg kunne se ændringer i realtid. | Ændringer opdateres automatisk. | Supabase Realtime. |
+| 12 | Som bruger vil jeg kunne se ændringer i realtid. | Ændringer opdateres automatisk. | Socket.io real-time kommunikation. |
 | 13 | Som bruger vil jeg kunne bruge appen offline. | Opgaver synces ved online igen. | IndexedDB + Service Worker. |
 | 14 | Som bruger vil jeg kunne modtage push-notifikationer. | Notifikationer ved deadlines/opdateringer. | Web Push API. |
 | 15 | Som bruger vil jeg kunne se deadlines i en kalender. | Kalender viser opgaver. | UI-komponent + DB fetch. |
@@ -126,7 +131,7 @@ Appen skal være **simpel, minimalistisk, flot designet** og fungere optimalt p�
 | 17 | Som bruger vil jeg kunne drag-and-drop sortere. | Ændringer gemmes. | react-beautiful-dnd. |
 | 18 | Som bruger vil jeg kunne tilføje opgaver hurtigt. | Quick-add modal fungerer overalt. | Global state + API. |
 | 19 | Som bruger vil jeg kunne søge på tværs af alt. | Resultater linker til opgave. | Postgres full-text search. |
-| 20 | Som bruger vil jeg kunne have et profilbillede. | Avatar vises i UI. | Supabase Storage. |
+| 20 | Som bruger vil jeg kunne have et profilbillede. | Avatar vises i UI. | Custom avatar upload API endpoint. |
 | 21 | Som bruger vil jeg kunne se historik. | Activity log viser ændringer. | `activity_logs` tabel. |
 | 22 | Som bruger vil jeg kunne arkivere opgaver/lister. | Kan gendannes. | `is_archived` flag. |
 | 23 | Som bruger vil jeg kunne farvekode mapper/lister. | Farve vises i UI. | Farvekode-felt i DB. |
@@ -134,9 +139,9 @@ Appen skal være **simpel, minimalistisk, flot designet** og fungere optimalt p�
 | 25 | Som bruger vil jeg kunne tage backup af mine data. | Eksporter til JSON/CSV. | Eksport-endpoint. |
 
 ## 8. Sikkerhed
-- Alle API-kald autentificeres med JWT.
-- RLS sikrer, at brugere kun får adgang til data i deres egen familie og rolle.
-- Adgang til voksenlister begrænses til `role='adult'` eller `role='admin'`.
+- Alle API-kald autentificeres med NextAuth.js JWT tokens.
+- Application-level access control sikrer, at brugere kun får adgang til data i deres egen familie og rolle.
+- Adgang til voksenlister begrænses til `role='adult'` eller `role='admin'` via middleware checks.
 
 ## 9. Deploymentproces
 - Lokal udvikling med Docker-compose.

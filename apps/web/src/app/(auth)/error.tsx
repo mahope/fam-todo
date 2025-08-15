@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { logger } from '@/lib/logger'
 
 export default function AuthError({
   error,
@@ -12,7 +13,11 @@ export default function AuthError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('Auth error:', error)
+    logger.error('Authentication error', { 
+      message: error.message,
+      digest: error.digest,
+      stack: error.stack 
+    })
   }, [error])
 
   return (

@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth/password';
+import { logger } from '@/lib/logger';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -24,7 +25,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        console.log('NextAuth authorize called with:', credentials.email);
+        logger.debug('NextAuth authorize called', { email: credentials.email });
 
         // Simple auth check - find user by email
         const user = await prisma.user.findUnique({
@@ -32,7 +33,7 @@ export const authOptions: NextAuthOptions = {
           include: { appUser: true },
         });
 
-        console.log('Found user:', user ? 'Yes' : 'No');
+        logger.debug('User lookup result', { found: !!user, email: credentials.email });
 
         if (!user) {
           return null;
@@ -42,25 +43,25 @@ export const authOptions: NextAuthOptions = {
         if (user.password) {
           // Verify password against hash
           if (!credentials?.password) {
-            console.log('No password provided');
+            logger.warn('No password provided for user', { email: user.email });
             return null;
           }
           
           const isValid = await verifyPassword(credentials.password, user.password);
           if (!isValid) {
-            console.log('Invalid password for:', user.email);
+            logger.warn('Invalid password attempt', { email: user.email });
             return null;
           }
         } else {
           // Temporary: For existing users without password, accept any non-empty password
           // TODO: Remove this after migration
           if (!credentials?.password || credentials.password.length < 1) {
-            console.log('No password provided for legacy user');
+            logger.warn('No password provided for legacy user', { email: user.email });
             return null;
           }
         }
         
-        console.log('Login successful for:', user.email);
+        logger.info('Successful login', { email: user.email });
         return {
           id: user.id,
           email: user.email,

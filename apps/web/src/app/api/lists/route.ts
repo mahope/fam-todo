@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
+import { handleApiError, logApiSuccess } from '@/lib/api-error-handler';
 
 async function getSessionData() {
   const session = await getServerSession(authOptions);
@@ -79,11 +80,13 @@ export async function GET() {
 
     return NextResponse.json(lists);
   } catch (error) {
-    console.error('Get lists error:', error);
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, {
+      operation: 'get_lists',
+      method: 'GET'
+    });
   }
 }
 
@@ -122,10 +125,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(list, { status: 201 });
   } catch (error) {
-    console.error('Create list error:', error);
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, {
+      operation: 'create_list',
+      method: 'POST'
+    });
   }
 }

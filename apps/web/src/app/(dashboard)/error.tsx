@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { logger } from '@/lib/logger'
 
 export default function DashboardError({
   error,
@@ -12,7 +13,11 @@ export default function DashboardError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('Dashboard error:', error)
+    logger.error('Dashboard error', { 
+      message: error.message,
+      digest: error.digest,
+      stack: error.stack 
+    })
   }, [error])
 
   return (
