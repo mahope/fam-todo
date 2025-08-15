@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
+import { verifyPassword } from '@/lib/auth/password';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -37,11 +38,26 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // For now, we'll accept any non-empty password since we don't store passwords yet
-        // This is temporary until we implement proper password storage
-        if (!credentials?.password || credentials.password.length < 1) {
-          console.log('No password provided');
-          return null;
+        // Check if user has a password (for users created with password auth)
+        if (user.password) {
+          // Verify password against hash
+          if (!credentials?.password) {
+            console.log('No password provided');
+            return null;
+          }
+          
+          const isValid = await verifyPassword(credentials.password, user.password);
+          if (!isValid) {
+            console.log('Invalid password for:', user.email);
+            return null;
+          }
+        } else {
+          // Temporary: For existing users without password, accept any non-empty password
+          // TODO: Remove this after migration
+          if (!credentials?.password || credentials.password.length < 1) {
+            console.log('No password provided for legacy user');
+            return null;
+          }
         }
         
         console.log('Login successful for:', user.email);

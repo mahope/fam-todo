@@ -44,6 +44,7 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
+  password      String?   // Password hash (nullable for OAuth users)
   accounts      Account[]
   sessions      Session[]
   
@@ -72,7 +73,10 @@ model Family {
   lists       List[]
   tasks       Task[]
   shoppingItems ShoppingItem[]
+  shoppingDictionary ShoppingDictionary[]
   invites     FamilyInvite[]
+  activityLogs ActivityLog[]
+  notifications Notification[]
 
   @@map("families")
 }
@@ -96,6 +100,10 @@ model AppUser {
   ownedTasks   Task[]   @relation("TaskOwner")
   assignedTasks Task[]  @relation("TaskAssignee")
   sentInvites  FamilyInvite[]
+  activityLogs ActivityLog[]
+  notifications Notification[]
+  settings     UserSetting?
+  completedOccurrences TaskOccurrence[] @relation("TaskOccurrenceCompletedBy")
 
   @@map("app_users")
 }
@@ -163,6 +171,8 @@ model Task {
   owner       AppUser     @relation("TaskOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   assignee    AppUser?    @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   subtasks    Subtask[]
+  repeatRule  RepeatRule?
+  occurrences TaskOccurrence[]
 
   @@map("tasks")
 }
@@ -201,11 +211,125 @@ model ShoppingItem {
 }
 
 model ShoppingDictionary {
-  id       String @id @default(uuid())
-  name     String @unique
-  category String
+  id             String    @id @default(uuid())
+  key            String    // The search key (normalized name)
+  familyId       String?   // null for global entries
+  category       String    // bakery, produce, meat, etc.
+  defaultUnit    String?   // kg, pcs, l, etc.
+  synonyms       String[]  // Alternative names for search
+  suggestionHits Int       @default(0) // How often this gets suggested
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
   
+  // Relations
+  family         Family?   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  
+  @@unique([familyId, key], name: "familyId_key")
+  @@index([key])
+  @@index([category])
   @@map("shopping_dictionary")
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  familyId    String
+  userId      String
+  action      String   // CREATE, UPDATE, DELETE, etc.
+  entityType  String   // list, task, folder, etc.
+  entityId    String?
+  entityName  String?
+  metadata    Json?    // Additional data about the action
+  created_at  DateTime @default(now())
+  
+  // Relations
+  family      Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user        AppUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([familyId])
+  @@index([entityType, entityId])
+  @@map("activity_logs")
+}
+
+model Notification {
+  id          String    @id @default(uuid())
+  familyId    String
+  userId      String
+  type        String    // TASK_ASSIGNED, DEADLINE_REMINDER, etc.
+  title       String
+  message     String
+  entityType  String?   // Optional reference to related entity
+  entityId    String?
+  read        Boolean   @default(false)
+  sendAt      DateTime  @default(now())
+  created_at  DateTime  @default(now())
+  
+  // Relations
+  family      Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user        AppUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, read])
+  @@index([userId, sendAt])
+  @@map("notifications")
+}
+
+model UserSetting {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  theme                 String   @default("system")
+  locale                String   @default("da")
+  timezone              String   @default("Europe/Copenhagen")
+  dateFormat            String   @default("DD/MM/YYYY")
+  notificationsEnabled  Boolean  @default(true)
+  emailNotifications    Boolean  @default(true)
+  pushNotifications     Boolean  @default(true)
+  taskReminders         Boolean  @default(true)
+  familyUpdates         Boolean  @default(true)
+  defaultListVisibility Visibility @default(FAMILY)
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  
+  // Relations
+  user                  AppUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_settings")
+}
+
+model RepeatRule {
+  id            String     @id @default(uuid())
+  taskId        String     @unique
+  type          Recurrence // DAILY, WEEKLY, MONTHLY, CUSTOM
+  interval      Int        @default(1) // Every N days/weeks/months
+  daysOfWeek    Int[]      // For weekly: [1,2,3] = Mon,Tue,Wed (1=Monday, 7=Sunday)
+  dayOfMonth    Int?       // For monthly: specific day (1-31)
+  endDate       DateTime?  // When to stop recurring
+  maxOccurrences Int?      // Alternative to endDate
+  skipWeekends  Boolean    @default(false)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  
+  // Relations
+  task          Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  @@map("repeat_rules")
+}
+
+model TaskOccurrence {
+  id              String   @id @default(uuid())
+  taskId          String   // Original recurring task
+  occurrenceDate  DateTime // When this occurrence is due
+  completed       Boolean  @default(false)
+  completedAt     DateTime?
+  completedBy     String?  // AppUser ID
+  skipped         Boolean  @default(false)
+  created_at      DateTime @default(now())
+  
+  // Relations
+  task            Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  completedByUser AppUser? @relation("TaskOccurrenceCompletedBy", fields: [completedBy], references: [id])
+  
+  @@unique([taskId, occurrenceDate])
+  @@index([occurrenceDate])
+  @@map("task_occurrences")
 }
 
 model FamilyInvite {

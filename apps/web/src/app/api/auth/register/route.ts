@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +9,15 @@ export async function POST(request: NextRequest) {
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email og password er påkrævet' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.isValid) {
+      return NextResponse.json(
+        { error: passwordValidation.errors[0] },
         { status: 400 }
       );
     }
@@ -26,13 +35,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash password
-    const hashedPassword = await hash(password, 12);
+    const hashedPassword = await hashPassword(password);
 
-    // Create user
+    // Create user with hashed password
     const user = await prisma.user.create({
       data: {
         email,
         name: name || email.split('@')[0],
+        password: hashedPassword,
       },
     });
 

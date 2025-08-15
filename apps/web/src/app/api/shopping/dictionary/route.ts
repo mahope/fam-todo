@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 
 // Shopping categories enum for validation
@@ -21,7 +22,7 @@ interface DictionaryFilters {
 }
 
 async function getSessionData() {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     throw new Error('Unauthorized');
   }
