@@ -44,10 +44,11 @@ async function verifyTaskAccess(taskId: string, familyId: string, appUserId: str
 // GET /api/tasks/[id]/subtasks - Get subtasks for a specific task
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
 
     // Verify task exists and user has access
     const task = await verifyTaskAccess(params.id, familyId, appUserId, role);
@@ -77,10 +78,11 @@ export async function GET(
 // POST /api/tasks/[id]/subtasks - Create a new subtask
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const data = await request.json();
 
     // Verify task exists and user has access

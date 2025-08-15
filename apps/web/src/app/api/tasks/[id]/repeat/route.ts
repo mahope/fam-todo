@@ -51,10 +51,11 @@ async function verifyTaskAccess(taskId: string, familyId: string, appUserId: str
 // GET /api/tasks/[id]/repeat - Get repeat rule for task
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const task = await verifyTaskAccess(params.id, familyId, appUserId, role);
 
     if (!task) {
@@ -81,10 +82,11 @@ export async function GET(
 // POST /api/tasks/[id]/repeat - Create repeat rule for task
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const data = await request.json();
     const taskId = params.id;
 
@@ -155,10 +157,11 @@ export async function POST(
 // PUT /api/tasks/[id]/repeat - Update repeat rule for task
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const data = await request.json();
     const taskId = params.id;
 
@@ -228,10 +231,11 @@ export async function PUT(
 // DELETE /api/tasks/[id]/repeat - Delete repeat rule and stop recurring
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const taskId = params.id;
 
     // Verify task exists and user has access

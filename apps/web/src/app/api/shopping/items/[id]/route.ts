@@ -124,10 +124,11 @@ async function smartCategorizeItem(name: string, familyId: string): Promise<Shop
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     
     const shoppingItem = await findShoppingItem(params.id, familyId, appUserId, role);
 
@@ -150,10 +151,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const data = await request.json();
 
     // Find the shopping item
@@ -272,10 +274,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
 
     // Find the shopping item
     const existingItem = await findShoppingItem(params.id, familyId, appUserId, role);

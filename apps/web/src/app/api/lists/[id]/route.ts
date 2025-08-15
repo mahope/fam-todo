@@ -29,10 +29,11 @@ async function getSessionData() {
 // GET /api/lists/[id] - Get individual list
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const listId = params.id;
 
     const list = await prisma.list.findFirst({
@@ -112,10 +113,11 @@ export async function GET(
 // PATCH /api/lists/[id] - Update individual list
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const listId = params.id;
     const data = await request.json();
 
@@ -191,10 +193,11 @@ export async function PATCH(
 // DELETE /api/lists/[id] - Delete individual list
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const listId = params.id;
 
     // First, check if list exists and user has access

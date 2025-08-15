@@ -85,10 +85,11 @@ async function verifyTaskAccess(taskId: string, familyId: string, appUserId: str
 // GET /api/tasks/[id] - Get a specific task
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const task = await verifyTaskAccess(params.id, familyId, appUserId, role);
 
     if (!task) {
@@ -122,10 +123,11 @@ export async function GET(
 // PUT /api/tasks/[id] - Update a specific task
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const data = await request.json();
 
     // Verify task exists and user has access
@@ -359,18 +361,19 @@ export async function PUT(
 // PATCH /api/tasks/[id] - Update a specific task (alias for PUT)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  return PUT(request, { params });
+  return PUT(request, context);
 }
 
 // DELETE /api/tasks/[id] - Delete a specific task
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
 
     // Verify task exists and user has access
     const existingTask = await verifyTaskAccess(params.id, familyId, appUserId, role);

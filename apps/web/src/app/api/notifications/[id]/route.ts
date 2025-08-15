@@ -30,10 +30,11 @@ async function getSessionData() {
 // GET /api/notifications/[id] - Get individual notification
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { appUserId } = await getSessionData();
+    const params = await context.params;
     const notificationId = params.id;
 
     const notification = await prisma.notification.findFirst({
@@ -71,10 +72,11 @@ export async function GET(
 // PATCH /api/notifications/[id] - Mark notification as read/unread
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { appUserId } = await getSessionData();
+    const params = await context.params;
     const notificationId = params.id;
     const data = await request.json();
 
@@ -124,10 +126,11 @@ export async function PATCH(
 // DELETE /api/notifications/[id] - Delete notification
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { appUserId } = await getSessionData();
+    const params = await context.params;
     const notificationId = params.id;
 
     // Verify notification belongs to user

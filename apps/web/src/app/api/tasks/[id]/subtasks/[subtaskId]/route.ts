@@ -64,10 +64,11 @@ async function verifySubtaskAccess(
 // GET /api/tasks/[id]/subtasks/[subtaskId] - Get a specific subtask
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; subtaskId: string } }
+  context: { params: Promise<{ id: string; subtaskId: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
 
     const subtask = await verifySubtaskAccess(
       params.id, 
@@ -100,10 +101,11 @@ export async function GET(
 // PUT /api/tasks/[id]/subtasks/[subtaskId] - Update a specific subtask
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; subtaskId: string } }
+  context: { params: Promise<{ id: string; subtaskId: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const data = await request.json();
 
     const subtask = await verifySubtaskAccess(
@@ -168,10 +170,11 @@ export async function PUT(
 // DELETE /api/tasks/[id]/subtasks/[subtaskId] - Delete a specific subtask
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; subtaskId: string } }
+  context: { params: Promise<{ id: string; subtaskId: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
 
     const subtask = await verifySubtaskAccess(
       params.id, 

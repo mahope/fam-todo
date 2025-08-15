@@ -31,10 +31,11 @@ async function getSessionData() {
 // GET /api/folders/[id] - Get individual folder
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const folderId = params.id;
 
     const folder = await prisma.folder.findFirst({
@@ -89,6 +90,7 @@ export async function GET(
 
     return NextResponse.json(folder);
   } catch (error) {
+    const params = await context.params;
     return handleApiError(error, { operation: 'get_folder', folderId: params.id });
   }
 }
@@ -96,10 +98,11 @@ export async function GET(
 // PATCH /api/folders/[id] - Update individual folder
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const folderId = params.id;
     const data = await request.json();
 
@@ -163,6 +166,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedFolder);
   } catch (error) {
+    const params = await context.params;
     return handleApiError(error, { operation: 'update_folder', folderId: params.id });
   }
 }
@@ -170,10 +174,11 @@ export async function PATCH(
 // DELETE /api/folders/[id] - Delete individual folder
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    const params = await context.params;
     const folderId = params.id;
 
     // Check if folder exists and user has access
@@ -226,6 +231,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: 'Folder deleted successfully' });
   } catch (error) {
+    const params = await context.params;
     return handleApiError(error, { operation: 'delete_folder', folderId: params.id });
   }
 }
