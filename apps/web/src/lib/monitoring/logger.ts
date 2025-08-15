@@ -1,122 +1,221 @@
-import winston from 'winston';
-import path from 'path';
+// Universal logger that works in both browser and server environments
 
-// Custom log levels
-const customLevels = {
-  levels: {
-    error: 0,
-    warn: 1,
-    info: 2,
-    http: 3,
-    debug: 4,
-  },
-  colors: {
-    error: 'red',
-    warn: 'yellow',
-    info: 'green',
-    http: 'magenta',
-    debug: 'white',
-  },
+// Browser console colors
+const colors = {
+  error: '#ef4444',
+  warn: '#f59e0b', 
+  info: '#10b981',
+  http: '#8b5cf6',
+  debug: '#6b7280',
 };
 
-// Add colors to winston
-winston.addColors(customLevels.colors);
+// Log levels
+const levels = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  http: 3,
+  debug: 4,
+};
 
-// Custom format for structured logging
-const logFormat = winston.format.combine(
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  winston.format.errors({ stack: true }),
-  winston.format.json(),
-  winston.format.printf(({ timestamp, level, message, ...meta }) => {
-    return JSON.stringify({
-      timestamp,
-      level,
-      message,
-      ...meta,
-    });
-  })
-);
+class UniversalLogger {
+  private isServer = typeof window === 'undefined';
+  private winstonLogger: any = null;
 
-// Console format for development
-const consoleFormat = winston.format.combine(
-  winston.format.colorize({ all: true }),
-  winston.format.timestamp({ format: 'HH:mm:ss' }),
-  winston.format.printf(({ timestamp, level, message, ...meta }) => {
-    const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
-    return `${timestamp} [${level}]: ${message}${metaStr}`;
-  })
-);
+  constructor() {
+    if (this.isServer) {
+      this.initializeServerLogger();
+    }
+  }
 
-// Create transports
-const transports: winston.transport[] = [];
+  private async initializeServerLogger() {
+    try {
+      const winston = require('winston');
+      const path = require('path');
 
-// Console transport for development
-if (process.env.NODE_ENV === 'development') {
-  transports.push(
-    new winston.transports.Console({
-      format: consoleFormat,
-      level: 'debug',
-    })
-  );
-} else {
-  // Production console with JSON format
-  transports.push(
-    new winston.transports.Console({
-      format: logFormat,
-      level: process.env.LOG_LEVEL || 'info',
-    })
-  );
-}
+      const customLevels = {
+        levels,
+        colors: {
+          error: 'red',
+          warn: 'yellow',
+          info: 'green',
+          http: 'magenta',
+          debug: 'white',
+        },
+      };
 
-// File transports for production
-if (process.env.NODE_ENV === 'production') {
-  // Error log file
-  transports.push(
-    new winston.transports.File({
-      filename: path.join(process.cwd(), 'logs', 'error.log'),
-      level: 'error',
-      format: logFormat,
-      maxsize: 10 * 1024 * 1024, // 10MB
-      maxFiles: 5,
-    })
-  );
+      winston.addColors(customLevels.colors);
 
-  // Combined log file
-  transports.push(
-    new winston.transports.File({
-      filename: path.join(process.cwd(), 'logs', 'combined.log'),
-      format: logFormat,
-      maxsize: 10 * 1024 * 1024, // 10MB
-      maxFiles: 10,
-    })
-  );
+      // Custom format for structured logging
+      const logFormat = winston.format.combine(
+        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        winston.format.errors({ stack: true }),
+        winston.format.json(),
+        winston.format.printf(({ timestamp, level, message, ...meta }: any) => {
+          return JSON.stringify({
+            timestamp,
+            level,
+            message,
+            ...meta,
+          });
+        })
+      );
 
-  // HTTP access log
-  transports.push(
-    new winston.transports.File({
-      filename: path.join(process.cwd(), 'logs', 'access.log'),
-      level: 'http',
-      format: logFormat,
-      maxsize: 10 * 1024 * 1024, // 10MB
-      maxFiles: 5,
-    })
-  );
+      // Console format for development
+      const consoleFormat = winston.format.combine(
+        winston.format.colorize({ all: true }),
+        winston.format.timestamp({ format: 'HH:mm:ss' }),
+        winston.format.printf(({ timestamp, level, message, ...meta }: any) => {
+          const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+          return `${timestamp} [${level}]: ${message}${metaStr}`;
+        })
+      );
+
+      const transports: any[] = [];
+
+      // Console transport
+      if (process.env.NODE_ENV === 'development') {
+        transports.push(
+          new winston.transports.Console({
+            format: consoleFormat,
+            level: 'debug',
+          })
+        );
+      } else {
+        transports.push(
+          new winston.transports.Console({
+            format: logFormat,
+            level: process.env.LOG_LEVEL || 'info',
+          })
+        );
+      }
+
+      // File transports for production
+      if (process.env.NODE_ENV === 'production') {
+        // Ensure logs directory exists
+        const fs = require('fs');
+        const logsDir = path.join(process.cwd(), 'logs');
+        if (!fs.existsSync(logsDir)) {
+          fs.mkdirSync(logsDir, { recursive: true });
+        }
+
+        // Error log file
+        transports.push(
+          new winston.transports.File({
+            filename: path.join(logsDir, 'error.log'),
+            level: 'error',
+            format: logFormat,
+            maxsize: 10 * 1024 * 1024, // 10MB
+            maxFiles: 5,
+          })
+        );
+
+        // Combined log file
+        transports.push(
+          new winston.transports.File({
+            filename: path.join(logsDir, 'combined.log'),
+            format: logFormat,
+            maxsize: 10 * 1024 * 1024, // 10MB
+            maxFiles: 10,
+          })
+        );
+
+        // HTTP access log
+        transports.push(
+          new winston.transports.File({
+            filename: path.join(logsDir, 'access.log'),
+            level: 'http',
+            format: logFormat,
+            maxsize: 10 * 1024 * 1024, // 10MB
+            maxFiles: 5,
+          })
+        );
+      }
+
+      this.winstonLogger = winston.createLogger({
+        levels: customLevels.levels,
+        format: logFormat,
+        transports,
+        exitOnError: false,
+      });
+    } catch (error) {
+      console.warn('Failed to initialize Winston logger, using console fallback');
+    }
+  }
+
+  private formatMessage(level: string, message: string, meta?: any): string {
+    const timestamp = new Date().toISOString();
+    const metaStr = meta ? ` ${JSON.stringify(meta)}` : '';
+    return `[${timestamp}] [${level.toUpperCase()}]: ${message}${metaStr}`;
+  }
+
+  private logToBrowser(level: string, message: string, meta?: any) {
+    const color = colors[level as keyof typeof colors] || '#6b7280';
+    const formattedMessage = this.formatMessage(level, message, meta);
+    
+    if (console[level as keyof Console]) {
+      (console[level as keyof Console] as any)(
+        `%c${formattedMessage}`,
+        `color: ${color}; font-weight: bold;`
+      );
+    } else {
+      console.log(
+        `%c${formattedMessage}`,
+        `color: ${color}; font-weight: bold;`
+      );
+    }
+  }
+
+  error(message: string, meta?: any): void {
+    if (this.isServer && this.winstonLogger) {
+      this.winstonLogger.error(message, meta);
+    } else {
+      this.logToBrowser('error', message, meta);
+    }
+  }
+
+  warn(message: string, meta?: any): void {
+    if (this.isServer && this.winstonLogger) {
+      this.winstonLogger.warn(message, meta);
+    } else {
+      this.logToBrowser('warn', message, meta);
+    }
+  }
+
+  info(message: string, meta?: any): void {
+    if (this.isServer && this.winstonLogger) {
+      this.winstonLogger.info(message, meta);
+    } else {
+      this.logToBrowser('info', message, meta);
+    }
+  }
+
+  http(message: string, meta?: any): void {
+    if (this.isServer && this.winstonLogger) {
+      this.winstonLogger.log('http', message, meta);
+    } else {
+      this.logToBrowser('http', message, meta);
+    }
+  }
+
+  debug(message: string, meta?: any): void {
+    if (this.isServer && this.winstonLogger) {
+      this.winstonLogger.debug(message, meta);
+    } else if (process.env.NODE_ENV === 'development') {
+      this.logToBrowser('debug', message, meta);
+    }
+  }
 }
 
 // Create logger instance
-export const logger = winston.createLogger({
-  levels: customLevels.levels,
-  format: logFormat,
-  transports,
-  exitOnError: false,
-});
+export const logger = new UniversalLogger();
 
 // Export log functions for easier use
 export const log = {
   error: (message: string, meta?: any) => logger.error(message, meta),
   warn: (message: string, meta?: any) => logger.warn(message, meta),
   info: (message: string, meta?: any) => logger.info(message, meta),
-  http: (message: string, meta?: any) => logger.log('http', message, meta),
+  http: (message: string, meta?: any) => logger.http(message, meta),
   debug: (message: string, meta?: any) => logger.debug(message, meta),
 };
 
@@ -168,7 +267,7 @@ export const logAuth = (event: string, userId?: string, meta?: any) => {
 // Security event logging
 export const logSecurity = (event: string, severity: 'low' | 'medium' | 'high', meta?: any) => {
   const logLevel = severity === 'high' ? 'error' : severity === 'medium' ? 'warn' : 'info';
-  logger.log(logLevel, `Security Event: ${event}`, {
+  logger[logLevel](`Security Event: ${event}`, {
     severity,
     event,
     ...meta,
