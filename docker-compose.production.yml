@@ -1,5 +1,4 @@
 # Production Docker Compose for NestList - Optimized for Dokploy
-version: '3.8'
 
 services:
   # PostgreSQL Database

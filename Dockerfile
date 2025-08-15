@@ -17,13 +17,13 @@ RUN npm ci --only=production
 FROM base AS builder
 WORKDIR /app
 COPY apps/web/package*.json ./
-RUN npm ci
-
-COPY apps/web .
 COPY apps/web/prisma ./prisma/
 
-# Generate Prisma client
-RUN npx prisma generate
+# Install dependencies after prisma schema is available
+RUN npm ci
+
+# Copy rest of the application
+COPY apps/web .
 
 # Build the application
 RUN npm run build
