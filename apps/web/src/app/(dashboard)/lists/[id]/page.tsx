@@ -124,7 +124,7 @@ export default function ListDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["list-tasks", listId] });
       queryClient.invalidateQueries({ queryKey: ["shopping-items", listId] });
       setNewTaskTitle("");
-      setIsAddingTask(false);
+      // setIsAddingTask(false); // Commented out for now
     },
   });
 
