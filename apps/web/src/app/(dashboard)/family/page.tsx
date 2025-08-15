@@ -51,7 +51,7 @@ export default function FamilyPage() {
       const response = await api.get<Family[]>("/families?select=*");
       return response.data?.[0];
     },
-    enabled: !!api.token,
+    enabled: api.status === "authenticated",
   });
 
   // Fetch family members
@@ -61,7 +61,7 @@ export default function FamilyPage() {
       const response = await api.get<FamilyMember[]>("/app_users?select=*&order=created_at.asc");
       return response.data || [];
     },
-    enabled: !!api.token,
+    enabled: api.status === "authenticated",
   });
 
   const getRoleIcon = (role: string) => {
