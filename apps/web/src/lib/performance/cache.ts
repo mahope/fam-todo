@@ -60,6 +60,9 @@ export const cacheKeys = {
   // User
   user: ['user'] as const,
   family: ['family'] as const,
+  
+  // Search
+  search: ['search'] as const,
 };
 
 // Prefetch utilities

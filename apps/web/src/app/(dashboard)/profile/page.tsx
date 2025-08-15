@@ -1,16 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as z from "zod";
-import { useApi } from "@/lib/api";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Form,
   FormControl,
@@ -22,14 +19,13 @@ import {
 } from "@/components/ui/form";
 import { 
   User, 
-  Mail, 
-  Camera, 
   Save,
   Calendar,
   Shield,
   Activity
 } from "lucide-react";
 import { toast } from "sonner";
+import AvatarUpload from "@/components/profile/avatar-upload";
 
 const profileSchema = z.object({
   name: z.string().min(1, "Navn er påkrævet").max(100, "Navn er for langt"),
@@ -38,20 +34,8 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
-type UserProfile = {
-  id: string;
-  name: string;
-  email: string;
-  role_name: "admin" | "adult" | "child";
-  avatar_url?: string;
-  created_at: string;
-  last_seen?: string;
-};
-
 export default function ProfilePage() {
-  const [isUploading, setIsUploading] = useState(false);
   const { data: session } = useSession();
-  const api = useApi();
   const queryClient = useQueryClient();
 
   // Fetch user profile
@@ -111,20 +95,18 @@ export default function ProfilePage() {
     updateProfileMutation.mutate(data);
   }
 
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !profile) return;
-
-    setIsUploading(true);
-    try {
-      // In a real app, you would upload to Supabase Storage here
-      // For now, we'll just show a placeholder
-      toast.info("Avatar upload funktionalitet kommer snart");
-    } catch (error) {
-      toast.error("Kunne ikke uploade avatar");
-    } finally {
-      setIsUploading(false);
-    }
+  const handleAvatarUpdate = (newAvatarUrl: string | null) => {
+    // Update the profile data in the query cache
+    queryClient.setQueryData(["user-profile"], (oldData: unknown) => {
+      if (!oldData || typeof oldData !== 'object') return oldData;
+      return {
+        ...oldData,
+        avatar_url: newAvatarUrl,
+      };
+    });
+    
+    // Also invalidate to refetch fresh data
+    queryClient.invalidateQueries({ queryKey: ["user-profile"] });
   };
 
   const getRoleText = (role: string) => {
@@ -222,34 +204,12 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Avatar Section */}
-          <div className="flex flex-col items-center space-y-4">
-            <div className="relative">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={profile.avatar_url} alt={profile.name} />
-                <AvatarFallback className="text-lg">
-                  {getInitials(profile.name)}
-                </AvatarFallback>
-              </Avatar>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
-                disabled={isUploading}
-              >
-                <Camera className="h-4 w-4" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  disabled={isUploading}
-                />
-              </Button>
-            </div>
-            <div className="text-center">
-              <p className="font-medium">{profile.name}</p>
-              <p className="text-sm text-muted-foreground">{profile.email}</p>
-            </div>
+          <div className="flex justify-center">
+            <AvatarUpload
+              currentAvatar={profile.avatar_url}
+              userName={profile.name}
+              onAvatarUpdate={handleAvatarUpdate}
+            />
           </div>
 
           {/* Profile Form */}

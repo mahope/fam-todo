@@ -43,6 +43,7 @@ import {
   Save
 } from "lucide-react";
 import { toast } from "sonner";
+import PushNotificationSettings from "@/components/notifications/push-notification-settings";
 
 const settingsSchema = z.object({
   email_notifications: z.boolean(),
@@ -319,6 +320,9 @@ export default function SettingsPage() {
             </Form>
           </CardContent>
         </Card>
+
+        {/* Advanced Push Notification Settings */}
+        <PushNotificationSettings />
 
         {/* Default Settings */}
         <Card>

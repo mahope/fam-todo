@@ -1,4 +1,5 @@
 // Performance monitoring utilities for FamTodo
+import React from 'react';
 
 interface PerformanceMetric {
   name: string;
@@ -302,10 +303,10 @@ export const monitoredFetch = async (
 };
 
 // Component performance wrapper
-export const withPerformanceMonitoring = <P extends object>(
+export function withPerformanceMonitoring<P extends object>(
   Component: React.ComponentType<P>,
   componentName: string
-) => {
+) {
   return React.forwardRef<any, P>((props, ref) => {
     React.useEffect(() => {
       const mountTime = performance.now();
@@ -320,9 +321,9 @@ export const withPerformanceMonitoring = <P extends object>(
       };
     }, []);
 
-    return <Component {...props} ref={ref} />;
+    return React.createElement(Component, { ...props, ref });
   });
-};
+}
 
 // Lazy loading performance helper
 export const measureLazyLoad = (componentName: string) => {

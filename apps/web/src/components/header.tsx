@@ -29,6 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import GlobalSearch from "@/components/search/global-search";
 
 export function Header() {
   const { data: session, status } = useSession();
@@ -91,8 +92,15 @@ export function Header() {
           </nav>
         )}
 
+        {/* Global Search */}
+        {user && (
+          <div className="flex-1 max-w-md mx-4">
+            <GlobalSearch />
+          </div>
+        )}
+
         {/* Right side actions */}
-        <div className="flex flex-1 items-center justify-end space-x-2">
+        <div className="flex items-center justify-end space-x-2">
           {/* Theme Toggle */}
           <Button
             variant="ghost"
