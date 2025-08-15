@@ -12,6 +12,7 @@ interface Logger {
   warn: (message: string, context?: LogContext) => void;
   error: (message: string, context?: LogContext) => void;
   debug: (message: string, context?: LogContext) => void;
+  http: (message: string, context?: LogContext) => void;
 }
 
 class UniversalLogger implements Logger {
@@ -69,10 +70,78 @@ class UniversalLogger implements Logger {
       }
     }
   }
+
+  http(message: string, context?: LogContext): void {
+    if (this.isServer && this.winston) {
+      this.winston.log('http', message, context);
+    } else {
+      console.log(this.formatMessage('http', message, context));
+    }
+  }
 }
 
 // Export singleton instance
 export const logger = new UniversalLogger();
+
+// Export traditional log functions for easier use
+export const log = {
+  error: (message: string, context?: LogContext) => logger.error(message, context),
+  warn: (message: string, context?: LogContext) => logger.warn(message, context),
+  info: (message: string, context?: LogContext) => logger.info(message, context),
+  http: (message: string, context?: LogContext) => logger.http(message, context),
+  debug: (message: string, context?: LogContext) => logger.debug(message, context),
+};
+
+// Helper functions for specific logging scenarios
+export const logError = (error: Error, context?: string, meta?: LogContext) => {
+  logger.error(`${context ? `[${context}] ` : ''}${error.message}`, {
+    stack: error.stack,
+    name: error.name,
+    context,
+    ...meta,
+  });
+};
+
+export const logRequest = (req: Request, res: any, duration?: number) => {
+  const { method, url } = req;
+  const userAgent = req.headers.get('user-agent') || 'unknown';
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+  
+  logger.http('HTTP Request', {
+    method,
+    url,
+    userAgent,
+    ip,
+    duration: duration ? `${duration}ms` : undefined,
+    status: res?.status,
+  });
+};
+
+export const logDbOperation = (operation: string, table: string, duration?: number, meta?: LogContext) => {
+  logger.debug('Database Operation', {
+    operation,
+    table,
+    duration: duration ? `${duration}ms` : undefined,
+    ...meta,
+  });
+};
+
+export const logAuth = (event: string, userId?: string, meta?: LogContext) => {
+  logger.info('Authentication Event', {
+    event,
+    userId,
+    ...meta,
+  });
+};
+
+export const logSecurity = (event: string, severity: 'low' | 'medium' | 'high', meta?: LogContext) => {
+  const logLevel = severity === 'high' ? 'error' : severity === 'medium' ? 'warn' : 'info';
+  logger[logLevel](`Security Event: ${event}`, {
+    severity,
+    event,
+    ...meta,
+  });
+};
 
 // Export types for external use
 export type { Logger, LogContext };

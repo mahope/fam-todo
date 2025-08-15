@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/security/auth-middleware';
 import { getErrorReports, getErrorStats, errorTracker } from '@/lib/monitoring/error-tracking';
 import { SessionData } from '@/lib/auth/types';
+import { logger } from '@/lib/logger';
 
 export const GET = withAuth(
   async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
@@ -38,7 +39,7 @@ export const GET = withAuth(
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      console.error('Failed to get error reports:', error);
+      logger.error('Failed to get error reports', { error });
       return NextResponse.json(
         { error: 'Failed to retrieve error reports' },
         { status: 500 }
@@ -97,7 +98,7 @@ export const DELETE = withAuth(
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      console.error('Failed to clear errors:', error);
+      logger.error('Failed to clear errors', { error });
       return NextResponse.json(
         { error: 'Failed to clear errors' },
         { status: 500 }

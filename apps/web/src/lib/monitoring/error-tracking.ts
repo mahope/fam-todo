@@ -1,4 +1,4 @@
-import { log, logError } from './logger';
+import { log, logError } from '@/lib/logger';
 import { metrics } from './metrics';
 
 // Error types

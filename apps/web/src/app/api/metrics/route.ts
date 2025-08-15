@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/security/auth-middleware';
 import { metrics } from '@/lib/monitoring/metrics';
 import { SessionData } from '@/lib/auth/types';
+import { logger } from '@/lib/logger';
 
 export const GET = withAuth(
   async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
@@ -64,7 +65,7 @@ export const GET = withAuth(
 
       return NextResponse.json(response, { status: 200 });
     } catch (error) {
-      console.error('Failed to get metrics:', error);
+      logger.error('Failed to get metrics', { error });
       return NextResponse.json(
         { error: 'Failed to retrieve metrics' },
         { status: 500 }

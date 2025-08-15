@@ -1,5 +1,5 @@
-// Main monitoring exports
-export { log, logger, logRequest, logError, logDbOperation, logAuth, logSecurity } from './logger';
+// Main monitoring exports - using consolidated logger
+export { log, logger, logRequest, logError, logDbOperation, logAuth, logSecurity } from '@/lib/logger';
 export { 
   metrics, 
   httpMetrics, 
@@ -58,6 +58,7 @@ export function initializeMonitoring() {
       ],
     });
   } catch (error) {
+    // Use fallback console logging since main logger might not be available yet
     console.warn('Failed to initialize monitoring system:', error);
   }
 }
