@@ -49,6 +49,8 @@ Thumbs.db
 .cache/
 */cache/
 .turbo/
+tsconfig.tsbuildinfo
+*/tsconfig.tsbuildinfo
 
 # Testing
 coverage/
