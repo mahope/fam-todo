@@ -20,6 +20,8 @@ import {
   Activity
 } from "lucide-react";
 import { useTranslations } from 'next-intl';
+import { InviteMemberDialog } from "@/components/family/invite-member-dialog";
+import { PendingInvites } from "@/components/family/pending-invites";
 
 type FamilyMember = {
   id: string;
@@ -39,6 +41,7 @@ type Family = {
 
 export default function FamilyPage() {
   const t = useTranslations('family');
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
   const api = useApi();
 
   // Fetch family information
@@ -129,7 +132,10 @@ export default function FamilyPage() {
             Administrer familiemedlemmer og roller
           </p>
         </div>
-        <Button className="mt-4 sm:mt-0">
+        <Button 
+          className="mt-4 sm:mt-0"
+          onClick={() => setShowInviteDialog(true)}
+        >
           <UserPlus className="h-4 w-4 mr-2" />
           Inviter Medlem
         </Button>
@@ -158,6 +164,9 @@ export default function FamilyPage() {
           </CardHeader>
         </Card>
       ) : null}
+
+      {/* Pending Invites */}
+      <PendingInvites />
 
       {/* Members List */}
       <Card>
@@ -242,7 +251,7 @@ export default function FamilyPage() {
               <p className="text-muted-foreground mb-6">
                 Inviter familiemedlemmer for at komme i gang
               </p>
-              <Button>
+              <Button onClick={() => setShowInviteDialog(true)}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Inviter Første Medlem
               </Button>
@@ -250,6 +259,11 @@ export default function FamilyPage() {
           )}
         </CardContent>
       </Card>
+
+      <InviteMemberDialog 
+        open={showInviteDialog} 
+        onOpenChange={setShowInviteDialog}
+      />
     </div>
   );
 }

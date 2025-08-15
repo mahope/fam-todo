@@ -2,7 +2,7 @@
 services:
   db:
     image: postgres:15
-    container_name: famtodo_db
+    container_name: nestlist_db
     restart: unless-stopped
     ports:
       - "5432:5432"
@@ -19,7 +19,7 @@ services:
 
   web:
     build: ./apps/web
-    container_name: famtodo_web
+    container_name: nestlist_web
     restart: unless-stopped
     depends_on:
       db:

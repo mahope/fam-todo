@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { DashboardLayout as DashboardLayoutWrapper } from "@/components/layout/dashboard-layout";
 
 export default function DashboardLayout({
   children,
@@ -39,5 +40,9 @@ export default function DashboardLayout({
     return null; // Will redirect
   }
 
-  return <>{children}</>;
+  return (
+    <DashboardLayoutWrapper>
+      {children}
+    </DashboardLayoutWrapper>
+  );
 }

@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
       return new NextResponse(csvData, {
         headers: {
           'Content-Type': 'text/csv',
-          'Content-Disposition': `attachment; filename="famtodo-export-${family.name}-${new Date().toISOString().split('T')[0]}.csv"`,
+          'Content-Disposition': `attachment; filename="nestlist-export-${family.name}-${new Date().toISOString().split('T')[0]}.csv"`,
         },
       });
     } else {
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
       return new NextResponse(JSON.stringify(exportData, null, 2), {
         headers: {
           'Content-Type': 'application/json',
-          'Content-Disposition': `attachment; filename="famtodo-export-${family.name}-${new Date().toISOString().split('T')[0]}.json"`,
+          'Content-Disposition': `attachment; filename="nestlist-export-${family.name}-${new Date().toISOString().split('T')[0]}.json"`,
         },
       });
     }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/lib/api-error-handler';
 
 async function getSessionData() {
   const session = await getServerSession(authOptions);
@@ -87,11 +89,7 @@ export async function GET(
 
     return NextResponse.json(folder);
   } catch (error) {
-    console.error('Get folder error:', error);
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, { operation: 'get_folder', folderId: params.id });
   }
 }
 
@@ -161,12 +159,11 @@ export async function PATCH(
     });
 
     return NextResponse.json(updatedFolder);
+    logger.info('Folder updated', { folderId, updateData, ownerId: appUserId });
+
+    return NextResponse.json(updatedFolder);
   } catch (error) {
-    console.error('Update folder error:', error);
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, { operation: 'update_folder', folderId: params.id });
   }
 }
 
@@ -225,11 +222,10 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true, message: 'Folder deleted successfully' });
+    logger.info('Folder deleted', { folderId, ownerId: appUserId });
+
+    return NextResponse.json({ success: true, message: 'Folder deleted successfully' });
   } catch (error) {
-    console.error('Delete folder error:', error);
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, { operation: 'delete_folder', folderId: params.id });
   }
 }

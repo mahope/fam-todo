@@ -80,14 +80,14 @@ export function InstallPrompt() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Download className="h-5 w-5 text-blue-600" />
-            <CardTitle className="text-lg">Installer FamTodo</CardTitle>
+            <CardTitle className="text-lg">Installer NestList</CardTitle>
           </div>
           <Button variant="ghost" size="sm" onClick={handleDismiss}>
             <X className="h-4 w-4" />
           </Button>
         </div>
         <CardDescription>
-          Få en bedre oplevelse med FamTodo som app på din enhed
+          Få en bedre oplevelse med NestList som app på din enhed
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -214,7 +214,7 @@ export function UpdateAvailable() {
       <RefreshCw className="h-4 w-4" />
       <AlertDescription>
         <div className="flex items-center justify-between">
-          <span>En ny version af FamTodo er tilgængelig!</span>
+          <span>En ny version af NestList er tilgængelig!</span>
           <Button 
             size="sm" 
             onClick={handleUpdate} 

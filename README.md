@@ -1,8 +1,8 @@
-# FamTodo
+# NestList
 
 **A modern, family-focused task and shopping list management application**
 
-FamTodo is a private, web-based Progressive Web App (PWA) designed to organize tasks, shopping lists, and daily chores for families. The system supports both shared and private lists with role-based access control, real-time collaboration, and intelligent shopping features.
+NestList is a private, web-based Progressive Web App (PWA) designed to organize tasks, shopping lists, and daily chores for families. The system supports both shared and private lists with role-based access control, real-time collaboration, and intelligent shopping features.
 
 ## ✨ Key Features
 
@@ -11,11 +11,13 @@ FamTodo is a private, web-based Progressive Web App (PWA) designed to organize t
 - Private, family-wide, and adult-only content visibility
 - Family invitation system with secure tokens
 
-### 📋 **Task & List Management**
-- Unlimited lists organized in folders with custom colors
-- Rich task features: deadlines, recurrence, subtasks, assignments, tags
-- Drag & drop task organization and calendar view
-- Smart shopping lists with automatic categorization
+### 📋 **Task & List Management**  
+- **Complete folder system** with colors and organization
+- **Rich task features**: deadlines, recurrence, subtasks, assignments, tags
+- **Task assignments** to specific family members
+- **Drag & drop** task organization and calendar view
+- **Smart shopping lists** with automatic categorization
+- **Quick task creation** from multiple access points
 
 ### 🔄 **Real-time Collaboration**
 - Live updates across all family members using Socket.io
@@ -29,10 +31,12 @@ FamTodo is a private, web-based Progressive Web App (PWA) designed to organize t
 - Install as native app on mobile devices
 
 ### 🎨 **Modern UI/UX**
-- Clean, minimalist design with dark/light theme support
-- Accessible interface with keyboard navigation and ARIA support
-- Smooth animations and intuitive interactions
-- Built with shadcn/ui components and Tailwind CSS
+- **Mobile-first navigation** with bottom nav bar and floating action button
+- **Desktop sidebar** with collapsible sections and recent items
+- **Clean, minimalist design** with dark/light theme support
+- **Accessible interface** with keyboard navigation and ARIA support  
+- **Smooth animations** and intuitive interactions
+- Built with **shadcn/ui** components and **Tailwind CSS**
 
 ## 🛠 Tech Stack
 
@@ -63,6 +67,7 @@ FamTodo is a private, web-based Progressive Web App (PWA) designed to organize t
 - Node.js 18+ 
 - PostgreSQL database
 - npm or yarn
+- Docker (for production deployment)
 
 ### Development Setup
 
@@ -86,7 +91,7 @@ FamTodo is a private, web-based Progressive Web App (PWA) designed to organize t
    Configure the following environment variables:
    ```env
    # Database
-   DATABASE_URL="postgresql://user:password@localhost:5432/famtodo"
+   DATABASE_URL="postgresql://user:password@localhost:5432/nestlist"
    
    # Authentication
    NEXTAUTH_URL="http://localhost:3003"
@@ -178,6 +183,26 @@ The app includes comprehensive PWA features:
 - **Background Sync** for offline task creation
 - **Install prompts** for native app experience
 
+## 🎨 UI Components & Navigation
+
+### Desktop Experience
+- **Sidebar Navigation** with collapsible sections for folders and recent lists
+- **Quick Actions** panel for creating new lists and folders
+- **Dynamic Content** showing live folder/list counts and recent activity
+- **Responsive Design** that adapts to screen sizes
+
+### Mobile Experience  
+- **Bottom Navigation Bar** with essential navigation items
+- **Floating Action Button** with expandable quick actions
+- **Swipe Gestures** for intuitive mobile interactions (planned)
+- **Touch-Optimized** interface with proper tap targets
+
+### Task Management UI
+- **Rich Task Forms** with subtasks, tags, and assignments
+- **Assignee Selector** to assign tasks to family members
+- **Quick Task Dialog** accessible from multiple locations
+- **Drag & Drop** functionality for task reordering
+
 ## 📊 Monitoring & Observability
 
 ### Built-in Monitoring
@@ -245,10 +270,22 @@ npm run test:coverage     # Generate coverage report
 
 ## 🚀 Deployment
 
-### Production Build
+### Production Deployment
+
+For production deployment with Dokploy, see the [DEPLOYMENT.md](./DEPLOYMENT.md) guide.
+
+#### Quick Production Setup:
 ```bash
-npm run build
-npm run start
+# 1. Copy production environment template
+cp .env.production.template .env.production
+
+# 2. Fill in your production values in .env.production
+
+# 3. Deploy with Docker Compose
+docker-compose -f docker-compose.production.yml up -d
+
+# 4. Run database migrations
+docker exec nestlist_web npx prisma migrate deploy
 ```
 
 ### Environment Considerations
@@ -256,6 +293,7 @@ npm run start
 - **Environment Variables** - All secrets properly configured
 - **Logging** - Structured logs for monitoring systems
 - **Performance** - Built-in metrics and monitoring endpoints
+- **Domain** - Production runs on https://todo.holstjensen.eu
 
 ## 🤝 Contributing
 

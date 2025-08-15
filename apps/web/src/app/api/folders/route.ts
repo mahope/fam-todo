@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/lib/api-error-handler';
 
 async function getSessionData() {
   const session = await getServerSession(authOptions);
@@ -60,11 +62,7 @@ export async function GET() {
 
     return NextResponse.json(folders);
   } catch (error) {
-    console.error('Get folders error:', error);
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, { operation: 'get_folders' });
   }
 }
 
@@ -75,11 +73,16 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
 
     // Validate required fields
-    if (!data.name) {
-      return NextResponse.json(
-        { error: 'Folder name is required' },
-        { status: 400 }
-      );
+    if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
+      return NextResponse.json({ error: 'Folder name is required' }, { status: 400 });
+    }
+
+    if (data.visibility && !['PRIVATE', 'FAMILY', 'ADULTS'].includes(data.visibility)) {
+      return NextResponse.json({ error: 'Invalid visibility value' }, { status: 400 });
+    }
+
+    if (data.color && (typeof data.color !== 'string' || !/^#[0-9A-F]{6}$/i.test(data.color))) {
+      return NextResponse.json({ error: 'Invalid color format' }, { status: 400 });
     }
 
     const folder = await prisma.folder.create({
@@ -105,12 +108,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    logger.info('Folder created', { folderId: folder.id, name: folder.name, ownerId: appUserId });
+
     return NextResponse.json(folder, { status: 201 });
   } catch (error) {
-    console.error('Create folder error:', error);
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, { operation: 'create_folder' });
   }
 }

@@ -22,7 +22,7 @@ if (typeof window === 'undefined') {
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "FamTodo",
+  title: "NestList",
   description: "Familie Opgave Håndtering",
   manifest: "/manifest.json",
 };

@@ -15,6 +15,7 @@ import {
   X,
   User,
   Users,
+  Folder,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,7 +52,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <ListTodo className="h-6 w-6" />
-          <span className="hidden font-bold sm:inline-block">FamTodo</span>
+          <span className="hidden font-bold sm:inline-block">NestList</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -72,6 +73,14 @@ export function Header() {
             >
               <ListTodo className="h-4 w-4 inline mr-1" />
               {t('lists')}
+            </Link>
+            <Link
+              href="/folders"
+              prefetch={true}
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+            >
+              <Folder className="h-4 w-4 inline mr-1" />
+              Mapper
             </Link>
             <Link
               href="/shopping"
@@ -206,6 +215,14 @@ export function Header() {
             >
               <ListTodo className="mr-3 h-4 w-4" />
               {t('lists')}
+            </Link>
+            <Link
+              href="/folders"
+              className="flex items-center rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Folder className="mr-3 h-4 w-4" />
+              Mapper
             </Link>
             <Link
               href="/shopping"

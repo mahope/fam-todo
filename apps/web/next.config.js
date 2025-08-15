@@ -14,6 +14,7 @@ const withSerwist = require('@serwist/next').default({
 
 const nextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
   
   experimental: {
     turbo: {

@@ -42,7 +42,7 @@ export default function HomePage() {
           <ListTodo className="h-16 w-16 mx-auto text-primary" />
           <div>
             <CardTitle className="text-3xl font-bold">
-              FamTodo
+              NestList
             </CardTitle>
             <CardDescription className="text-lg mt-2">
               Familie Opgave Håndtering

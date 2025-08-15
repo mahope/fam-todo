@@ -2,41 +2,21 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import * as z from "zod";
 import { useApi, type Task } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { TaskForm, type TaskFormData } from "@/components/tasks/task-form";
+import { ArrowLeft, Edit } from "lucide-react";
+import { toast } from "sonner";
 
-const editTaskSchema = z.object({
-  title: z.string().min(1, "Title is required").max(200, "Title is too long"),
-  description: z.string().max(1000, "Description is too long").optional(),
-  priority: z.enum(["none", "low", "medium", "high"]),
-  status: z.enum(["open", "in_progress", "done", "archived"]),
-  due_at: z.string().optional(),
-});
-
-type EditTaskFormValues = z.infer<typeof editTaskSchema>;
+type TaskWithSubtasks = Task & {
+  subtasks?: Array<{
+    id: string;
+    title: string;
+    completed: boolean;
+  }>;
+};
 
 export default function EditTaskPage() {
   const params = useParams();
@@ -48,84 +28,144 @@ export default function EditTaskPage() {
   const queryClient = useQueryClient();
 
   // Fetch task details
-  const { data: task, isLoading } = useQuery({
+  const { data: task, isLoading: taskLoading, error } = useQuery({
     queryKey: ["task", taskId],
     queryFn: async () => {
-      const response = await api.get<Task[]>(`/tasks?id=eq.${taskId}&select=*`);
-      return response.data?.[0];
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        headers: {
+          'Authorization': `Bearer ${api.token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Task not found');
+        }
+        throw new Error('Failed to fetch task');
+      }
+
+      return response.json() as Promise<TaskWithSubtasks>;
     },
     enabled: !!api.token && !!taskId,
   });
 
-  const form = useForm<EditTaskFormValues>({
-    resolver: zodResolver(editTaskSchema),
-    values: {
-      title: task?.title || "",
-      description: task?.description || "",
-      priority: task?.priority || "none",
-      status: task?.status || "open",
-      due_at: task?.due_at ? new Date(task.due_at).toISOString().slice(0, 16) : "",
+  // Fetch subtasks
+  const { data: subtasks } = useQuery({
+    queryKey: ["task-subtasks", taskId],
+    queryFn: async () => {
+      const response = await fetch(`/api/tasks/${taskId}/subtasks`, {
+        headers: {
+          'Authorization': `Bearer ${api.token}`,
+        },
+      });
+
+      if (!response.ok) {
+        return [];
+      }
+
+      return response.json();
     },
+    enabled: !!api.token && !!taskId,
   });
 
+  // Update task mutation
   const updateTaskMutation = useMutation({
-    mutationFn: async (data: EditTaskFormValues) => {
-      const response = await api.patch(`/tasks?id=eq.${taskId}`, {
-        ...data,
-        description: data.description || null,
-        due_at: data.due_at ? new Date(data.due_at).toISOString() : null,
-        updated_at: new Date().toISOString(),
+    mutationFn: async (data: TaskFormData) => {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${api.token}`,
+        },
+        body: JSON.stringify({
+          title: data.title,
+          description: data.description,
+          assigneeId: data.assigneeId,
+          priority: data.priority,
+          deadline: data.deadline,
+          tags: data.tags,
+          recurrence: data.recurrence,
+          // Note: Subtasks are handled separately through the subtasks API
+        }),
       });
-      
-      if (response.error) {
-        throw new Error(response.error);
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update task");
       }
-      
-      return response.data;
+
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["list-tasks", listId] });
+      
+      toast.success("Opgave opdateret");
       router.push(`/lists/${listId}`);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update task");
     },
   });
 
-  async function onSubmit(data: EditTaskFormValues) {
-    updateTaskMutation.mutate(data);
-  }
+  const handleCancel = () => {
+    router.push(`/lists/${listId}`);
+  };
 
-  if (isLoading) {
+  const handleSubmit = (data: TaskFormData) => {
+    updateTaskMutation.mutate(data);
+  };
+
+  if (taskLoading) {
     return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-pulse">Loading task...</div>
+      <div className="container mx-auto px-4 py-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
+          <div className="h-4 bg-muted rounded w-1/2 mb-8"></div>
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-12 bg-muted rounded"></div>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!task) {
+  if (error || !task) {
     return (
       <div className="container mx-auto px-4 py-6">
-        <Card>
-          <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Task not found</h3>
-              <p className="text-muted-foreground mb-4">
-                The task you're looking for doesn't exist or you don't have access to it.
-              </p>
-              <Button asChild>
-                <Link href={`/lists/${listId}`}>Back to List</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Opgave ikke fundet</h1>
+          <p className="text-muted-foreground mb-4">
+            Opgaven eksisterer ikke eller du har ikke adgang til den.
+          </p>
+          <Button asChild>
+            <Link href={`/lists/${listId}`}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Tilbage til liste
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
+  // Prepare initial data for the form
+  const initialData: Partial<TaskFormData> = {
+    title: task.title,
+    description: task.description || "",
+    assigneeId: task.assigneeId || undefined,
+    priority: task.priority || "NONE",
+    deadline: task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : "",
+    tags: task.tags || [],
+    recurrence: task.recurrence || "NONE",
+    subtasks: subtasks || [],
+  };
+
   return (
-    <div className="container mx-auto px-4 py-6 max-w-2xl">
+    <div className="container mx-auto px-4 py-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="icon" asChild>
@@ -134,155 +174,33 @@ export default function EditTaskPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Edit Task</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Edit className="h-8 w-8" />
+            Rediger Opgave
+          </h1>
           <p className="text-muted-foreground">
-            Update task details and settings
+            Opdater opgavedetaljer og tildeling
           </p>
         </div>
       </div>
 
+      {/* Task Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Task Details</CardTitle>
+          <CardTitle>Opgave Information</CardTitle>
           <CardDescription>
-            Modify your task information
+            Rediger opgavens detaljer, tildeling og andre indstillinger.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Task title..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Add a description for your task..."
-                        className="resize-none"
-                        rows={3}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="open">Open</SelectItem>
-                          <SelectItem value="in_progress">In Progress</SelectItem>
-                          <SelectItem value="done">Done</SelectItem>
-                          <SelectItem value="archived">Archived</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Priority</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose priority" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="due_at"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Due Date (Optional)</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="datetime-local"
-                          className="pl-9"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {updateTaskMutation.error && (
-                <div className="text-sm text-destructive">
-                  {updateTaskMutation.error.message}
-                </div>
-              )}
-
-              <div className="flex gap-4 pt-6">
-                <Button
-                  type="submit"
-                  disabled={updateTaskMutation.isPending}
-                  className="flex-1"
-                >
-                  {updateTaskMutation.isPending ? "Saving..." : "Save Changes"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  asChild
-                  disabled={updateTaskMutation.isPending}
-                >
-                  <Link href={`/lists/${listId}`}>Cancel</Link>
-                </Button>
-              </div>
-            </form>
-          </Form>
+          <TaskForm
+            initialData={initialData}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            isLoading={updateTaskMutation.isPending}
+            submitLabel="Gem Ændringer"
+            cancelLabel="Annuller"
+          />
         </CardContent>
       </Card>
     </div>

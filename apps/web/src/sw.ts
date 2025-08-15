@@ -191,7 +191,7 @@ function openOfflineDB(): Promise<IDBDatabase> {
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing');
   event.waitUntil(
-    caches.open('famtodo-critical-v1').then((cache) => {
+    caches.open('nestlist-critical-v1').then((cache) => {
       return cache.addAll([
         '/',
         '/login',

@@ -83,38 +83,38 @@ function convertToPrometheusFormat(data: any): string {
   const lines: string[] = [];
   
   // Add help and type comments
-  lines.push('# HELP famtodo_http_requests_total Total HTTP requests');
-  lines.push('# TYPE famtodo_http_requests_total counter');
+  lines.push('# HELP nestlist_http_requests_total Total HTTP requests');
+  lines.push('# TYPE nestlist_http_requests_total counter');
   
   // Add HTTP metrics
   data.http.forEach((metric: any) => {
-    lines.push(`famtodo_http_requests_total{route="${metric.route}"} ${metric.count}`);
+    lines.push(`nestlist_http_requests_total{route="${metric.route}"} ${metric.count}`);
   });
   
-  lines.push('# HELP famtodo_http_request_duration_seconds HTTP request duration');
-  lines.push('# TYPE famtodo_http_request_duration_seconds histogram');
+  lines.push('# HELP nestlist_http_request_duration_seconds HTTP request duration');
+  lines.push('# TYPE nestlist_http_request_duration_seconds histogram');
   
   data.http.forEach((metric: any) => {
-    lines.push(`famtodo_http_request_duration_seconds{route="${metric.route}"} ${metric.avgDuration / 1000}`);
+    lines.push(`nestlist_http_request_duration_seconds{route="${metric.route}"} ${metric.avgDuration / 1000}`);
   });
   
   // Add system metrics
-  lines.push('# HELP famtodo_memory_usage_bytes Memory usage in bytes');
-  lines.push('# TYPE famtodo_memory_usage_bytes gauge');
-  lines.push(`famtodo_memory_usage_bytes{type="rss"} ${data.system.memory.rss}`);
-  lines.push(`famtodo_memory_usage_bytes{type="heapUsed"} ${data.system.memory.heapUsed}`);
-  lines.push(`famtodo_memory_usage_bytes{type="heapTotal"} ${data.system.memory.heapTotal}`);
+  lines.push('# HELP nestlist_memory_usage_bytes Memory usage in bytes');
+  lines.push('# TYPE nestlist_memory_usage_bytes gauge');
+  lines.push(`nestlist_memory_usage_bytes{type="rss"} ${data.system.memory.rss}`);
+  lines.push(`nestlist_memory_usage_bytes{type="heapUsed"} ${data.system.memory.heapUsed}`);
+  lines.push(`nestlist_memory_usage_bytes{type="heapTotal"} ${data.system.memory.heapTotal}`);
   
-  lines.push('# HELP famtodo_uptime_seconds Process uptime in seconds');
-  lines.push('# TYPE famtodo_uptime_seconds counter');
-  lines.push(`famtodo_uptime_seconds ${data.system.uptime}`);
+  lines.push('# HELP nestlist_uptime_seconds Process uptime in seconds');
+  lines.push('# TYPE nestlist_uptime_seconds counter');
+  lines.push(`nestlist_uptime_seconds ${data.system.uptime}`);
   
   // Add database metrics
-  lines.push('# HELP famtodo_db_operations_total Database operations');
-  lines.push('# TYPE famtodo_db_operations_total counter');
+  lines.push('# HELP nestlist_db_operations_total Database operations');
+  lines.push('# TYPE nestlist_db_operations_total counter');
   
   data.database.forEach((metric: any) => {
-    lines.push(`famtodo_db_operations_total{operation="${metric.operation}"} ${metric.count}`);
+    lines.push(`nestlist_db_operations_total{operation="${metric.operation}"} ${metric.count}`);
   });
   
   return lines.join('\n') + '\n';

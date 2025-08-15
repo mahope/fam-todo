@@ -1,6 +1,6 @@
 {
-  "name": "FamTodo - Family Task Manager",
-  "short_name": "FamTodo",
+  "name": "NestList - Family Task Manager",
+  "short_name": "NestList",
   "description": "A beautiful family task management app with smart shopping lists and real-time collaboration",
   "start_url": "/",
   "display": "standalone",

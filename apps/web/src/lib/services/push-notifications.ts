@@ -38,7 +38,7 @@ export class PushNotificationService {
     } else {
       // Configure web-push with VAPID keys
       webpush.setVapidDetails(
-        'mailto:support@famtodo.com',
+        'mailto:support@nestlist.com',
         this.vapidPublicKey,
         this.vapidPrivateKey
       );

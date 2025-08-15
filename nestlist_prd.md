@@ -1,8 +1,8 @@
-# Familie To-Do App – Produktkravsdokument (PRD)
+# NestList – Produktkravsdokument (PRD)
 
 ## 1. Produktoversigt
 
-Familie To-Do App er en privat, webbaseret applikation, udviklet specifikt til at organisere opgaver, indkøbslister og daglige gøremål for en eller flere familier. Systemet skal understøtte både delte og private opgaver/lister, med særlige funktioner til voksne/børn samt en intelligent indkøbsliste med automatisk kategorisering.
+NestList er en privat, webbaseret applikation, udviklet specifikt til at organisere opgaver, indkøbslister og daglige gøremål for en eller flere familier. Systemet skal understøtte både delte og private opgaver/lister, med særlige funktioner til voksne/børn samt en intelligent indkøbsliste med automatisk kategorisering.
 
 Appen skal være **simpel, minimalistisk, flot designet** og fungere optimalt på **mobil** (primær platform) samt desktop. Den skal fungere som en **PWA** med offline support, real-time opdateringer og uendelig login-session.
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-FamTodo is a private, web-based application designed to organize tasks, shopping lists, and daily chores for one or more families. The system supports both shared and private tasks/lists, with special features for adults/children and an intelligent shopping list with automatic categorization.
+NestList is a private, web-based application designed to organize tasks, shopping lists, and daily chores for one or more families. The system supports both shared and private tasks/lists, with special features for adults/children and an intelligent shopping list with automatic categorization.
 
 **Design Principles:**
 - **Simple, minimalist, beautifully designed**
@@ -12,9 +12,11 @@ FamTodo is a private, web-based application designed to organize tasks, shopping
 - **PWA** with offline support, real-time updates, and infinite login sessions
 
 ### Tech Stack
-- **Frontend**: Next.js 14 (TypeScript) with shadcn/ui components
-- **Backend**: Self-hosted Supabase stack (Postgres, PostgREST, Realtime, Storage)
-- **Auth**: BetterAuth for JWT-based authentication with RLS
+- **Frontend**: Next.js 15.4.6 (TypeScript) with shadcn/ui components
+- **Backend**: PostgreSQL with Prisma ORM
+- **Auth**: NextAuth.js for JWT-based authentication with RLS
+- **Real-time**: Socket.io for live updates
+- **PWA**: Serwist for service worker management
 - **Deployment**: Docker Compose for local development, Dokploy for production
 
 ## Important Git Workflow
@@ -63,30 +65,27 @@ The application uses PostgreSQL with Row Level Security (RLS). Key tables:
 - `shopping_dictionary` - Product catalog for autocomplete
 
 ### JWT Claims Structure
-BetterAuth must mint JWTs with these claims for RLS:
+NextAuth.js provides JWT tokens with these claims:
 ```json
 {
-  "app_user_id": "<uuid>",
-  "family_id": "<uuid>",
-  "role_name": "admin|adult|child",
-  "aud": "postgrest",
-  "iss": "famtodo"
+  "user": {
+    "id": "<uuid>",
+    "familyId": "<uuid>", 
+    "role": "ADMIN|ADULT|CHILD"
+  }
 }
 ```
 
-### Service Ports
-- Web: 3000
-- PostgREST API: 3001
-- Realtime WebSocket: 4000
-- Storage API: 5000
+### Service Ports  
+- Web (Development): 3003
 - PostgreSQL: 5432
-- ImgProxy: 5001
+- Socket.io Server: Embedded in Next.js
 
 ### Environment Setup
 Copy `.env.example` to `.env` and configure:
-- `JWT_SECRET` - Shared between all services
-- `POSTGRES_PASSWORD` - Database password
-- `BETTERAUTH_SECRET` - BetterAuth signing secret
+- `NEXTAUTH_SECRET` - NextAuth signing secret
+- `NEXTAUTH_URL` - Application URL (http://localhost:3003 for dev)
+- `DATABASE_URL` - PostgreSQL connection string
 
 ### RLS Policies
 Access control is enforced at the database level:
@@ -96,17 +95,18 @@ Access control is enforced at the database level:
 - All operations check JWT claims via `auth.uid()` and `auth.jwt()`
 
 ### Real-time Updates
-Supabase Realtime is configured with:
-- Publication: `supabase_realtime`
-- Logical replication enabled
-- JWT authentication required
+Socket.io provides real-time updates for:
+- Task status changes
+- List updates
+- Family member activities
+- Authentication-based room management
 
 ## Development Workflow
 
-1. **Database changes**: Edit SQL files in `supabase/init/` then restart DB container
-2. **API access**: Use PostgREST endpoints at `:3001` with Bearer token
-3. **Real-time**: Connect to WebSocket at `:4000/socket` with JWT
-4. **File uploads**: Use Storage API at `:5000` for avatars
+1. **Database changes**: Run `npx prisma migrate dev` after schema changes
+2. **API access**: Use Next.js API routes with NextAuth session
+3. **Real-time**: Socket.io client connects automatically on authentication
+4. **File uploads**: Use built-in Next.js file upload API for avatars
 
 ## Core Features (from PRD)
 
@@ -114,8 +114,8 @@ Supabase Realtime is configured with:
 - **Roles**: Admin, Adult, Child
 - Admin can create families and users
 - Role-based access control for lists/tasks
-- Login via BetterAuth with email/password
-- "Remember me" = infinite session (persistent login)
+- Login via NextAuth.js with email/password
+- Persistent login sessions with automatic renewal
 
 ### Lists & Folders
 **Visibility levels:**
@@ -214,7 +214,7 @@ Both lists and folders support all visibility levels.
 
 ## User Stories
 
-Key user stories from PRD (see famtodo_prd.md for complete list):
+Key user stories from PRD (see nestlist_prd.md for complete list):
 1. Admin creates families with separate data
 2. Admin assigns roles to control access
 3. Persistent login sessions
@@ -245,8 +245,8 @@ Key user stories from PRD (see famtodo_prd.md for complete list):
 
 ## Important Notes
 
-- All API calls require JWT in `Authorization: Bearer <token>` header
-- The app is designed as a PWA with offline support planned
+- All API calls use NextAuth session authentication
+- The app is designed as a PWA with offline support implemented
 - Primary platform is mobile - ensure responsive design
 - Use minimalist UI patterns with shadcn/ui components
 - Never commit secrets - use environment variables
@@ -255,43 +255,52 @@ Key user stories from PRD (see famtodo_prd.md for complete list):
 ## Implementation Status
 
 ### ✅ Fully Implemented
-- User authentication with NextAuth.js
-- Family and user management with role-based access
-- Lists and folders with visibility controls (private/family/adult)
-- Tasks with full CRUD operations and subtasks
-- Shopping lists with categorization
-- Real-time updates via Socket.io
-- PWA features with offline support
-- Push notifications infrastructure
-- Global search functionality
-- Calendar view with drag & drop
-- Profile management with avatar upload
-- Data export (JSON/CSV)
-- Theme switching
-- Comprehensive monitoring and logging
-- Accessibility features
-- Performance optimization
-- Activity tracking and audit logs
+- **User authentication** with NextAuth.js
+- **Family and user management** with role-based access control
+- **Lists and folders** with visibility controls (private/family/adult)
+- **Complete folder UI system** with color coding and list counts
+- **Task management** with full CRUD operations, subtasks, and tags
+- **Task assignments** to family members with selector UI
+- **Family invite system** with role-based invitations
+- **Shopping lists** with categorization and dedicated UI
+- **Real-time updates** via Socket.io
+- **Mobile-first navigation** with bottom nav bar and floating action button
+- **Desktop sidebar navigation** with collapsible sections and recent items
+- **Quick task creation** modal accessible from multiple locations
+- **PWA features** with offline support via Serwist
+- **Push notifications** infrastructure
+- **Global search** functionality with fuzzy matching
+- **Calendar view** with drag & drop capabilities
+- **Profile management** with avatar upload
+- **Data export** (JSON/CSV) functionality
+- **Theme switching** (light/dark mode)
+- **Comprehensive monitoring** and structured logging
+- **Accessibility features** with ARIA support
+- **Performance optimization** with React Query caching
+- **Activity tracking** and audit logs
 
 ### ⚠️ Partially Implemented
-- Shopping dictionary and autocomplete (basic implementation)
-- Family invite system (backend ready, UI needs completion)
-- Email notifications (infrastructure ready, templates needed)
-- Advanced recurring tasks (basic recurrence implemented)
+- **Shopping dictionary** and autocomplete (basic implementation, needs enhancement)
+- **Email notifications** (infrastructure ready, templates needed)
+- **Advanced recurring tasks** (basic recurrence implemented)
+- **Swipe gestures** for mobile interactions (planned)
+- **List color coding** improvements (planned)
 
 ### 🚧 Known Issues & TODOs
-- Legacy authentication migration (line 56 in auth-config.ts)
-- Calendar task interaction modals (placeholders exist)
-- External monitoring service integration
-- Complete test coverage (only 6 test files currently)
-- Production Docker optimization
-- Advanced image optimization with ImgProxy
+- **Calendar task interaction** modals (placeholders exist)
+- **External monitoring** service integration
+- **Complete test coverage** (only 6 test files currently)
+- **Production Docker** optimization
+- **Advanced image optimization** with ImgProxy
+- **Loading states** improvements for better UX
+- **Empty states** design and implementation
 
-### 🔧 Technical Debt
-- 162 console.log statements need structured logging replacement
-- Duplicate monitoring implementations need consolidation
-- Node.js imports in browser code need cleanup
-- ESLint warnings and TypeScript strict mode compliance
+### 🔧 Technical Debt (Significantly Reduced)
+- ✅ **Console.log statements** replaced with structured logging (~80% complete)
+- ✅ **Duplicate monitoring** implementations consolidated
+- ✅ **Node.js imports** in browser code fixed with universal logger
+- **ESLint warnings** and TypeScript strict mode compliance (ongoing)
+- **Test coverage** expansion needed
 
 ## Important Development Notes
 
@@ -300,3 +309,5 @@ Key user stories from PRD (see famtodo_prd.md for complete list):
 - **Real-time Testing**: Use multiple browser windows to test Socket.io functionality
 - **PWA Testing**: Test offline functionality with network throttling in DevTools
 - **Push Notifications**: Requires HTTPS in production, use `localhost` for development testing
+- **Navigation**: Desktop uses sidebar navigation, mobile uses bottom nav + floating action button
+- **Task Creation**: Quick task modal accessible from multiple entry points (FAB, navbar, sidebar)
