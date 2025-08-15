@@ -45,7 +45,7 @@ type ShoppingItemWithCategory = ShoppingItem & {
 export default function ListDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const listId = params.id as string;
+  const listId = params?.id as string;
   
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [filter, setFilter] = useState<"all" | "open" | "done">("all");
@@ -55,9 +55,9 @@ export default function ListDetailPage() {
   const queryClient = useQueryClient();
 
   // Subscribe to real-time updates
-  useRealtimeSubscription("tasks", undefined, !!api.token);
-  useRealtimeSubscription("shopping_items", undefined, !!api.token);
-  useRealtimeSubscription("lists", undefined, !!api.token);
+  useRealtimeSubscription("tasks", undefined, api.status === "authenticated");
+  useRealtimeSubscription("shopping_items", undefined, api.status === "authenticated");
+  useRealtimeSubscription("lists", undefined, api.status === "authenticated");
 
   // Fetch list details
   const { data: list, isLoading: listLoading } = useQuery({
@@ -66,7 +66,7 @@ export default function ListDetailPage() {
       const response = await api.get<List[]>(`/lists?id=eq.${listId}&select=*`);
       return response.data?.[0];
     },
-    enabled: !!api.token && !!listId,
+    enabled: api.status === "authenticated" && !!listId,
   });
 
   // Fetch tasks for regular lists
@@ -84,7 +84,7 @@ export default function ListDetailPage() {
       const response = await api.get<TaskWithUser[]>(endpoint);
       return response.data || [];
     },
-    enabled: !!api.token && !!listId && list?.type === "generic",
+    enabled: api.status === "authenticated" && !!listId && list?.type === "generic",
   });
 
   // Fetch shopping items for shopping lists
@@ -96,7 +96,7 @@ export default function ListDetailPage() {
       );
       return response.data || [];
     },
-    enabled: !!api.token && !!listId && list?.type === "shopping",
+    enabled: api.status === "authenticated" && !!listId && list?.type === "shopping",
   });
 
   // Add new task mutation
