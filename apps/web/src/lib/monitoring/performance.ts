@@ -1,5 +1,5 @@
 import { metrics } from './metrics';
-import { log } from './logger';
+import { log } from '../logger';
 
 // Performance monitoring utilities
 export class PerformanceMonitor {

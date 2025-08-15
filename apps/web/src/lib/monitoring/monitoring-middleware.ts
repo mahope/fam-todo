@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { httpMetrics, metrics } from './metrics';
-import { logRequest, log } from './logger';
+import { logRequest, log } from '../logger';
 import { captureError } from './error-tracking';
 // Use browser performance API or Node.js perf_hooks
 const getPerformance = () => {
