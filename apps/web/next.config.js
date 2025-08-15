@@ -16,9 +16,6 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   
-  // Disable telemetry
-  telemetry: false,
-  
   experimental: {
     reactCompiler: true,
     // Enable optimistic bundling

@@ -182,7 +182,7 @@ export class CodeSplittingOptimizer {
 
     const startTime = performance.now();
     
-    const loadingPromise = import(/* webpackChunkName: "[request]" */ componentPath).then((module) => {
+    const loadingPromise = import(/* webpackChunkName: "dynamic-component" */ componentPath).then((module) => {
       const component = module.default || module;
       this.componentCache.set(componentPath, component);
       

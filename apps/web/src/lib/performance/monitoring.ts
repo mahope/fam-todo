@@ -307,7 +307,7 @@ export function withPerformanceMonitoring<P extends object>(
   Component: React.ComponentType<P>,
   componentName: string
 ) {
-  return React.forwardRef<any, P>((props, ref) => {
+  const PerformanceWrapper = React.forwardRef<any, P>((props, ref) => {
     React.useEffect(() => {
       const mountTime = performance.now();
       performanceMonitor.mark(`${componentName}_mount_start`);
@@ -323,6 +323,9 @@ export function withPerformanceMonitoring<P extends object>(
 
     return React.createElement(Component, { ...props, ref });
   });
+  
+  PerformanceWrapper.displayName = `withPerformanceMonitoring(${componentName})`;
+  return PerformanceWrapper;
 }
 
 // Lazy loading performance helper
