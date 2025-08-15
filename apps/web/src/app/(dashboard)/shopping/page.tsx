@@ -15,7 +15,6 @@ import {
   Lock,
   Eye,
   CheckCircle,
-  Circle,
 } from "lucide-react";
 import { useRealtimeSubscription } from "@/lib/realtime";
 import { useTranslations } from 'next-intl';

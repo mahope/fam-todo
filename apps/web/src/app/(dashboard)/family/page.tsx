@@ -19,7 +19,7 @@ import {
   Calendar,
   Activity
 } from "lucide-react";
-import { useTranslations } from 'next-intl';
+// import { useTranslations } from 'next-intl'; // Unused for now
 import { InviteMemberDialog } from "@/components/family/invite-member-dialog";
 import { PendingInvites } from "@/components/family/pending-invites";
 
