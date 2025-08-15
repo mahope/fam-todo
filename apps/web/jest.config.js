@@ -7,15 +7,29 @@ const createJestConfig = nextJest({
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  moduleNameMapping: {
-    // Handle module aliases (this will be automatically configured for you based on your tsconfig.json paths)
-    '^@/(.*)$': '<rootDir>/src/$1',
-  },
-  testEnvironment: 'jest-environment-jsdom',
-  testMatch: [
-    '**/__tests__/**/*.(ts|tsx|js)',
-    '**/(*.)(test|spec).(ts|tsx|js)'
+  projects: [
+    {
+      displayName: 'API Tests',
+      testMatch: ['<rootDir>/src/app/api/**/*.test.(ts|js)'],
+      testEnvironment: 'node',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.node.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1',
+      },
+    },
+    {
+      displayName: 'Unit Tests',
+      testMatch: [
+        '<rootDir>/src/lib/**/*.test.(ts|js)',
+        '<rootDir>/src/components/**/*.test.(ts|tsx)',
+        '<rootDir>/src/hooks/**/*.test.(ts|tsx)',
+      ],
+      testEnvironment: 'jsdom',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1',
+      },
+    },
   ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',

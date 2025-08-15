@@ -1,47 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
-
-async function getSessionData() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { appUser: true },
-  });
-
-  if (!user?.appUser) {
-    throw new Error('App user not found');
-  }
-
-  return {
-    userId: user.id,
-    appUserId: user.appUser.id,
-    familyId: user.appUser.familyId,
-    role: user.appUser.role,
-  };
-}
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
+import { validate, APISchemas } from '@/lib/security/input-validation';
 
 // GET /api/search - Global search across lists, tasks, and folders
-export async function GET(request: NextRequest) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
     const { searchParams } = new URL(request.url);
     
-    const query = searchParams.get('q');
-    const type = searchParams.get('type'); // 'all', 'tasks', 'lists', 'folders'
-    const limit = parseInt(searchParams.get('limit') || '20');
+    // Validate search parameters
+    const searchData = validate(APISchemas.search, {
+      q: searchParams.get('q'),
+      type: searchParams.get('type') || 'all',
+      limit: searchParams.get('limit') || '20',
+    });
 
-    if (!query || query.length < 2) {
-      return NextResponse.json(
-        { error: 'Query must be at least 2 characters long' },
-        { status: 400 }
-      );
-    }
+    const { q: query, type, limit } = searchData;
 
     const searchResults = {
       tasks: [],
@@ -55,8 +29,8 @@ export async function GET(request: NextRequest) {
     const accessCondition = {
       OR: [
         { visibility: 'FAMILY' },
-        { visibility: 'PRIVATE', ownerId: appUserId },
-        ...(role === 'ADULT' || role === 'ADMIN' ? [{ visibility: 'ADULT' as const }] : []),
+        { visibility: 'PRIVATE', ownerId: sessionData.appUserId },
+        ...(sessionData.role === 'ADULT' || sessionData.role === 'ADMIN' ? [{ visibility: 'ADULT' as const }] : []),
       ],
     };
 
@@ -64,7 +38,7 @@ export async function GET(request: NextRequest) {
     if (!type || type === 'all' || type === 'tasks') {
       const tasks = await prisma.task.findMany({
         where: {
-          familyId,
+          familyId: sessionData.familyId,
           list: accessCondition,
           OR: [
             { title: { contains: query, mode: 'insensitive' } },
@@ -117,7 +91,7 @@ export async function GET(request: NextRequest) {
     if (!type || type === 'all' || type === 'lists') {
       const lists = await prisma.list.findMany({
         where: {
-          familyId,
+          familyId: sessionData.familyId,
           ...accessCondition,
           OR: [
             { name: { contains: query, mode: 'insensitive' } },
@@ -162,7 +136,7 @@ export async function GET(request: NextRequest) {
     if (!type || type === 'all' || type === 'folders') {
       const folders = await prisma.folder.findMany({
         where: {
-          familyId,
+          familyId: sessionData.familyId,
           ...accessCondition,
           name: { contains: query, mode: 'insensitive' },
         },
@@ -212,14 +186,13 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(searchResults);
-  } catch (error) {
-    console.error('Search error:', error);
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'search',
+    allowedMethods: ['GET'],
   }
-}
+);
 
 // Calculate relevance score for search results
 function calculateRelevance(query: string, title: string, description?: string | null): number {
