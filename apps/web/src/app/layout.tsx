@@ -8,12 +8,15 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Header } from "@/components/header";
 import { ClientOnly } from "@/components/client-only";
-import { initializeMonitoring } from '@/lib/monitoring';
+import { logger } from '@/lib/logger';
 import { SkipLinks, KeyboardHints, RouteAnnouncer } from '@/components/accessibility/skip-links';
 
-// Initialize monitoring on app start (server-side only)
+// Initialize logging on app start (server-side only)
 if (typeof window === 'undefined') {
-  initializeMonitoring();
+  logger.info('Application starting', {
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString()
+  });
 }
 
 const inter = Inter({ subsets: ["latin"] });

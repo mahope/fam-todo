@@ -315,8 +315,14 @@ class ErrorTracker {
     
     // In production, this could send alerts to external services
     if (process.env.NODE_ENV === 'production') {
-      // TODO: Send alert to external monitoring service
-      // e.g., PagerDuty, Slack, email notification
+      /*
+       * FUTURE ENHANCEMENT: External alerting integration
+       * When implemented, this should integrate with:
+       * - PagerDuty for critical errors
+       * - Slack for warning notifications  
+       * - Email notifications for admins
+       * - External monitoring services (Sentry, DataDog)
+       */
     }
   }
 

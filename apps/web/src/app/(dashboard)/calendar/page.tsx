@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import CalendarView from '@/components/calendar/calendar-view';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface Task {
   id: string;
@@ -44,17 +45,27 @@ export default function CalendarPage() {
     },
   });
 
-  // Handle task click - could navigate to task detail or open modal
+  // Handle task click - shows task info (future: detailed modal or navigation)
   const handleTaskClick = (task: Task) => {
-    console.log('Task clicked:', task);
-    // TODO: Open task detail modal or navigate to task
+    logger.debug('Task clicked in calendar', { taskId: task.id, title: task.title });
+    /* 
+     * FUTURE ENHANCEMENT: Task detail interaction
+     * - Open task detail modal with full information
+     * - Or navigate to task edit page: /tasks/${task.id}
+     * - Show quick actions: mark complete, edit, delete
+     */
     toast.info(`Opgave: ${task.title}`);
   };
 
-  // Handle date click - could create new task for that date
+  // Handle date click - shows date info (future: quick task creation)
   const handleDateClick = (date: Date) => {
-    console.log('Date clicked:', date);
-    // TODO: Open create task modal with pre-filled deadline
+    logger.debug('Date clicked in calendar', { date: date.toISOString() });
+    /*
+     * FUTURE ENHANCEMENT: Quick task creation
+     * - Open task creation modal with pre-filled deadline
+     * - Allow selection of list and basic task details
+     * - Provide keyboard shortcut for power users
+     */
     toast.info(`Dato valgt: ${date.toLocaleDateString('da-DK')}`);
   };
 
@@ -81,7 +92,7 @@ export default function CalendarPage() {
       
       toast.success('Opgavens deadline blev opdateret');
     } catch (error) {
-      console.error('Error updating task deadline:', error);
+      logger.error('Failed to update task deadline in calendar', { error });
       toast.error('Kunne ikke opdatere opgavens deadline');
     }
   };

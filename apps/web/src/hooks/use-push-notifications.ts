@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { logger } from '@/lib/logger';
 
 export interface PushNotificationState {
   isSupported: boolean;
@@ -65,7 +66,7 @@ export function usePushNotifications() {
           subscription,
         }));
       } catch (error) {
-        console.error('Error checking subscription:', error);
+        logger.error('Failed to check push notification subscription', { error });
       }
     };
 
@@ -122,7 +123,7 @@ export function usePushNotifications() {
       queryClient.invalidateQueries({ queryKey: ['push-subscription'] });
     },
     onError: (error) => {
-      console.error('Subscribe error:', error);
+      logger.error('Push notification subscription failed', { error });
       setState(prev => ({
         ...prev,
         permission: Notification.permission,
@@ -162,7 +163,7 @@ export function usePushNotifications() {
       queryClient.invalidateQueries({ queryKey: ['push-subscription'] });
     },
     onError: (error) => {
-      console.error('Unsubscribe error:', error);
+      logger.error('Push notification unsubscribe failed', { error });
     },
   });
 

@@ -39,26 +39,21 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Check if user has a password (for users created with password auth)
-        if (user.password) {
-          // Verify password against hash
-          if (!credentials?.password) {
-            logger.warn('No password provided for user', { email: user.email });
-            return null;
-          }
-          
-          const isValid = await verifyPassword(credentials.password, user.password);
-          if (!isValid) {
-            logger.warn('Invalid password attempt', { email: user.email });
-            return null;
-          }
-        } else {
-          // Temporary: For existing users without password, accept any non-empty password
-          // TODO: Remove this after migration
-          if (!credentials?.password || credentials.password.length < 1) {
-            logger.warn('No password provided for legacy user', { email: user.email });
-            return null;
-          }
+        // Verify password against hash
+        if (!user.password) {
+          logger.warn('User account has no password set', { email: user.email });
+          return null;
+        }
+
+        if (!credentials?.password) {
+          logger.warn('No password provided for user', { email: user.email });
+          return null;
+        }
+        
+        const isValid = await verifyPassword(credentials.password, user.password);
+        if (!isValid) {
+          logger.warn('Invalid password attempt', { email: user.email });
+          return null;
         }
         
         logger.info('Successful login', { email: user.email });

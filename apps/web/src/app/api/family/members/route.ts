@@ -169,9 +169,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: Send email invitation here
-    // This would typically integrate with an email service like SendGrid, SES, etc.
-    console.log(`Family invite created for ${email} with token: ${token}`);
+    /* 
+     * FUTURE ENHANCEMENT: Email invitation system
+     * When implemented, this should:
+     * 1. Send invitation email using configured email service (SendGrid/SES)
+     * 2. Include invite URL with token: /invite?token=${token}
+     * 3. Set expiration reminder emails
+     * 4. Log email delivery status
+     */
 
     return NextResponse.json({
       id: invite.id,
