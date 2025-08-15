@@ -30,7 +30,31 @@ export {
 
 import { offlineManager } from './offline-manager';
 import { pwaPerformanceOptimizer } from './performance-optimizer';
-import { log } from '@/lib/monitoring';
+
+// Import monitoring only on server side
+let log: any = null;
+if (typeof window === 'undefined') {
+  try {
+    const monitoring = require('@/lib/monitoring');
+    log = monitoring.log;
+  } catch {
+    // Fallback to console
+    log = {
+      info: console.log,
+      error: console.error,
+      warn: console.warn,
+      debug: console.log,
+    };
+  }
+} else {
+  // Browser fallback
+  log = {
+    info: console.log,
+    error: console.error,
+    warn: console.warn,
+    debug: console.log,
+  };
+}
 
 // Initialize PWA features
 export async function initializePWA() {

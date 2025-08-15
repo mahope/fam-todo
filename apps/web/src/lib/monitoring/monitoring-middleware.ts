@@ -2,7 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { httpMetrics, metrics } from './metrics';
 import { logRequest, log } from './logger';
 import { captureError } from './error-tracking';
-import { performance } from 'perf_hooks';
+// Use browser performance API or Node.js perf_hooks
+const getPerformance = () => {
+  if (typeof window !== 'undefined' && window.performance) {
+    return window.performance;
+  } else if (typeof require !== 'undefined') {
+    try {
+      const { performance } = require('perf_hooks');
+      return performance;
+    } catch {
+      return { now: () => Date.now() };
+    }
+  }
+  return { now: () => Date.now() };
+};
+
+const performance = getPerformance();
 
 // Request monitoring middleware
 export function withMonitoring(

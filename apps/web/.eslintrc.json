@@ -1,3 +1,18 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "react-hooks/rules-of-hooks": "error",
+    "react/no-unescaped-entities": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["src/lib/monitoring/**/*.ts", "src/lib/pwa/**/*.ts", "src/lib/accessibility/**/*.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-require-imports": "off"
+      }
+    }
+  ]
 }

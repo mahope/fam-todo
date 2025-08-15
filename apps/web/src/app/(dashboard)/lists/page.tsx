@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { useLists, useDeleteList } from "@/lib/hooks/use-lists";
+import { useLists } from "@/lib/hooks/use-lists";
+import { useApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,9 @@ export default function ListsPage() {
   // Fetch lists with optimized caching
   const { data: lists, isLoading, error } = useLists();
   
+  // API client for manual operations
+  const api = useApi();
+  
   // Memoized filtering for better performance
   const filteredLists = useMemo(() => {
     // Handle case where lists is an error object or not an array
@@ -59,8 +63,17 @@ export default function ListsPage() {
 
   const handleDeleteList = async (listId: string, listName: string) => {
     if (window.confirm(t('deleteConfirm', { name: listName }))) {
-      const deleteList = useDeleteList(listId);
-      deleteList.mutate();
+      try {
+        const response = await api.delete(`/lists/${listId}`);
+        if (response.error) {
+          console.error('Error deleting list:', response.error);
+        } else {
+          // Manually invalidate the query to refresh the list
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error('Failed to delete list:', error);
+      }
     }
   };
 

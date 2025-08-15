@@ -1,4 +1,24 @@
-import { performance } from 'perf_hooks';
+// Use browser performance API or Node.js perf_hooks
+const getPerformance = () => {
+  if (typeof window !== 'undefined' && window.performance) {
+    return window.performance;
+  } else if (typeof require !== 'undefined') {
+    try {
+      const { performance } = require('perf_hooks');
+      return performance;
+    } catch {
+      // Fallback for environments without perf_hooks
+      return {
+        now: () => Date.now(),
+      };
+    }
+  }
+  return {
+    now: () => Date.now(),
+  };
+};
+
+const performance = getPerformance();
 
 // In-memory metrics storage for basic monitoring
 interface Metric {

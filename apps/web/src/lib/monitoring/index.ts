@@ -29,28 +29,37 @@ export {
   createMonitoringMiddleware 
 } from './monitoring-middleware';
 
-// Initialize monitoring system
+// Initialize monitoring system (server-side only)
 export function initializeMonitoring() {
-  // Setup error tracking
-  setupErrorTracking();
+  // Only initialize on server side
+  if (typeof window !== 'undefined') {
+    return;
+  }
   
-  // Initialize performance monitoring
-  performanceMonitor.initialize();
-  
-  // Start memory leak detection
-  MemoryLeakDetector.startMonitoring();
-  
-  // Log initialization
-  log.info('Monitoring system initialized', {
-    environment: process.env.NODE_ENV,
-    features: [
-      'logging',
-      'metrics',
-      'performance',
-      'error-tracking',
-      'memory-monitoring',
-    ],
-  });
+  try {
+    // Setup error tracking
+    setupErrorTracking();
+    
+    // Initialize performance monitoring
+    performanceMonitor.initialize();
+    
+    // Start memory leak detection
+    MemoryLeakDetector.startMonitoring();
+    
+    // Log initialization
+    log.info('Monitoring system initialized', {
+      environment: process.env.NODE_ENV,
+      features: [
+        'logging',
+        'metrics',
+        'performance',
+        'error-tracking',
+        'memory-monitoring',
+      ],
+    });
+  } catch (error) {
+    console.warn('Failed to initialize monitoring system:', error);
+  }
 }
 
 // Cleanup monitoring resources
