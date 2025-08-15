@@ -26,7 +26,7 @@ export {
   NetworkStatus,
   UpdateAvailable,
   PWAStatus,
-} from '../components/pwa/install-prompt';
+} from '@/components/pwa/install-prompt';
 
 import { offlineManager } from './offline-manager';
 import { pwaPerformanceOptimizer } from './performance-optimizer';
