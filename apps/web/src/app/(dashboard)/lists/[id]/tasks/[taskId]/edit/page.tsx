@@ -142,7 +142,7 @@ export default function EditTaskPage() {
     title: task.title,
     description: task.description || "",
     assigneeId: task.assigned_user_id || undefined,
-    priority: task.priority || "NONE",
+    priority: (task.priority?.toUpperCase() as "NONE" | "LOW" | "MEDIUM" | "HIGH" | "URGENT") || "NONE",
     deadline: task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : "",
     tags: task.tags || [],
     recurrence: task.recurrence || "NONE",
