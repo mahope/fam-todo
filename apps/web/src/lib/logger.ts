@@ -20,13 +20,35 @@ class UniversalLogger implements Logger {
   private winston: any = null;
 
   constructor() {
-    // Only load Winston on the server side
-    if (this.isServer) {
-      try {
-        this.winston = require('winston');
-      } catch (error) {
-        // Winston not available, will fallback to console
-      }
+    // Only initialize Winston during runtime on server, not during build
+    if (this.isServer && typeof process !== 'undefined' && process.env.NODE_ENV !== undefined) {
+      this.initializeWinston();
+    }
+  }
+
+  private async initializeWinston() {
+    try {
+      // Dynamic import to avoid bundling Winston in client build
+      const winston = await import('winston');
+      this.winston = winston.createLogger({
+        level: process.env.LOG_LEVEL || 'info',
+        format: winston.format.combine(
+          winston.format.timestamp(),
+          winston.format.errors({ stack: true }),
+          winston.format.json()
+        ),
+        transports: [
+          new winston.transports.Console({
+            format: winston.format.combine(
+              winston.format.colorize(),
+              winston.format.simple()
+            )
+          })
+        ]
+      });
+    } catch (error) {
+      // Winston not available, will fallback to console
+      console.warn('Winston not available, using console logging');
     }
   }
 

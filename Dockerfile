@@ -25,6 +25,9 @@ RUN npm ci
 # Copy rest of the application
 COPY apps/web .
 
+# Disable telemetry during build
+ENV NEXT_TELEMETRY_DISABLED 1
+
 # Build the application
 RUN npm run build
 

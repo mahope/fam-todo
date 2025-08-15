@@ -16,18 +16,23 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   
+  // Disable telemetry
+  telemetry: false,
+  
   experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
     reactCompiler: true,
     // Enable optimistic bundling
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+  },
+  
+  // Turbopack configuration (separate from experimental)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
   },
   
   compiler: {
@@ -41,12 +46,36 @@ const nextConfig = {
     minimumCacheTTL: 31536000, // 1 year
   },
   
-  // Bundle optimization (simpler approach)
+  // Bundle optimization and external dependencies
   webpack: (config, { dev, isServer }) => {
+    // Exclude winston from client bundle
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+        stream: false,
+        url: false,
+        zlib: false,
+        http: false,
+        https: false,
+        assert: false,
+        os: false,
+        path: false,
+      };
+      
+      // Mark winston as external for client builds
+      config.externals = config.externals || [];
+      config.externals.push('winston');
+    }
+    
     if (!dev && !isServer) {
       // Enable tree shaking
       config.optimization.sideEffects = false;
     }
+    
     return config;
   },
   
