@@ -54,7 +54,7 @@ const LIST_COLORS = [
 export default function NewListPage() {
   const router = useRouter();
   const api = useApi();
-  const { data: session } = useSession();
+  // const { data: session } = useSession(); // Unused for now
 
   const form = useForm<CreateListFormValues>({
     resolver: zodResolver(createListSchema),
@@ -83,7 +83,7 @@ export default function NewListPage() {
       
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Redirect to lists page
       router.push("/lists");
     },

@@ -138,7 +138,7 @@ export default function ListsPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <Filter className="h-4 w-4 mr-2" />
-                {t('type')}: {filter === "all" ? t('all') : filter === "generic" ? t('tasks') : t('shopping')}
+                {t('type')}: {filter === "all" ? t('all') : filter === "TODO" ? t('tasks') : t('shopping')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>

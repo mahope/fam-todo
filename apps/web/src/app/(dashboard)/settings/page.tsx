@@ -118,7 +118,7 @@ export default function SettingsPage() {
       // Mock export functionality
       await new Promise(resolve => setTimeout(resolve, 2000));
       toast.success("Data eksporteret succesfuldt");
-    } catch (error) {
+    } catch {
       toast.error("Kunne ikke eksportere data");
     } finally {
       setIsExporting(false);

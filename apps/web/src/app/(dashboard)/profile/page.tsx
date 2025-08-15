@@ -122,13 +122,13 @@ export default function ProfilePage() {
     }
   };
 
-  const getInitials = (name: string) => {
-    return name
-      ?.split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase() || "?";
-  };
+  // const getInitials = (name: string) => {
+  //   return name
+  //     ?.split(" ")
+  //     .map((n) => n[0])
+  //     .join("")
+  //     .toUpperCase() || "?";
+  // }; // Unused for now
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("da-DK", {
