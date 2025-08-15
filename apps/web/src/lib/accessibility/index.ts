@@ -45,18 +45,13 @@ export {
 import { FocusVisible } from './focus-management';
 import { globalShortcuts } from './keyboard-navigation';
 
-// Import monitoring only on server side or fallback to console
-let log: any;
-if (typeof window === 'undefined') {
-  try {
-    const monitoring = require('@/lib/monitoring');
-    log = monitoring.log;
-  } catch {
-    log = { info: console.log, error: console.error, warn: console.warn, debug: console.log };
-  }
-} else {
-  log = { info: console.log, error: console.error, warn: console.warn, debug: console.log };
-}
+// Fallback logger that works everywhere
+const log = { 
+  info: console.log, 
+  error: console.error, 
+  warn: console.warn, 
+  debug: console.log 
+};
 
 // Initialize accessibility features
 export function initializeAccessibility() {
