@@ -32,8 +32,8 @@ export default function ShoppingPage() {
   const api = useApi();
 
   // Subscribe to real-time updates
-  useRealtimeSubscription("shopping_items", undefined, !!api.token);
-  useRealtimeSubscription("lists", undefined, !!api.token);
+  useRealtimeSubscription("shopping_items", undefined, api.status === "authenticated");
+  useRealtimeSubscription("lists", undefined, api.status === "authenticated");
 
   // Fetch shopping lists
   const { data: lists, isLoading, error } = useQuery({
@@ -74,7 +74,7 @@ export default function ShoppingPage() {
       
       return response.data || [];
     },
-    enabled: !!api.token,
+    enabled: api.status === "authenticated",
   });
 
   const getVisibilityIcon = (vis: string) => {

@@ -122,7 +122,7 @@ export function Sidebar({ className }: SidebarProps) {
 
       return response.json() as Promise<List[]>;
     },
-    enabled: !!api.token && !!session?.user,
+    enabled: api.status === "authenticated" && !!session?.user,
   });
 
   // Fetch folders
@@ -141,7 +141,7 @@ export function Sidebar({ className }: SidebarProps) {
 
       return response.json() as Promise<Folder[]>;
     },
-    enabled: !!api.token && !!session?.user,
+    enabled: api.status === "authenticated" && !!session?.user,
   });
 
   const isActive = (href: string) => {

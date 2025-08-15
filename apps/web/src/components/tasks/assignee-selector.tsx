@@ -53,7 +53,7 @@ export function AssigneeSelector({
 
       return response.json() as Promise<FamilyMember[]>;
     },
-    enabled: !!api.token,
+    enabled: api.status === "authenticated",
   });
 
   const getRoleIcon = (role: string) => {

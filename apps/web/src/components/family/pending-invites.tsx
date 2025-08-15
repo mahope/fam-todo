@@ -53,7 +53,7 @@ export function PendingInvites() {
 
       return response.json() as Promise<PendingInvite[]>;
     },
-    enabled: !!api.token,
+    enabled: api.status === "authenticated",
   });
 
   // Cancel invite mutation

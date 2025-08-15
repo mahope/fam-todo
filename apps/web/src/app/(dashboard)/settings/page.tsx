@@ -80,7 +80,7 @@ export default function SettingsPage() {
         date_format: "DD/MM/YYYY" as const,
       };
     },
-    enabled: !!api.token,
+    enabled: api.status === "authenticated",
   });
 
   const form = useForm<SettingsFormValues>({

@@ -67,7 +67,7 @@ export function FolderList() {
 
       return response.json() as Promise<FolderType[]>;
     },
-    enabled: !!api.token,
+    enabled: api.status === "authenticated",
   });
 
   // Delete folder mutation

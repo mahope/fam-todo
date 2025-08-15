@@ -61,7 +61,7 @@ export function QuickTaskDialog({ open, onOpenChange, listId }: QuickTaskDialogP
 
       return response.json() as Promise<List[]>;
     },
-    enabled: !!api.token && !listId,
+    enabled: api.status === "authenticated" && !listId,
   });
 
   const createTaskMutation = useMutation({

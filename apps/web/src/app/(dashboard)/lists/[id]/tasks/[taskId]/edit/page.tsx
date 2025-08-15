@@ -12,6 +12,9 @@ import { toast } from "sonner";
 
 type TaskWithSubtasks = Task & {
   assigneeId?: string; // Add for compatibility with form
+  deadline?: string; // Add for form compatibility - maps to due_at
+  tags?: string[]; // Add for form compatibility
+  recurrence?: string; // Add for form compatibility
   subtasks?: Array<{
     id: string;
     title: string;
@@ -67,11 +70,10 @@ export default function EditTaskPage() {
       const response = await api.patch(`/api/tasks/${taskId}`, {
         title: data.title,
         description: data.description,
-        assigneeId: data.assigneeId,
-        priority: data.priority,
-        deadline: data.deadline,
-        tags: data.tags,
-        recurrence: data.recurrence,
+        assigned_user_id: data.assigneeId,
+        priority: data.priority?.toLowerCase(), // Convert back to lowercase for database
+        due_at: data.deadline ? new Date(data.deadline).toISOString() : null,
+        // Note: tags and recurrence are not yet implemented in the database
         // Note: Subtasks are handled separately through the subtasks API
       });
 
@@ -143,9 +145,9 @@ export default function EditTaskPage() {
     description: task.description || "",
     assigneeId: task.assigned_user_id || undefined,
     priority: (task.priority?.toUpperCase() as "NONE" | "LOW" | "MEDIUM" | "HIGH" | "URGENT") || "NONE",
-    deadline: task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : "",
-    tags: task.tags || [],
-    recurrence: task.recurrence || "NONE",
+    deadline: task.due_at ? new Date(task.due_at).toISOString().slice(0, 16) : "",
+    tags: [], // Task doesn't have tags in database yet
+    recurrence: "NONE", // Task doesn't have recurrence in database yet
     subtasks: subtasks || [],
   };
 
