@@ -70,7 +70,7 @@ type ListType = {
 export default function FolderDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const folderId = params.id as string;
+  const folderId = params?.id as string;
   
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "TODO" | "SHOPPING">("all");
@@ -82,40 +82,30 @@ export default function FolderDetailPage() {
   const { data: folder, isLoading: folderLoading, error } = useQuery({
     queryKey: ["folder", folderId],
     queryFn: async () => {
-      const response = await fetch(`/api/folders/${folderId}`, {
-        headers: {
-          'Authorization': `Bearer ${api.token}`,
-        },
-      });
+      const response = await api.get(`/api/folders/${folderId}`);
 
-      if (!response.ok) {
+      if (response.error) {
         if (response.status === 404) {
           throw new Error('Folder not found');
         }
         throw new Error('Failed to fetch folder');
       }
 
-      return response.json() as Promise<FolderType>;
+      return response.data as FolderType;
     },
-    enabled: !!api.token && !!folderId,
+    enabled: api.status === "authenticated" && !!folderId,
   });
 
   // Delete list mutation
   const deleteListMutation = useMutation({
     mutationFn: async (listId: string) => {
-      const response = await fetch(`/api/lists/${listId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${api.token}`,
-        },
-      });
+      const response = await api.delete(`/api/lists/${listId}`);
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete list');
+      if (response.error) {
+        throw new Error(response.error || 'Failed to delete list');
       }
 
-      return response.json();
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folder", folderId] });
