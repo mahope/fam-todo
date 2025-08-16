@@ -161,8 +161,8 @@ export default function ListsPage() {
               <Button variant="outline" size="sm">
                 <Eye className="h-4 w-4 mr-2" />
                 {visibility === "all" ? t('all') : 
-                 visibility === "private" ? t('private') :
-                 visibility === "family" ? t('family') : t('adultsOnly')}
+                 visibility === "PRIVATE" ? t('private') :
+                 visibility === "FAMILY" ? t('family') : t('adultsOnly')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
