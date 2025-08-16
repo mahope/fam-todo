@@ -68,7 +68,6 @@ export async function GET(request: NextRequest) {
           },
         },
         lists: {
-          where: includeArchived ? {} : { archived: { not: true } },
           include: {
             owner: {
               select: {
@@ -129,7 +128,7 @@ export async function GET(request: NextRequest) {
         includeCompleted,
         includeArchived,
         totalLists: family.lists.length,
-        totalTasks: family.lists.reduce((acc, list) => acc + list.tasks.length, 0),
+        totalTasks: family.lists.reduce((acc: any, list: any) => acc + list.tasks.length, 0),
         totalUsers: family.users.length,
       },
     };

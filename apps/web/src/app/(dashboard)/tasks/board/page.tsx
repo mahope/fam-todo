@@ -16,7 +16,7 @@ interface Task {
   deadline?: string;
   completed: boolean;
   priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  status?: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
   assignee?: {
     id: string;
     displayName: string;
