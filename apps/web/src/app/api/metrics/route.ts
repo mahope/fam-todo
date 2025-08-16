@@ -8,7 +8,7 @@ export const GET = withAuth(
   async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
     try {
       // Only admins can access metrics
-      if (sessionData.role !== 'admin') {
+      if (sessionData.role !== 'ADMIN') {
         return NextResponse.json(
           { error: 'Insufficient permissions' },
           { status: 403 }

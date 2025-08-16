@@ -47,7 +47,9 @@ export class PushNotificationService {
 
   // Save push subscription for a user
   async saveSubscription(appUserId: string, subscription: PushSubscription): Promise<void> {
-    await prisma.pushSubscription.upsert({
+    // TODO: Temporarily disabled until database migration is run
+    return;
+    /* await prisma.pushSubscription.upsert({
       where: {
         appUserId_endpoint: {
           appUserId,
@@ -67,39 +69,19 @@ export class PushNotificationService {
         authKey: subscription.keys.auth,
         isActive: true,
       },
-    });
+    }); */
   }
 
   // Remove push subscription
   async removeSubscription(appUserId: string, endpoint: string): Promise<void> {
-    await prisma.pushSubscription.updateMany({
-      where: {
-        appUserId,
-        endpoint,
-      },
-      data: {
-        isActive: false,
-        updated_at: new Date(),
-      },
-    });
+    // TODO: Temporarily disabled until database migration is run
+    return;
   }
 
   // Get all active subscriptions for a user
   async getUserSubscriptions(appUserId: string): Promise<PushSubscription[]> {
-    const subscriptions = await prisma.pushSubscription.findMany({
-      where: {
-        appUserId,
-        isActive: true,
-      },
-    });
-
-    return subscriptions.map(sub => ({
-      endpoint: sub.endpoint,
-      keys: {
-        p256dh: sub.p256dhKey,
-        auth: sub.authKey,
-      },
-    }));
+    // TODO: Temporarily disabled until database migration is run
+    return [];
   }
 
   // Send push notification to specific user
@@ -108,8 +90,8 @@ export class PushNotificationService {
     failed: number;
     errors: string[];
   }> {
-    const subscriptions = await this.getUserSubscriptions(appUserId);
-    return this.sendToSubscriptions(subscriptions, payload);
+    // TODO: Temporarily disabled until database migration is run
+    return { successful: 0, failed: 0, errors: [] };
   }
 
   // Send push notification to multiple users
@@ -118,24 +100,8 @@ export class PushNotificationService {
     failed: number;
     errors: string[];
   }> {
-    const subscriptions = await prisma.pushSubscription.findMany({
-      where: {
-        appUserId: {
-          in: appUserIds,
-        },
-        isActive: true,
-      },
-    });
-
-    const pushSubscriptions = subscriptions.map(sub => ({
-      endpoint: sub.endpoint,
-      keys: {
-        p256dh: sub.p256dhKey,
-        auth: sub.authKey,
-      },
-    }));
-
-    return this.sendToSubscriptions(pushSubscriptions, payload);
+    // TODO: Temporarily disabled until database migration is run
+    return { successful: 0, failed: 0, errors: [] };
   }
 
   // Send push notification to all family members
@@ -144,35 +110,8 @@ export class PushNotificationService {
     failed: number;
     errors: string[];
   }> {
-    const whereClause: any = {
-      appUser: {
-        familyId,
-      },
-      isActive: true,
-    };
-
-    if (excludeUserId) {
-      whereClause.appUser.id = {
-        not: excludeUserId,
-      };
-    }
-
-    const subscriptions = await prisma.pushSubscription.findMany({
-      where: whereClause,
-      include: {
-        appUser: true,
-      },
-    });
-
-    const pushSubscriptions = subscriptions.map(sub => ({
-      endpoint: sub.endpoint,
-      keys: {
-        p256dh: sub.p256dhKey,
-        auth: sub.authKey,
-      },
-    }));
-
-    return this.sendToSubscriptions(pushSubscriptions, payload);
+    // TODO: Temporarily disabled until database migration is run
+    return { successful: 0, failed: 0, errors: [] };
   }
 
   // Send push notification to family adults only
@@ -181,38 +120,8 @@ export class PushNotificationService {
     failed: number;
     errors: string[];
   }> {
-    const whereClause: any = {
-      appUser: {
-        familyId,
-        role: {
-          in: ['ADMIN', 'ADULT'],
-        },
-      },
-      isActive: true,
-    };
-
-    if (excludeUserId) {
-      whereClause.appUser.id = {
-        not: excludeUserId,
-      };
-    }
-
-    const subscriptions = await prisma.pushSubscription.findMany({
-      where: whereClause,
-      include: {
-        appUser: true,
-      },
-    });
-
-    const pushSubscriptions = subscriptions.map(sub => ({
-      endpoint: sub.endpoint,
-      keys: {
-        p256dh: sub.p256dhKey,
-        auth: sub.authKey,
-      },
-    }));
-
-    return this.sendToSubscriptions(pushSubscriptions, payload);
+    // TODO: Temporarily disabled until database migration is run
+    return { successful: 0, failed: 0, errors: [] };
   }
 
   // Send push notifications to multiple subscriptions

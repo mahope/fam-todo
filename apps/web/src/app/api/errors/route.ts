@@ -8,7 +8,7 @@ export const GET = withAuth(
   async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
     try {
       // Only admins can access error reports
-      if (sessionData.role !== 'admin') {
+      if (sessionData.role !== 'ADMIN') {
         return NextResponse.json(
           { error: 'Insufficient permissions' },
           { status: 403 }
@@ -57,7 +57,7 @@ export const DELETE = withAuth(
   async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
     try {
       // Only admins can clear errors
-      if (sessionData.role !== 'admin') {
+      if (sessionData.role !== 'ADMIN') {
         return NextResponse.json(
           { error: 'Insufficient permissions' },
           { status: 403 }

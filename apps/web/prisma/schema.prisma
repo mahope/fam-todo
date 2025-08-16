@@ -104,6 +104,7 @@ model AppUser {
   notifications Notification[]
   settings     UserSetting?
   completedOccurrences TaskOccurrence[] @relation("TaskOccurrenceCompletedBy")
+  pushSubscriptions PushSubscription[]
 
   @@map("app_users")
 }
@@ -350,6 +351,23 @@ model FamilyInvite {
   
   @@unique([familyId, email])
   @@map("family_invites")
+}
+
+model PushSubscription {
+  id          String   @id @default(uuid())
+  appUserId   String
+  endpoint    String
+  p256dhKey   String
+  authKey     String
+  isActive    Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  
+  // Relations
+  appUser     AppUser  @relation(fields: [appUserId], references: [id], onDelete: Cascade)
+  
+  @@unique([appUserId, endpoint])
+  @@map("push_subscriptions")
 }
 
 // Enums
