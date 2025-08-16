@@ -48,7 +48,7 @@ export default function ProfilePage() {
       if (!response.ok) throw new Error('Failed to fetch profile');
       return await response.json();
     },
-    enabled: !!session?.user?.id,
+    enabled: !!session?.user?.email,
   });
 
   const form = useForm<ProfileFormValues>({
