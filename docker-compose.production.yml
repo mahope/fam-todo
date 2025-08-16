@@ -49,7 +49,7 @@ services:
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     ports:
-      - "80:3000"
+      - "8080:3000"
     networks:
       - nestlist_network
     healthcheck:
