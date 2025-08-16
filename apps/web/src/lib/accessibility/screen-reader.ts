@@ -68,10 +68,12 @@ export class ScreenReaderManager {
 
     // Small delay to ensure screen reader picks up the change
     setTimeout(() => {
+      let announcement: HTMLElement | null = null;
+      
       if (clearPrevious) {
         region.textContent = message;
       } else {
-        const announcement = document.createElement('div');
+        announcement = document.createElement('div');
         announcement.textContent = message;
         region.appendChild(announcement);
       }
@@ -81,7 +83,7 @@ export class ScreenReaderManager {
         setTimeout(() => {
           if (clearPrevious) {
             region.textContent = '';
-          } else {
+          } else if (announcement) {
             region.removeChild(announcement);
           }
         }, timeout);

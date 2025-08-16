@@ -252,7 +252,7 @@ function addAccessibilityStyles() {
 function handleReducedMotion() {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   
-  const updateMotionPreference = (mediaQuery: MediaQueryList) => {
+  const updateMotionPreference = (mediaQuery: MediaQueryList | MediaQueryListEvent) => {
     document.documentElement.setAttribute(
       'data-reduced-motion',
       mediaQuery.matches.toString()
@@ -267,7 +267,7 @@ function handleReducedMotion() {
 function handleHighContrast() {
   const prefersHighContrast = window.matchMedia('(prefers-contrast: high)');
   
-  const updateContrastPreference = (mediaQuery: MediaQueryList) => {
+  const updateContrastPreference = (mediaQuery: MediaQueryList | MediaQueryListEvent) => {
     document.documentElement.setAttribute(
       'data-high-contrast',
       mediaQuery.matches.toString()
@@ -347,7 +347,7 @@ export const a11yTesting = {
                       input.hasAttribute('aria-labelledby') ||
                       document.querySelector(`label[for="${input.id}"]`);
       
-      if (!hasLabel && input.type !== 'hidden' && input.type !== 'submit') {
+      if (!hasLabel && (input as HTMLInputElement).type !== 'hidden' && (input as HTMLInputElement).type !== 'submit') {
         issues.push({
           element: input as HTMLInputElement,
           issue: 'Form control missing accessible label'
