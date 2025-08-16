@@ -259,11 +259,16 @@ export function SwipeableTaskItem({
     );
   };
 
+  const { ref: swipeRef, ...swipeHandlers } = handlers;
+
   return (
     <div
-      ref={containerRef}
+      ref={(el) => {
+        containerRef.current = el;
+        if (swipeRef) swipeRef(el);
+      }}
       className={cn("relative overflow-hidden bg-background", className)}
-      {...handlers}
+      {...swipeHandlers}
     >
       {/* Left action background */}
       {renderActionBackground(finalLeftActions, "right")}
@@ -300,7 +305,7 @@ export function SwipeableTaskItem({
               )}>
                 {title}
               </h4>
-              {priority && priority !== "NONE" && (
+              {priority && (
                 <Badge className={cn("text-xs", getPriorityColor(priority))}>
                   {priority.toLowerCase()}
                 </Badge>

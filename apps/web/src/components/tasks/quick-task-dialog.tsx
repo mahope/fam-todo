@@ -51,7 +51,6 @@ export function QuickTaskDialog({ open, onOpenChange, listId }: QuickTaskDialogP
     queryFn: async () => {
       const response = await fetch("/api/lists", {
         headers: {
-          'Authorization': `Bearer ${api.token}`,
         },
       });
 
@@ -70,7 +69,6 @@ export function QuickTaskDialog({ open, onOpenChange, listId }: QuickTaskDialogP
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          'Authorization': `Bearer ${api.token}`,
         },
         body: JSON.stringify({
           title: data.title,

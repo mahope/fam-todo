@@ -42,7 +42,7 @@ export function InstallPrompt() {
       setShowPrompt(pwaInstallManager.canInstall && !pwaInstallManager.isInstalled);
     });
 
-    return unsubscribe;
+    return () => { unsubscribe(); };
   }, []);
 
   const handleInstall = async () => {
@@ -159,7 +159,7 @@ export function NetworkStatus() {
       updateNetworkStatus();
     });
 
-    return unsubscribe;
+    return () => { unsubscribe(); };
   }, []);
 
   if (isOnline) {
@@ -192,7 +192,7 @@ export function UpdateAvailable() {
       setUpdateAvailable(available);
     });
 
-    return unsubscribe;
+    return () => { unsubscribe(); };
   }, []);
 
   const handleUpdate = async () => {
@@ -249,7 +249,7 @@ export function PWAStatus() {
       setIsInstalled(pwaInstallManager.isInstalled);
     });
 
-    return unsubscribe;
+    return () => { unsubscribe(); };
   }, []);
 
   if (!isStandalone && !isInstalled) {

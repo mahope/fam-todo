@@ -112,7 +112,6 @@ export function Sidebar({ className }: SidebarProps) {
     queryFn: async () => {
       const response = await fetch("/api/lists?limit=5&sortBy=updated_at&sortOrder=desc", {
         headers: {
-          'Authorization': `Bearer ${api.token}`,
         },
       });
 
@@ -131,7 +130,6 @@ export function Sidebar({ className }: SidebarProps) {
     queryFn: async () => {
       const response = await fetch("/api/folders", {
         headers: {
-          'Authorization': `Bearer ${api.token}`,
         },
       });
 
@@ -145,6 +143,7 @@ export function Sidebar({ className }: SidebarProps) {
   });
 
   const isActive = (href: string) => {
+    if (!pathname) return false;
     if (href === "/dashboard") {
       return pathname === "/" || pathname === "/dashboard";
     }

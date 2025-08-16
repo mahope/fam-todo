@@ -43,7 +43,6 @@ export function AssigneeSelector({
     queryFn: async () => {
       const response = await fetch("/api/family/members", {
         headers: {
-          'Authorization': `Bearer ${api.token}`,
         },
       });
 

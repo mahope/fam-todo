@@ -50,6 +50,7 @@ export function MobileBottomNav({ onQuickAdd }: MobileBottomNavProps) {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
+    if (!pathname) return false;
     if (href === "/dashboard") {
       return pathname === "/" || pathname === "/dashboard";
     }

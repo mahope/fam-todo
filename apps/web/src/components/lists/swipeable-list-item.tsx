@@ -273,11 +273,16 @@ export function SwipeableListItem({
 
   const VisibilityIcon = getVisibilityIcon(visibility);
 
+  const { ref: swipeRef, ...swipeHandlers } = handlers;
+
   return (
     <div
-      ref={containerRef}
+      ref={(el) => {
+        containerRef.current = el;
+        if (swipeRef) swipeRef(el);
+      }}
       className={cn("relative overflow-hidden bg-background", className)}
-      {...handlers}
+      {...swipeHandlers}
     >
       {/* Left action background */}
       {renderActionBackground(finalLeftActions, "right")}

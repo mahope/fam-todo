@@ -57,7 +57,6 @@ export function FolderList() {
     queryFn: async () => {
       const response = await fetch("/api/folders", {
         headers: {
-          'Authorization': `Bearer ${api.token}`,
         },
       });
 
@@ -76,7 +75,6 @@ export function FolderList() {
       const response = await fetch(`/api/folders/${folderId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${api.token}`,
         },
       });
 

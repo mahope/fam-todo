@@ -65,7 +65,6 @@ export function CreateFolderDialog({ open, onOpenChange }: CreateFolderDialogPro
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          'Authorization': `Bearer ${api.token}`,
         },
         body: JSON.stringify(data),
       });

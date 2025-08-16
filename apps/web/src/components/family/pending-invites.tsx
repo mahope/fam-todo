@@ -43,7 +43,6 @@ export function PendingInvites() {
     queryFn: async () => {
       const response = await fetch("/api/family/invites", {
         headers: {
-          'Authorization': `Bearer ${api.token}`,
         },
       });
 
@@ -62,7 +61,6 @@ export function PendingInvites() {
       const response = await fetch(`/api/family/invites/${inviteId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${api.token}`,
         },
       });
 
@@ -88,7 +86,6 @@ export function PendingInvites() {
       const response = await fetch(`/api/family/invites/${inviteId}/resend`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${api.token}`,
         },
       });
 
