@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
     const existingEntry = await prisma.shoppingDictionary.findUnique({
       where: {
         familyId_key: {
-          familyId: isGlobal ? null : familyId,
+          familyId: isGlobal ? (null as any) : familyId,
           key
         }
       }

@@ -217,18 +217,11 @@ export async function PUT(
       updateData.unit = data.unit?.trim() || null;
     }
     
-    if (data.isPurchased !== undefined) {
-      updateData.isPurchased = Boolean(data.isPurchased);
-      
-      // Set purchase timestamp when marking as purchased
-      if (data.isPurchased && !existingItem.isPurchased) {
-        updateData.lastPurchasedAt = new Date();
-      }
+    if (data.purchased !== undefined) {
+      updateData.purchased = Boolean(data.purchased);
     }
     
-    if (data.sortIndex !== undefined) {
-      updateData.sortIndex = parseInt(data.sortIndex);
-    }
+    // sortIndex field removed from schema
 
     // Update the shopping item
     const updatedItem = await prisma.shoppingItem.update({

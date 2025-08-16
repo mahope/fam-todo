@@ -172,7 +172,8 @@ export async function GET(request: NextRequest) {
     // Build order by clause
     const orderBy: any = {};
     if (filters.sortBy === 'sort_index') {
-      orderBy.sortIndex = filters.sortOrder;
+      // sortIndex removed from schema, fallback to created_at
+      orderBy.created_at = filters.sortOrder;
     } else {
       orderBy[filters.sortBy!] = filters.sortOrder;
     }
@@ -261,7 +262,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate quantity if provided
-    let quantity: number | null = null;
+    let quantity: number = 1; // Default to 1 as per schema
     if (data.quantity !== undefined && data.quantity !== null) {
       quantity = parseFloat(data.quantity);
       if (isNaN(quantity) || quantity <= 0) {
@@ -278,24 +279,17 @@ export async function POST(request: NextRequest) {
     // Create normalized name for better search
     const normalizedName = data.name.trim().toLowerCase();
 
-    // Get next sort index
-    const maxSortIndex = await prisma.shoppingItem.findFirst({
-      where: { listId: data.listId },
-      select: { sortIndex: true },
-      orderBy: { sortIndex: 'desc' },
-    });
+    // Note: sortIndex removed from schema
 
     const shoppingItem = await prisma.shoppingItem.create({
       data: {
         name: data.name.trim(),
-        normalizedName,
         quantity,
         unit: data.unit?.trim() || null,
         category,
         familyId,
         listId: data.listId,
-        isPurchased: Boolean(data.isPurchased),
-        sortIndex: (maxSortIndex?.sortIndex || 0) + 1,
+        purchased: Boolean(data.purchased || false),
       },
       include: {
         list: {

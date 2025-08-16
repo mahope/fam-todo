@@ -188,7 +188,7 @@ export async function PUT(
     }
 
     // Validate deadline format if provided
-    let deadline: Date | null = undefined;
+    let deadline: Date | null = null;
     if (data.hasOwnProperty('deadline')) {
       if (data.deadline === null) {
         deadline = null;

@@ -11,16 +11,18 @@ async function getSessionData() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      familyId: true,
-      avatarUrl: true,
-      createdAt: true,
-      lastSeen: true,
-    }
+    include: {
+      appUser: {
+        include: {
+          family: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!user) {
@@ -38,10 +40,10 @@ export async function GET() {
       id: user.id,
       name: user.name,
       email: user.email,
-      role_name: user.role.toLowerCase(),
-      avatar_url: user.avatarUrl,
-      created_at: user.createdAt.toISOString(),
-      last_seen: user.lastSeen?.toISOString(),
+      role_name: user.appUser?.role.toLowerCase() || 'adult',
+      avatar_url: user.appUser?.avatar || null,
+      created_at: user.appUser?.created_at.toISOString() || new Date().toISOString(),
+      family: user.appUser?.family || null,
     });
   } catch (error) {
     console.error('Get profile error:', error);
@@ -78,26 +80,28 @@ export async function PATCH(req: NextRequest) {
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: { name, email },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        familyId: true,
-        avatarUrl: true,
-        createdAt: true,
-        lastSeen: true,
-      }
+      include: {
+        appUser: {
+          include: {
+            family: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
     
     return NextResponse.json({
       id: updatedUser.id,
       name: updatedUser.name,
       email: updatedUser.email,
-      role_name: updatedUser.role.toLowerCase(),
-      avatar_url: updatedUser.avatarUrl,
-      created_at: updatedUser.createdAt.toISOString(),
-      last_seen: updatedUser.lastSeen?.toISOString(),
+      role_name: updatedUser.appUser?.role.toLowerCase() || 'adult',
+      avatar_url: updatedUser.appUser?.avatar || null,
+      created_at: updatedUser.appUser?.created_at.toISOString() || new Date().toISOString(),
+      family: updatedUser.appUser?.family || null,
     });
   } catch (error) {
     console.error('Update profile error:', error);

@@ -18,15 +18,15 @@ export const GET = withAuth(
     const { q: query, type, limit } = searchData;
 
     const searchResults = {
-      tasks: [],
-      lists: [],
-      folders: [],
+      tasks: [] as any[],
+      lists: [] as any[],
+      folders: [] as any[],
       query,
       total: 0,
     };
 
     // Build access control conditions
-    const accessCondition = {
+    const accessCondition: any = {
       OR: [
         { visibility: 'FAMILY' },
         { visibility: 'PRIVATE', ownerId: sessionData.appUserId },
