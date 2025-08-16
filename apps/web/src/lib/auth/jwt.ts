@@ -30,7 +30,7 @@ export async function createJwt(payload: Omit<JWTPayload, 'iat' | 'exp'>): Promi
 export async function verifyJwt(token: string): Promise<JWTPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as JWTPayload;
+    return payload as unknown as JWTPayload;
   } catch (error) {
     console.error('JWT verification failed:', error);
     return null;

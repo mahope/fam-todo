@@ -96,8 +96,8 @@ export class PerformanceMonitor {
       domContentLoaded: entry.domContentLoadedEventEnd - entry.domContentLoadedEventStart,
       loadComplete: entry.loadEventEnd - entry.loadEventStart,
       firstByte: entry.responseStart - entry.requestStart,
-      domInteractive: entry.domInteractive - entry.navigationStart,
-      totalLoad: entry.loadEventEnd - entry.navigationStart,
+      domInteractive: entry.domInteractive - entry.fetchStart,
+      totalLoad: entry.loadEventEnd - entry.fetchStart,
     };
 
     Object.entries(timings).forEach(([name, value]) => {
@@ -155,7 +155,7 @@ export class PerformanceMonitor {
     // First Input Delay (FID)
     new PerformanceObserver((entryList) => {
       for (const entry of entryList.getEntries()) {
-        const fid = entry.processingStart - entry.startTime;
+        const fid = (entry as any).processingStart - entry.startTime;
         metrics.recordHistogram('browser_fid', fid);
       }
     }).observe({ entryTypes: ['first-input'] });

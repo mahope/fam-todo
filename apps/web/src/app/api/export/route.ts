@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 
 async function getSessionData() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions) as any;
   if (!session?.user?.email) {
     throw new Error('Unauthorized');
   }

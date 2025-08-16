@@ -167,7 +167,7 @@ export class ActivityLogService {
       const userId = activity.userId;
       if (!summary.byUser[userId]) {
         summary.byUser[userId] = {
-          name: activity.user.displayName || activity.user.email,
+          name: activity.user.displayName || 'Unknown User',
           count: 0,
         };
       }

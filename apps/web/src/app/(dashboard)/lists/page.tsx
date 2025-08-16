@@ -33,8 +33,8 @@ import { useTranslations } from 'next-intl';
 export default function ListsPage() {
   const t = useTranslations('lists');
   const [searchQuery, setSearchQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | "TODO" | "SHOPPING">("all");
-  const [visibility, setVisibility] = useState<"all" | "PRIVATE" | "FAMILY" | "ADULT">("all");
+  const [filter, setFilter] = useState<"all" | "generic" | "shopping">("all");
+  const [visibility, setVisibility] = useState<"all" | "private" | "family" | "adults">("all");
   
   // Fetch lists with optimized caching
   const { data: lists, isLoading, error } = useLists();
@@ -54,7 +54,7 @@ export default function ListsPage() {
         list.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         list.description?.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesFilter = filter === "all" || list.listType === filter;
+      const matchesFilter = filter === "all" || list.type === filter;
       const matchesVisibility = visibility === "all" || list.visibility === visibility;
       
       return matchesSearch && matchesFilter && matchesVisibility;
@@ -138,18 +138,18 @@ export default function ListsPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <Filter className="h-4 w-4 mr-2" />
-                {t('type')}: {filter === "all" ? t('all') : filter === "TODO" ? t('tasks') : t('shopping')}
+                {t('type')}: {filter === "all" ? t('all') : filter === "generic" ? t('tasks') : t('shopping')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => setFilter("all")}>
                 {t('allTypes')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilter("TODO")}>
+              <DropdownMenuItem onClick={() => setFilter("generic")}>
                 <ListTodo className="h-4 w-4 mr-2" />
                 {t('taskLists')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilter("SHOPPING")}>
+              <DropdownMenuItem onClick={() => setFilter("shopping")}>
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 {t('shoppingLists')}
               </DropdownMenuItem>
@@ -161,23 +161,23 @@ export default function ListsPage() {
               <Button variant="outline" size="sm">
                 <Eye className="h-4 w-4 mr-2" />
                 {visibility === "all" ? t('all') : 
-                 visibility === "PRIVATE" ? t('private') :
-                 visibility === "FAMILY" ? t('family') : t('adultsOnly')}
+                 visibility === "private" ? t('private') :
+                 visibility === "family" ? t('family') : t('adultsOnly')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => setVisibility("all")}>
                 {t('allLists')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setVisibility("PRIVATE")}>
+              <DropdownMenuItem onClick={() => setVisibility("private")}>
                 <Lock className="h-4 w-4 mr-2" />
                 {t('private')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setVisibility("FAMILY")}>
+              <DropdownMenuItem onClick={() => setVisibility("family")}>
                 <Eye className="h-4 w-4 mr-2" />
                 {t('family')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setVisibility("ADULT")}>
+              <DropdownMenuItem onClick={() => setVisibility("adults")}>
                 <Users className="h-4 w-4 mr-2" />
                 {t('adultsOnly')}
               </DropdownMenuItem>
@@ -207,7 +207,7 @@ export default function ListsPage() {
       ) : filteredLists.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredLists.map((list) => {
-            const ListIcon = getListIcon(list.listType);
+            const ListIcon = getListIcon(list.type);
             const VisibilityIcon = getVisibilityIcon(list.visibility);
             
             return (
@@ -268,9 +268,9 @@ export default function ListsPage() {
                     <div className="flex items-center gap-2">
                       <VisibilityIcon className={`h-4 w-4 ${getVisibilityColor(list.visibility)}`} />
                       <span className="capitalize">
-                        {list.visibility === 'PRIVATE' ? t('private') :
-                         list.visibility === 'FAMILY' ? t('family') :
-                         list.visibility === 'ADULT' ? t('adultsOnly') : list.visibility}
+                        {list.visibility === 'private' ? t('private') :
+                         list.visibility === 'family' ? t('family') :
+                         list.visibility === 'adults' ? t('adultsOnly') : list.visibility}
                       </span>
                     </div>
                     <div className="flex items-center gap-4">

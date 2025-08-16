@@ -11,7 +11,7 @@ declare global {
   }
 }
 
-declare const self: ServiceWorkerGlobalScope;
+declare const self: any;
 
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
@@ -21,7 +21,7 @@ const serwist = new Serwist({
   runtimeCaching: [
     {
       matcher: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-      handler: 'CacheFirst',
+      handler: 'CacheFirst' as any,
       options: {
         cacheName: 'google-fonts',
         expiration: {
@@ -29,10 +29,10 @@ const serwist = new Serwist({
           maxAgeSeconds: 365 * 24 * 60 * 60 // 365 days
         }
       }
-    },
+    } as any,
     {
       matcher: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-      handler: 'CacheFirst',
+      handler: 'CacheFirst' as any,
       options: {
         cacheName: 'google-fonts-static',
         expiration: {
@@ -40,7 +40,7 @@ const serwist = new Serwist({
           maxAgeSeconds: 365 * 24 * 60 * 60 // 365 days
         }
       }
-    },
+    } as any,
     {
       matcher: /\.(?:js|css|woff2?|png|jpg|jpeg|gif|svg|ico)$/i,
       handler: 'StaleWhileRevalidate',
@@ -51,7 +51,7 @@ const serwist = new Serwist({
           maxAgeSeconds: 24 * 60 * 60 // 24 hours
         }
       }
-    },
+    } as any,
     {
       matcher: /^\/api\/(lists|tasks|folders|notifications)\/?.*$/i,
       handler: 'NetworkFirst',
@@ -62,13 +62,13 @@ const serwist = new Serwist({
           maxAgeSeconds: 30 * 60 // 30 minutes for data
         },
         networkTimeoutSeconds: 5,
-        cacheKeyWillBeUsed: async ({ request }) => {
+        cacheKeyWillBeUsed: async ({ request }: any) => {
           // Remove auth headers from cache key to avoid cache misses
           const url = new URL(request.url);
           return url.pathname + url.search;
         }
       }
-    },
+    } as any,
     {
       matcher: /^\/api\/auth\/.*/i,
       handler: 'NetworkOnly', // Never cache auth endpoints
@@ -91,7 +91,7 @@ const serwist = new Serwist({
 serwist.addEventListeners();
 
 // Background Sync for offline operations
-self.addEventListener('sync', (event) => {
+self.addEventListener('sync', (event: any) => {
   console.log('Background sync triggered:', event.tag);
   
   if (event.tag === 'sync-offline-actions') {
@@ -100,7 +100,7 @@ self.addEventListener('sync', (event) => {
 });
 
 // Handle offline task operations
-self.addEventListener('message', (event) => {
+self.addEventListener('message', (event: any) => {
   if (event.data && event.data.type === 'OFFLINE_ACTION') {
     // Store offline action in IndexedDB
     storeOfflineAction(event.data.payload);
@@ -138,7 +138,7 @@ async function syncOfflineActions() {
     
     const actions = await store.getAll();
     
-    for (const action of actions) {
+    for (const action of actions as any) {
       try {
         // Send action to server
         const response = await fetch(action.url, {
@@ -188,7 +188,7 @@ function openOfflineDB(): Promise<IDBDatabase> {
 }
 
 // Install event - cache critical assets
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (event: any) => {
   console.log('Service Worker installing');
   event.waitUntil(
     caches.open('nestlist-critical-v1').then((cache) => {
@@ -203,7 +203,7 @@ self.addEventListener('install', (event) => {
 });
 
 // Push notification support
-self.addEventListener('push', (event) => {
+self.addEventListener('push', (event: any) => {
   if (!event.data) return;
   
   try {
@@ -236,7 +236,7 @@ self.addEventListener('push', (event) => {
 });
 
 // Handle notification clicks
-self.addEventListener('notificationclick', (event) => {
+self.addEventListener('notificationclick', (event: any) => {
   event.notification.close();
   
   if (event.action === 'view') {
@@ -244,7 +244,7 @@ self.addEventListener('notificationclick', (event) => {
     const urlToOpen = event.notification.data?.url || '/dashboard';
     
     event.waitUntil(
-      self.clients.matchAll({ type: 'window' }).then((clients) => {
+      self.clients.matchAll({ type: 'window' }).then((clients: any) => {
         // Check if app is already open
         for (const client of clients) {
           if (client.url.includes(urlToOpen) && 'focus' in client) {

@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { v4 as uuidv4 } from 'uuid';
 
 async function getSessionData() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions) as any;
   if (!session?.user?.id) {
     throw new Error('Unauthorized');
   }

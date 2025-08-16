@@ -268,7 +268,7 @@ export class OfflineManager {
       switch (action.type) {
         case 'create':
         case 'update':
-          optimisticData = { ...optimisticData, ...action.data };
+          optimisticData = { ...(optimisticData as any), ...(action.data as any) };
           break;
         case 'delete':
           optimisticData = null;

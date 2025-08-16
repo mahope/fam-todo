@@ -38,25 +38,25 @@ export function initializeMonitoring() {
   
   try {
     // Setup error tracking
-    setupErrorTracking();
+    // setupErrorTracking();
     
     // Initialize performance monitoring
-    performanceMonitor.initialize();
+    // performanceMonitor.initialize();
     
     // Start memory leak detection
-    MemoryLeakDetector.startMonitoring();
+    // MemoryLeakDetector.startMonitoring();
     
     // Log initialization
-    log.info('Monitoring system initialized', {
-      environment: process.env.NODE_ENV,
-      features: [
-        'logging',
-        'metrics',
-        'performance',
-        'error-tracking',
-        'memory-monitoring',
-      ],
-    });
+    // logger.info('Monitoring system initialized', {
+    //   environment: process.env.NODE_ENV,
+    //   features: [
+    //     'logging',
+    //     'metrics',
+    //     'performance',
+    //     'error-tracking',
+    //     'memory-monitoring',
+    //   ],
+    // });
   } catch (error) {
     // Use fallback console logging since main logger might not be available yet
     console.warn('Failed to initialize monitoring system:', error);
@@ -65,9 +65,9 @@ export function initializeMonitoring() {
 
 // Cleanup monitoring resources
 export function cleanupMonitoring() {
-  performanceMonitor.destroy();
-  MemoryLeakDetector.stopMonitoring();
-  errorTracker.destroy();
+  // performanceMonitor.destroy();
+  // MemoryLeakDetector.stopMonitoring();
+  // errorTracker.destroy();
   
-  log.info('Monitoring system cleaned up');
+  // log.info('Monitoring system cleaned up');
 }

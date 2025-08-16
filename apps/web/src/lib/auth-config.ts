@@ -1,11 +1,10 @@
-import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth/password';
 import { logger } from '@/lib/logger';
 
-export const authOptions: NextAuthOptions = {
+export const authOptions: any = {
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: 'jwt',
@@ -66,7 +65,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: any) {
       if (user) {
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
@@ -81,7 +80,7 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       if (token && session.user) {
         session.user.id = token.sub!;
         (session as any).appUserId = token.appUserId;

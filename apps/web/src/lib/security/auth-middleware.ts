@@ -27,7 +27,7 @@ export interface AuthOptions {
 
 // Get and validate session data
 export async function getSessionData(): Promise<SessionData> {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions) as any;
   
   if (!session?.user?.id) {
     throw new AuthenticationError('No valid session found');
@@ -59,7 +59,7 @@ export async function getSessionData(): Promise<SessionData> {
     familyId: user.appUser.familyId,
     role: user.appUser.role,
     email: user.email || '',
-    displayName: user.appUser.displayName,
+    displayName: user.appUser.displayName || '',
   };
 }
 

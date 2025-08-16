@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { pushNotificationService, NotificationPayload } from '@/lib/services/push-notifications';
 
 async function getSessionData() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions) as any;
   if (!session?.user?.id) {
     throw new Error('Unauthorized');
   }

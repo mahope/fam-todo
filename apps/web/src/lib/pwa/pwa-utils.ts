@@ -35,7 +35,7 @@ class PWAInstallManagerImpl implements PWAInstallManager {
   private initialize() {
     // Check if running as standalone PWA
     this.isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                       window.navigator.standalone === true ||
+                       (window.navigator as any).standalone === true ||
                        document.referrer.includes('android-app://');
 
     // Check if already installed
@@ -461,8 +461,8 @@ export class PWAPerformanceMonitor {
     if (typeof window !== 'undefined' && 'performance' in window) {
       window.addEventListener('load', () => {
         const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-        this.recordMetric('app_start_time', navigation.loadEventEnd - navigation.navigationStart);
-        this.recordMetric('dom_content_loaded', navigation.domContentLoadedEventEnd - navigation.navigationStart);
+        this.recordMetric('app_start_time', navigation.loadEventEnd - navigation.fetchStart);
+        this.recordMetric('dom_content_loaded', navigation.domContentLoadedEventEnd - navigation.fetchStart);
         this.recordMetric('first_paint', performance.getEntriesByName('first-paint')[0]?.startTime || 0);
         this.recordMetric('first_contentful_paint', performance.getEntriesByName('first-contentful-paint')[0]?.startTime || 0);
       });

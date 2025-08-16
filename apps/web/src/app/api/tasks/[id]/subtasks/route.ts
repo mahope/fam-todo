@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 
 async function getSessionData() {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions) as any;
   if (!session?.user?.id) {
     throw new Error('Unauthorized');
   }

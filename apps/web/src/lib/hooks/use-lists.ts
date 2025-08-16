@@ -28,7 +28,7 @@ export function useLists() {
       return Array.isArray(data) ? data as List[] : [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
     // Enable background refetch for data freshness
     refetchOnWindowFocus: true,
     refetchInterval: 30 * 1000, // Refresh every 30 seconds when focused

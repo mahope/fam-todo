@@ -38,7 +38,7 @@ export function withMonitoring(
     // Track active requests
     metrics.incrementCounter('http_requests_active', { method, route });
 
-    let response: NextResponse;
+    let response: NextResponse | undefined;
     let error: Error | null = null;
 
     try {
@@ -222,7 +222,7 @@ export function withAuthMonitoring<T>(
         throw error;
       }
     },
-    { event, user_id: userId }
+    { event, user_id: userId || 'anonymous' }
   );
 }
 

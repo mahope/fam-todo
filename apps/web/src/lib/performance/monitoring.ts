@@ -75,8 +75,8 @@ class PerformanceMonitor {
           const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
           if (navigation) {
             this.recordMetric('TTFB', navigation.responseStart - navigation.requestStart);
-            this.recordMetric('DOM_LOAD', navigation.domContentLoadedEventEnd - navigation.navigationStart);
-            this.recordMetric('FULL_LOAD', navigation.loadEventEnd - navigation.navigationStart);
+            this.recordMetric('DOM_LOAD', navigation.domContentLoadedEventEnd - navigation.fetchStart);
+            this.recordMetric('FULL_LOAD', navigation.loadEventEnd - navigation.fetchStart);
           }
         }, 0);
       });
@@ -321,7 +321,7 @@ export function withPerformanceMonitoring<P extends object>(
       };
     }, []);
 
-    return React.createElement(Component, { ...props, ref });
+    return React.createElement(Component, { ...props, ref } as any);
   });
   
   PerformanceWrapper.displayName = `withPerformanceMonitoring(${componentName})`;
