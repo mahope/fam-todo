@@ -17,7 +17,7 @@ NestList is a private, web-based application designed to organize tasks, shoppin
 - **Auth**: NextAuth.js for JWT-based authentication with RLS
 - **Real-time**: Socket.io for live updates
 - **PWA**: Serwist for service worker management
-- **Deployment**: Docker Compose for local development, Dokploy for production
+- **Deployment**: Nixpacks via Dokploy with separate PostgreSQL instance
 
 ## Important Git Workflow
 
@@ -32,17 +32,17 @@ git push
 
 ### Development
 ```bash
-# Start all services (DB, PostgREST, Realtime, Storage, Web)
-docker compose up -d --build
-
-# Start only web development server (if DB is already running)
+# Start development server (requires external database)
 cd apps/web && npm run dev
 
-# View logs
-docker compose logs -f [service_name]
+# Production build testing
+cd apps/web && npm run build:prod
 
-# Stop all services
-docker compose down
+# Production server testing
+cd apps/web && npm run start:prod
+
+# Database migrations
+cd apps/web && npm run migrate:deploy
 ```
 
 ### Frontend (apps/web)
@@ -77,15 +77,18 @@ NextAuth.js provides JWT tokens with these claims:
 ```
 
 ### Service Ports  
-- Web (Development): 3003
-- PostgreSQL: 5432
+- Web (Development): 3000
+- Web (Production): 3000 
 - Socket.io Server: Embedded in Next.js
+- Database: External PostgreSQL instance (configured via DATABASE_URL)
 
 ### Environment Setup
-Copy `.env.example` to `.env` and configure:
+For development, copy `apps/web/.env.example` to `apps/web/.env` and configure:
 - `NEXTAUTH_SECRET` - NextAuth signing secret
-- `NEXTAUTH_URL` - Application URL (http://localhost:3003 for dev)
-- `DATABASE_URL` - PostgreSQL connection string
+- `NEXTAUTH_URL` - Application URL (http://localhost:3000 for dev)
+- `DATABASE_URL` - PostgreSQL connection string (external database required)
+
+For production deployment, see `.env.nixpacks.template` for complete environment variables.
 
 ### RLS Policies
 Access control is enforced at the database level:
@@ -238,10 +241,14 @@ Key user stories from PRD (see nestlist_prd.md for complete list):
 
 ## Deployment Process
 
-1. Local development with Docker Compose
+**Current: Nixpacks + Separate Database**
+1. Local development (requires external database)
 2. Commit/push to main branch
-3. CI/CD via Dokploy
-4. Production uses separate `.env` values
+3. Dokploy automatically deploys via Nixpacks
+4. Separate PostgreSQL instance in Dokploy
+5. Automatic migrations via `start.sh` script
+
+**See:** `DEPLOYMENT_NIXPACKS.md` for complete setup guide
 
 ## Important Notes
 
@@ -304,10 +311,13 @@ Key user stories from PRD (see nestlist_prd.md for complete list):
 
 ## Important Development Notes
 
-- **Port Configuration**: Development server runs on port 3003, ensure NEXTAUTH_URL matches
-- **Database Migrations**: Always run `npx prisma migrate dev` after schema changes
+- **Port Configuration**: Development server runs on port 3000, ensure NEXTAUTH_URL matches
+- **Database Setup**: Requires external PostgreSQL database (no local Docker setup)
+- **Database Migrations**: Run `npm run migrate:deploy` after schema changes
+- **Build Process**: Use `npm run build:prod` for production builds with Prisma generation
 - **Real-time Testing**: Use multiple browser windows to test Socket.io functionality
 - **PWA Testing**: Test offline functionality with network throttling in DevTools
 - **Push Notifications**: Requires HTTPS in production, use `localhost` for development testing
 - **Navigation**: Desktop uses sidebar navigation, mobile uses bottom nav + floating action button
 - **Task Creation**: Quick task modal accessible from multiple entry points (FAB, navbar, sidebar)
+- **Deployment**: Nixpacks handles build process automatically via `nixpacks.toml`
