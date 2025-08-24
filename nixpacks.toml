@@ -1,6 +1,9 @@
 [variables]
 NODE_VERSION = "22"
 
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
 [phases.build]
 cmds = [
   "cd apps/web && npm ci", 
