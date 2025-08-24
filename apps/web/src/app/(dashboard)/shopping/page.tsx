@@ -39,40 +39,43 @@ export default function ShoppingPage() {
   const { data: lists, isLoading, error } = useQuery({
     queryKey: ["shopping-lists", searchQuery],
     queryFn: async () => {
-      let endpoint = "/lists?type=eq.shopping&select=*";
+      const response = await api.get<List[]>("/api/lists");
+      
+      if (!response.data) {
+        return [];
+      }
+      
+      // Filter for shopping lists and search query
+      let shoppingLists = response.data.filter(list => list.listType === 'SHOPPING');
       
       if (searchQuery) {
-        endpoint += `&name=ilike.*${searchQuery}*`;
+        shoppingLists = shoppingLists.filter(list => 
+          list.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
       }
-      
-      endpoint += "&order=updated_at.desc";
-      
-      const response = await api.get<ShoppingListWithStats[]>(endpoint);
       
       // Get item counts for each list
-      if (response.data) {
-        const listsWithStats = await Promise.all(
-          response.data.map(async (list) => {
-            // Get total items
-            const totalResponse = await api.get(`/shopping_items?list_id=eq.${list.id}&select=count`);
-            const totalItems = totalResponse.data?.[0]?.count || 0;
+      const listsWithStats = await Promise.all(
+        shoppingLists.map(async (list) => {
+          // Get all items for this list
+          const allItemsResponse = await api.get(`/api/shopping/items?listId=${list.id}&limit=1000`);
+          const allItems = allItemsResponse.data?.items || [];
+          
+          // Get purchased items for this list 
+          const purchasedItemsResponse = await api.get(`/api/shopping/items?listId=${list.id}&purchased=true&limit=1000`);
+          const purchasedItems = purchasedItemsResponse.data?.items || [];
 
-            // Get purchased items
-            const purchasedResponse = await api.get(`/shopping_items?list_id=eq.${list.id}&is_purchased=eq.true&select=count`);
-            const purchasedItems = purchasedResponse.data?.[0]?.count || 0;
-
-            return {
-              ...list,
-              total_items: totalItems,
-              purchased_items: purchasedItems,
-              progress: totalItems > 0 ? Math.round((purchasedItems / totalItems) * 100) : 0,
-            };
-          })
-        );
-        return listsWithStats;
-      }
+          return {
+            ...list,
+            total_items: allItems.length,
+            purchased_items: purchasedItems.length,
+            progress: allItems.length > 0 ? Math.round((purchasedItems.length / allItems.length) * 100) : 0,
+          } as ShoppingListWithStats;
+        })
+      );
       
-      return response.data || [];
+      // Sort by updated_at desc
+      return listsWithStats.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
     },
     enabled: api.status === "authenticated",
   });

@@ -59,8 +59,8 @@ export default function ListDetailPage() {
   const { data: list, isLoading: listLoading } = useQuery({
     queryKey: ["list", listId],
     queryFn: async () => {
-      const response = await api.get<List[]>(`/lists?id=eq.${listId}&select=*`);
-      return response.data?.[0];
+      const response = await api.get<List>(`/api/lists/${listId}`);
+      return response.data;
     },
     enabled: api.status === "authenticated" && !!listId,
   });
@@ -69,30 +69,30 @@ export default function ListDetailPage() {
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: ["list-tasks", listId, filter],
     queryFn: async () => {
-      let endpoint = `/tasks?list_id=eq.${listId}&select=*,assigned_user_id(display_name)&order=sort_index.asc,created_at.desc`;
+      let queryParams = `listId=${listId}`;
       
       if (filter === "open") {
-        endpoint += "&status=neq.done";
+        queryParams += "&completed=false";
       } else if (filter === "done") {
-        endpoint += "&status=eq.done";
+        queryParams += "&completed=true";
       }
       
-      const response = await api.get<TaskWithUser[]>(endpoint);
+      queryParams += "&sortBy=created_at&sortOrder=desc";
+      
+      const response = await api.get<TaskWithUser[]>(`/api/tasks?${queryParams}`);
       return response.data || [];
     },
-    enabled: api.status === "authenticated" && !!listId && list?.type === "generic",
+    enabled: api.status === "authenticated" && !!listId && list?.listType === "TODO",
   });
 
   // Fetch shopping items for shopping lists
   const { data: shoppingItems, isLoading: shoppingLoading } = useQuery({
     queryKey: ["shopping-items", listId],
     queryFn: async () => {
-      const response = await api.get<ShoppingItemWithCategory[]>(
-        `/shopping_items?list_id=eq.${listId}&select=*&order=category.asc,sort_index.asc,created_at.desc`
-      );
-      return response.data || [];
+      const response = await api.get(`/api/shopping/items?listId=${listId}&sortBy=category&sortOrder=asc`);
+      return response.data?.items || [];
     },
-    enabled: api.status === "authenticated" && !!listId && list?.type === "shopping",
+    enabled: api.status === "authenticated" && !!listId && list?.listType === "SHOPPING",
   });
 
   // Add new task mutation
@@ -100,19 +100,19 @@ export default function ListDetailPage() {
     mutationFn: async (title: string) => {
       if (!list) throw new Error("List not found");
       
-      if (list.type === "generic") {
-        const response = await api.post("/tasks", {
-          list_id: listId,
+      if (list.listType === "TODO") {
+        const response = await api.post("/api/tasks", {
+          listId: listId,
           title: title.trim(),
-          status: "open",
-          priority: "none",
+          completed: false,
+          priority: "NONE",
         });
         
         if (response.error) throw new Error(response.error);
         return response;
       } else {
-        const response = await api.post("/shopping_items", {
-          list_id: listId,
+        const response = await api.post("/api/shopping/items", {
+          listId: listId,
           name: title.trim(),
         });
         
@@ -132,15 +132,15 @@ export default function ListDetailPage() {
   const toggleTaskMutation = useMutation({
     mutationFn: async ({ id, completed, isShoppingItem }: { id: string; completed: boolean; isShoppingItem?: boolean }) => {
       if (isShoppingItem) {
-        const response = await api.patch(`/shopping_items?id=eq.${id}`, {
-          is_purchased: completed,
+        const response = await api.patch(`/api/shopping/items/${id}`, {
+          purchased: completed,
         });
         if (response.error) throw new Error(response.error);
         return response;
       } else {
-        const response = await api.patch(`/tasks?id=eq.${id}`, {
-          status: completed ? "done" : "open",
-          completed_at: completed ? new Date().toISOString() : null,
+        const response = await api.patch(`/api/tasks/${id}`, {
+          completed: completed,
+          completedAt: completed ? new Date().toISOString() : null,
         });
         if (response.error) throw new Error(response.error);
         return response;
@@ -156,11 +156,11 @@ export default function ListDetailPage() {
   const deleteTaskMutation = useMutation({
     mutationFn: async ({ id, isShoppingItem }: { id: string; isShoppingItem?: boolean }) => {
       if (isShoppingItem) {
-        const response = await api.delete(`/shopping_items?id=eq.${id}`);
+        const response = await api.delete(`/api/shopping/items/${id}`);
         if (response.error) throw new Error(response.error);
         return response;
       } else {
-        const response = await api.delete(`/tasks?id=eq.${id}`);
+        const response = await api.delete(`/api/tasks/${id}`);
         if (response.error) throw new Error(response.error);
         return response;
       }
@@ -218,16 +218,16 @@ export default function ListDetailPage() {
     );
   }
 
-  const isShoppingList = list.type === "shopping";
+  const isShoppingList = list.listType === "SHOPPING";
   const items = isShoppingList ? shoppingItems : tasks;
   const isLoading = isShoppingList ? shoppingLoading : tasksLoading;
 
   const completedItems = items?.filter((item) => 
-    isShoppingList ? (item as ShoppingItemWithCategory).is_purchased : (item as TaskWithUser).status === "done"
+    isShoppingList ? (item as ShoppingItemWithCategory).purchased : (item as TaskWithUser).completed
   ) || [];
   
   const activeItems = items?.filter((item) => 
-    isShoppingList ? !(item as ShoppingItemWithCategory).is_purchased : (item as TaskWithUser).status !== "done"
+    isShoppingList ? !(item as ShoppingItemWithCategory).purchased : !(item as TaskWithUser).completed
   ) || [];
 
   const filteredItems = 
@@ -364,8 +364,8 @@ export default function ListDetailPage() {
             <div className="divide-y">
               {filteredItems.map((item) => {
                 const isCompleted = isShoppingList 
-                  ? (item as ShoppingItemWithCategory).is_purchased 
-                  : (item as TaskWithUser).status === "done";
+                  ? (item as ShoppingItemWithCategory).purchased 
+                  : (item as TaskWithUser).completed;
                 
                 const title = isShoppingList 
                   ? (item as ShoppingItemWithCategory).name 

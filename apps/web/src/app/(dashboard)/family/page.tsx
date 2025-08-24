@@ -25,12 +25,20 @@ import { PendingInvites } from "@/components/family/pending-invites";
 
 type FamilyMember = {
   id: string;
-  name: string;
+  displayName: string;
   email: string;
-  role_name: "admin" | "adult" | "child";
-  avatar_url?: string;
+  role: "ADMIN" | "ADULT" | "CHILD";
+  avatar?: string;
   created_at: string;
-  last_seen?: string;
+  updated_at: string;
+  user: {
+    name: string;
+  };
+  _count: {
+    ownedLists: number;
+    ownedTasks: number;
+    assignedTasks: number;
+  };
 };
 
 type Family = {
@@ -48,8 +56,8 @@ export default function FamilyPage() {
   const { data: family, isLoading: familyLoading } = useQuery({
     queryKey: ["family"],
     queryFn: async () => {
-      const response = await api.get<Family[]>("/families?select=*");
-      return response.data?.[0];
+      const response = await api.get<Family>("/api/family");
+      return response.data;
     },
     enabled: api.status === "authenticated",
   });
@@ -58,7 +66,7 @@ export default function FamilyPage() {
   const { data: members, isLoading: membersLoading } = useQuery({
     queryKey: ["family-members"],
     queryFn: async () => {
-      const response = await api.get<FamilyMember[]>("/app_users?select=*&order=created_at.asc");
+      const response = await api.get<FamilyMember[]>("/api/family/members");
       return response.data || [];
     },
     enabled: api.status === "authenticated",
@@ -66,11 +74,11 @@ export default function FamilyPage() {
 
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case "admin":
+      case "ADMIN":
         return Crown;
-      case "adult":
+      case "ADULT":
         return User;
-      case "child":
+      case "CHILD":
         return Baby;
       default:
         return User;
@@ -79,11 +87,11 @@ export default function FamilyPage() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case "admin":
+      case "ADMIN":
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-      case "adult":
+      case "ADULT":
         return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      case "child":
+      case "CHILD":
         return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
@@ -92,11 +100,11 @@ export default function FamilyPage() {
 
   const getRoleText = (role: string) => {
     switch (role) {
-      case "admin":
+      case "ADMIN":
         return "Administrator";
-      case "adult":
+      case "ADULT":
         return "Voksen";
-      case "child":
+      case "CHILD":
         return "Barn";
       default:
         return role;
@@ -193,7 +201,7 @@ export default function FamilyPage() {
           ) : members && members.length > 0 ? (
             <div className="space-y-4">
               {members.map((member) => {
-                const RoleIcon = getRoleIcon(member.role_name);
+                const RoleIcon = getRoleIcon(member.role);
                 
                 return (
                   <div
@@ -202,19 +210,19 @@ export default function FamilyPage() {
                   >
                     <div className="flex items-center space-x-4">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src={member.avatar_url} alt={member.name} />
-                        <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                        <AvatarImage src={member.avatar} alt={member.displayName} />
+                        <AvatarFallback>{getInitials(member.displayName)}</AvatarFallback>
                       </Avatar>
                       
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-sm">{member.name}</h3>
+                          <h3 className="font-semibold text-sm">{member.displayName}</h3>
                           <Badge 
                             variant="secondary" 
-                            className={`text-xs ${getRoleColor(member.role_name)}`}
+                            className={`text-xs ${getRoleColor(member.role)}`}
                           >
                             <RoleIcon className="h-3 w-3 mr-1" />
-                            {getRoleText(member.role_name)}
+                            {getRoleText(member.role)}
                           </Badge>
                         </div>
                         
@@ -227,12 +235,6 @@ export default function FamilyPage() {
                             <Calendar className="h-3 w-3" />
                             Tilmeldt {formatDate(member.created_at)}
                           </div>
-                          {member.last_seen && (
-                            <div className="flex items-center gap-1">
-                              <Activity className="h-3 w-3" />
-                              Sidst aktiv {formatDate(member.last_seen)}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
