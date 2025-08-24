@@ -8,7 +8,7 @@ cmds = [
   "cd apps/web && npm run build"
 ]
 
-[phases.start]
+[start]
 cmd = "cd apps/web && npm run start:prod"
 
 [staticAssets]
