@@ -11,12 +11,7 @@ const withNextIntlConfig = withNextIntl(
 const withSerwistConfig = withSerwist({
   swSrc: 'src/sw.ts',
   swDest: 'public/sw.js',
-  disable: false, // Enable in all environments for testing
-  cacheOnNavigation: true,
-  reloadOnOnline: true,
-  fallbacks: {
-    document: '/offline',
-  }
+  disable: process.env.NODE_ENV === 'development' // Disable in development to avoid issues
 });
 
 const nextConfig = {
