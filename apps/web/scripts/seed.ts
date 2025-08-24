@@ -18,6 +18,15 @@ async function main() {
   const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
   try {
+    // Test database connection first
+    try {
+      await prisma.$connect();
+      console.log('✅ Database connection successful');
+    } catch (error) {
+      console.error('❌ Database connection failed:', error);
+      process.exit(1);
+    }
+
     // Check if admin user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: adminEmail },
