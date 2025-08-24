@@ -2,7 +2,7 @@
 NODE_VERSION = "20"
 
 [phases.setup]
-nixPkgs = ["nodejs_20", "npm", "curl"]
+nixPkgs = ["nodejs_20", "curl"]
 
 [phases.build]
 cmds = ["cd apps/web && npm ci", "cd apps/web && npx prisma generate", "cd apps/web && npm run build"]
