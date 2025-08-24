@@ -14,7 +14,7 @@
   "lib\\auth\\jwt.ts -> @/lib/prisma": {
     "id": 28314,
     "files": [
-      "static/chunks/8314.306f007934c3f664.js"
+      "static/chunks/8314.f5552b7782e7bf9a.js"
     ]
   },
   "lib\\logger.ts -> winston": {

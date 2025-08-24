@@ -1,8 +1,7 @@
 import { jwtVerify, SignJWT } from 'jose';
+import { env } from '@/lib/env-validation';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'fallback-secret-key'
-);
+const JWT_SECRET = new TextEncoder().encode(env.NEXTAUTH_SECRET);
 
 export interface JWTPayload {
   sub: string; // user ID

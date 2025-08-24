@@ -21,31 +21,55 @@ class UniversalLogger implements Logger {
 
   constructor() {
     // Only initialize Winston during runtime on server, not during build
-    if (this.isServer && typeof process !== 'undefined' && process.env.NODE_ENV !== undefined) {
-      this.initializeWinston();
+    if (this.isServer && this.shouldInitializeWinston()) {
+      this.initializeWinston().catch(error => {
+        console.warn('Failed to initialize Winston logger, falling back to console:', error);
+      });
     }
+  }
+
+  private shouldInitializeWinston(): boolean {
+    return (
+      typeof process !== 'undefined' && 
+      process.env !== undefined &&
+      process.env.NODE_ENV !== undefined &&
+      // Ensure we're not in a build process
+      !process.env.NEXT_PHASE
+    );
   }
 
   private async initializeWinston() {
     try {
-      // Dynamic import to avoid bundling Winston in client build
+      // Use environment variable validation for safer access
+      const isProduction = process.env.NODE_ENV === 'production';
+      
+      // Dynamic import with error handling
       const winston = await import('winston');
+      
       this.winston = winston.createLogger({
-        level: process.env.LOG_LEVEL || 'info',
+        level: process.env.LOG_LEVEL || (isProduction ? 'warn' : 'info'),
         format: winston.format.combine(
           winston.format.timestamp(),
           winston.format.errors({ stack: true }),
-          winston.format.json()
+          isProduction ? winston.format.json() : winston.format.simple()
         ),
         transports: [
           new winston.transports.Console({
-            format: winston.format.combine(
-              winston.format.colorize(),
-              winston.format.simple()
-            )
+            format: isProduction 
+              ? winston.format.json()
+              : winston.format.combine(
+                  winston.format.colorize(),
+                  winston.format.simple()
+                )
           })
-        ]
+        ],
+        // Prevent crashes on winston errors
+        exitOnError: false,
+        handleExceptions: true,
+        handleRejections: true
       });
+      
+      console.log('✅ Winston logger initialized successfully');
     } catch (error) {
       // Winston not available, will fallback to console
       console.warn('Winston not available, using console logging');

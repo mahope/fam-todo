@@ -3,9 +3,11 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth/password';
 import { logger } from '@/lib/logger';
+import { env } from '@/lib/env-validation';
 
 export const authOptions: any = {
   adapter: PrismaAdapter(prisma),
+  secret: env.NEXTAUTH_SECRET,
   session: {
     strategy: 'jwt',
   },

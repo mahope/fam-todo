@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { Server as SocketIOServer } from 'socket.io';
 import { prisma } from '@/lib/prisma';
 import { verifyJwt } from '@/lib/auth/jwt';
+import { env } from '@/lib/env-validation';
 
 export type NextApiResponseServerIO = NextApiResponse & {
   socket: {
@@ -42,9 +43,9 @@ class SocketService {
       path: '/api/socket',
       addTrailingSlash: false,
       cors: {
-        origin: process.env.NODE_ENV === 'production' 
-          ? process.env.NEXTAUTH_URL 
-          : ['http://localhost:3000'],
+        origin: env.NODE_ENV === 'production' 
+          ? env.NEXTAUTH_URL 
+          : ['http://localhost:3000', 'http://localhost:3003'],
         methods: ['GET', 'POST'],
         credentials: true,
       },
