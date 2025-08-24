@@ -11,9 +11,15 @@ const withNextIntlConfig = withNextIntl(
 const withSerwistConfig = withSerwist({
   swSrc: 'src/sw.ts',
   swDest: 'public/sw.js',
-  disable: process.env.NODE_ENV === 'development',
+  disable: false, // Enable in all environments for testing
   cacheOnNavigation: true,
-  reloadOnOnline: true
+  reloadOnOnline: true,
+  // Add fallback for missing files
+  fallbacks: {
+    document: '/offline',
+  },
+  // Be more lenient with precaching failures
+  runtimeCaching: []
 });
 
 const nextConfig = {

@@ -78,8 +78,19 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // More specific error logging for debugging
+    let errorMessage = 'Der opstod en fejl ved oprettelse af bruger';
+    if (error instanceof Error) {
+      console.error('Error details:', error.message, error.stack);
+      // Don't expose internal errors to users in production
+      if (process.env.NODE_ENV === 'development') {
+        errorMessage = `Debug: ${error.message}`;
+      }
+    }
+    
     return NextResponse.json(
-      { error: 'Der opstod en fejl ved oprettelse af bruger' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

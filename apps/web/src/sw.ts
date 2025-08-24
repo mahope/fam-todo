@@ -18,6 +18,17 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
+  disableDevLogs: true, // Reduce console noise
+  fallbacks: {
+    entries: [
+      {
+        url: '/offline',
+        matcher({ request }) {
+          return request.destination === 'document';
+        },
+      },
+    ],
+  },
   runtimeCaching: [
     {
       matcher: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -191,13 +202,21 @@ function openOfflineDB(): Promise<IDBDatabase> {
 self.addEventListener('install', (event: any) => {
   console.log('Service Worker installing');
   event.waitUntil(
-    caches.open('nestlist-critical-v1').then((cache) => {
-      return cache.addAll([
-        '/',
-        '/login',
-        '/dashboard',
-        '/manifest.json'
-      ]);
+    caches.open('nestlist-critical-v1').then(async (cache) => {
+      try {
+        // Add files individually to avoid failing if some don't exist
+        const criticalUrls = ['/', '/login', '/dashboard', '/offline', '/manifest.json'];
+        
+        for (const url of criticalUrls) {
+          try {
+            await cache.add(url);
+          } catch (error) {
+            console.warn(`Failed to cache ${url}:`, error);
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to cache critical assets:', error);
+      }
     })
   );
 });
