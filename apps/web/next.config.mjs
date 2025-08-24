@@ -14,12 +14,9 @@ const withSerwistConfig = withSerwist({
   disable: false, // Enable in all environments for testing
   cacheOnNavigation: true,
   reloadOnOnline: true,
-  // Add fallback for missing files
   fallbacks: {
     document: '/offline',
-  },
-  // Be more lenient with precaching failures
-  runtimeCaching: []
+  }
 });
 
 const nextConfig = {
