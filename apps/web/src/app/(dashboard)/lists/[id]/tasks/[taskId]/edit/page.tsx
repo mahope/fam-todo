@@ -11,8 +11,9 @@ import { ArrowLeft, Edit } from "lucide-react";
 import { toast } from "sonner";
 
 type TaskWithSubtasks = Task & {
+  assignedUserId?: string; // Field that comes from API
   assigneeId?: string; // Add for compatibility with form
-  deadline?: string; // Add for form compatibility - maps to due_at
+  deadline?: string; // Add for form compatibility
   tags?: string[]; // Add for form compatibility
   recurrence?: string; // Add for form compatibility
   subtasks?: Array<{
@@ -70,9 +71,9 @@ export default function EditTaskPage() {
       const response = await api.patch(`/api/tasks/${taskId}`, {
         title: data.title,
         description: data.description,
-        assigned_user_id: data.assigneeId,
+        assignedUserId: data.assigneeId,
         priority: data.priority?.toLowerCase(), // Convert back to lowercase for database
-        due_at: data.deadline ? new Date(data.deadline).toISOString() : null,
+        deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
         // Note: tags and recurrence are not yet implemented in the database
         // Note: Subtasks are handled separately through the subtasks API
       });
@@ -143,9 +144,9 @@ export default function EditTaskPage() {
   const initialData: Partial<TaskFormData> = {
     title: task.title,
     description: task.description || "",
-    assigneeId: task.assigned_user_id || undefined,
+    assigneeId: task.assignedUserId || undefined,
     priority: (task.priority?.toUpperCase() as "NONE" | "LOW" | "MEDIUM" | "HIGH" | "URGENT") || "NONE",
-    deadline: task.due_at ? new Date(task.due_at).toISOString().slice(0, 16) : "",
+    deadline: task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : "",
     tags: [], // Task doesn't have tags in database yet
     recurrence: "NONE", // Task doesn't have recurrence in database yet
     subtasks: subtasks || [],
