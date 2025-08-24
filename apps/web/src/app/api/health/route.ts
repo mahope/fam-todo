@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { ProductionApiErrorHandler } from '@/lib/api-error-handler';
 
 export async function GET(request: NextRequest) {
   const healthData = {
@@ -51,8 +52,14 @@ export async function GET(request: NextRequest) {
     healthData.services.database = 'unhealthy';
     healthData.checks.database = {
       status: 'unhealthy',
-      error: error instanceof Error ? error.message : 'Unknown database error'
+      error: error instanceof Error ? error.message : 'Unknown database error',
+      errorCode: (error as any)?.code || 'UNKNOWN'
     };
+
+    // Use the production error handler for proper error classification
+    if ((error as any)?.code?.startsWith('P') || (error as any)?.code === 'ENOTFOUND' || (error as any)?.code === 'ECONNREFUSED') {
+      return NextResponse.json(healthData, { status: 503 });
+    }
 
     return NextResponse.json(healthData, { status: 503 });
   }

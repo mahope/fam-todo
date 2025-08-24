@@ -2,10 +2,17 @@
 
 const { spawn } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
-console.log('🚀 Starting production server...');
+console.log('🚀 Starting NestList production server...');
 console.log('Environment:', process.env.NODE_ENV);
+console.log('Node Version:', process.version);
 console.log('Database URL:', process.env.DATABASE_URL?.substring(0, 30) + '...' || 'Not set');
+console.log('NextAuth URL:', process.env.NEXTAUTH_URL || 'Not set');
+
+// Detect if we're running in a container
+const isContainer = fs.existsSync('/.dockerenv') || process.env.DOCKER_ENV === 'true';
+console.log('Container environment:', isContainer ? 'Yes' : 'No');
 
 // Function to run a command and return a promise
 function runCommand(command, args = [], options = {}) {
@@ -52,7 +59,25 @@ async function startProduction() {
     try {
       await runCommand('npx', ['prisma', 'db', 'pull', '--force-reset']);
     } catch (error) {
-      throw new Error('Database connection failed');
+      console.error('❌ Database connection test failed');
+      console.log('🔄 Attempting alternative database check...');
+      
+      // Try a simpler database check
+      try {
+        await runCommand('node', ['-e', `
+          const { PrismaClient } = require('@prisma/client');
+          const prisma = new PrismaClient();
+          prisma.$queryRaw\`SELECT 1\`.then(() => {
+            console.log('✅ Database connection successful');
+            process.exit(0);
+          }).catch(e => {
+            console.error('❌ Database connection failed:', e.message);
+            process.exit(1);
+          });
+        `]);
+      } catch (dbError) {
+        throw new Error(`Database connection failed: ${dbError.message}`);
+      }
     }
 
     // Run database migrations

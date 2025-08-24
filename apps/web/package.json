@@ -2,7 +2,7 @@
   "name": "nestlist-web",
   "private": true,
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=20.9.0"
   },
   "scripts": {
     "dev": "next dev -p 3000",
@@ -10,6 +10,7 @@
     "build:prod": "prisma generate && next build",
     "start": "next start -p 8080",
     "start:prod": "node scripts/start-production.js",
+    "validate:env": "node scripts/validate-environment.js",
     "migrate:deploy": "prisma migrate deploy",
     "seed": "tsx scripts/seed.ts",
     "lint": "next lint",
