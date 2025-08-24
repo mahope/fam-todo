@@ -11,7 +11,13 @@ const withNextIntlConfig = withNextIntl(
 const withSerwistConfig = withSerwist({
   swSrc: 'src/sw.ts',
   swDest: 'public/sw.js',
-  disable: process.env.NODE_ENV === 'development' // Disable in development to avoid issues
+  disable: process.env.NODE_ENV === 'development', // Disable in development to avoid issues
+  additionalPrecacheEntries: [
+    { url: '/', revision: null },
+    { url: '/login', revision: null },
+    { url: '/dashboard', revision: null },
+    { url: '/offline', revision: null }
+  ]
 });
 
 const nextConfig = {

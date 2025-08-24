@@ -219,14 +219,14 @@ export default function ListDetailPage() {
   }
 
   const isShoppingList = list.listType === "SHOPPING";
-  const items = isShoppingList ? shoppingItems : tasks;
+  const items: (TaskWithUser | ShoppingItemWithCategory)[] | undefined = isShoppingList ? shoppingItems : tasks;
   const isLoading = isShoppingList ? shoppingLoading : tasksLoading;
 
-  const completedItems = items?.filter((item) => 
+  const completedItems = items?.filter((item: TaskWithUser | ShoppingItemWithCategory) => 
     isShoppingList ? (item as ShoppingItemWithCategory).purchased : (item as TaskWithUser).completed
   ) || [];
   
-  const activeItems = items?.filter((item) => 
+  const activeItems = items?.filter((item: TaskWithUser | ShoppingItemWithCategory) => 
     isShoppingList ? !(item as ShoppingItemWithCategory).purchased : !(item as TaskWithUser).completed
   ) || [];
 
@@ -362,7 +362,7 @@ export default function ListDetailPage() {
             </div>
           ) : filteredItems.length > 0 ? (
             <div className="divide-y">
-              {filteredItems.map((item) => {
+              {filteredItems.map((item: TaskWithUser | ShoppingItemWithCategory) => {
                 const isCompleted = isShoppingList 
                   ? (item as ShoppingItemWithCategory).purchased 
                   : (item as TaskWithUser).completed;
@@ -395,10 +395,10 @@ export default function ListDetailPage() {
                       <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
                         {!isShoppingList && (
                           <>
-                            {(item as TaskWithUser).due_at && (
+                            {(item as TaskWithUser).deadline && (
                               <div className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {new Date((item as TaskWithUser).due_at!).toLocaleDateString()}
+                                {new Date((item as TaskWithUser).deadline!).toLocaleDateString()}
                               </div>
                             )}
                             {(item as TaskWithUser).assigned_user && (
@@ -407,11 +407,11 @@ export default function ListDetailPage() {
                                 {(item as TaskWithUser).assigned_user?.display_name}
                               </div>
                             )}
-                            {(item as TaskWithUser).priority !== "none" && (
+                            {(item as TaskWithUser).priority !== "NONE" && (
                               <div className={`px-2 py-1 rounded-full text-xs ${
-                                (item as TaskWithUser).priority === "high" 
+                                (item as TaskWithUser).priority === "HIGH" 
                                   ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" 
-                                  : (item as TaskWithUser).priority === "medium"
+                                  : (item as TaskWithUser).priority === "MEDIUM"
                                   ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                                   : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
                               }`}>

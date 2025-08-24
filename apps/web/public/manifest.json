@@ -10,7 +10,13 @@
   "categories": ["productivity", "lifestyle"],
   "lang": "da",
   "scope": "/",
-  "icons": [],
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Dashboard",

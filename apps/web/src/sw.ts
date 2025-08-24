@@ -14,11 +14,11 @@ declare global {
 declare const self: any;
 
 const serwist = new Serwist({
-  precacheEntries: self.__SW_MANIFEST,
+  precacheEntries: self.__SW_MANIFEST || [],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  disableDevLogs: true, // Reduce console noise
+  disableDevLogs: process.env.NODE_ENV === 'production', // Only disable in production
   fallbacks: {
     entries: [
       {
@@ -205,11 +205,17 @@ self.addEventListener('install', (event: any) => {
     caches.open('nestlist-critical-v1').then(async (cache) => {
       try {
         // Add files individually to avoid failing if some don't exist
-        const criticalUrls = ['/', '/login', '/dashboard', '/offline', '/manifest.json'];
+        const criticalUrls = ['/', '/login', '/dashboard', '/offline', '/manifest.json', '/icon-192x192.png'];
         
         for (const url of criticalUrls) {
           try {
-            await cache.add(url);
+            const response = await fetch(url, { method: 'HEAD' });
+            if (response.ok) {
+              await cache.add(url);
+              console.log(`Cached: ${url}`);
+            } else {
+              console.warn(`Skipping ${url} - not available (${response.status})`);
+            }
           } catch (error) {
             console.warn(`Failed to cache ${url}:`, error);
           }

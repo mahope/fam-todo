@@ -201,35 +201,35 @@ export interface AppUser {
 
 export interface List {
   id: string;
-  family_id: string;
-  owner_id?: string;
-  folder_id?: string;
   name: string;
   description?: string;
   color?: string;
-  visibility: "private" | "family" | "adults";
-  type: "generic" | "shopping";
-  sort_index: number;
-  is_archived: boolean;
+  visibility: "PRIVATE" | "FAMILY" | "ADULT";
+  listType: "TODO" | "SHOPPING";
   created_at: string;
   updated_at: string;
+  owner?: {
+    id: string;
+    displayName: string;
+  };
+  folder?: {
+    id: string;
+    name: string;
+  };
+  _count?: {
+    tasks: number;
+  };
 }
 
 export interface Task {
   id: string;
-  list_id: string;
-  family_id: string;
-  owner_id?: string;
-  assigned_user_id?: string;
+  listId: string;
   title: string;
   description?: string;
-  status: "open" | "in_progress" | "done" | "archived";
-  priority: "none" | "low" | "medium" | "high";
-  due_at?: string;
-  completed_at?: string;
-  is_recurring: boolean;
-  sort_index: number;
-  is_archived: boolean;
+  completed: boolean;
+  priority: "NONE" | "LOW" | "MEDIUM" | "HIGH";
+  deadline?: string;
+  completedAt?: string;
   created_at: string;
   updated_at: string;
 }
@@ -250,17 +250,12 @@ export interface Folder {
 
 export interface ShoppingItem {
   id: string;
-  list_id: string;
-  family_id: string;
+  listId: string;
   name: string;
-  normalized_name?: string;
   quantity?: number;
   unit?: string;
   category: string;
-  is_purchased: boolean;
-  last_purchased_at?: string;
-  suggestion_hits: number;
-  sort_index: number;
+  purchased: boolean;
   created_at: string;
   updated_at: string;
 }
