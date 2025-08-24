@@ -9,7 +9,7 @@
     "build": "next build",
     "build:prod": "prisma generate && next build",
     "start": "next start -p 3000",
-    "start:prod": "npm run migrate:deploy && npm run seed && next start",
+    "start:prod": "npm run migrate:deploy && (npm run seed || echo 'Seed failed, continuing...') && next start",
     "migrate:deploy": "prisma migrate deploy",
     "seed": "tsx scripts/seed.ts",
     "lint": "next lint",
