@@ -54,8 +54,13 @@ export default function ListsPage() {
         list.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         list.description?.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesFilter = filter === "all" || list.type === filter;
-      const matchesVisibility = visibility === "all" || list.visibility === visibility;
+      const matchesFilter = filter === "all" || 
+        (filter === "generic" && list.listType === "TODO") ||
+        (filter === "shopping" && list.listType === "SHOPPING");
+      const matchesVisibility = visibility === "all" || 
+        (visibility === "private" && list.visibility === "PRIVATE") ||
+        (visibility === "family" && list.visibility === "FAMILY") ||
+        (visibility === "adults" && list.visibility === "ADULT");
       
       return matchesSearch && matchesFilter && matchesVisibility;
     });
@@ -207,7 +212,7 @@ export default function ListsPage() {
       ) : filteredLists.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredLists.map((list) => {
-            const ListIcon = getListIcon(list.type);
+            const ListIcon = getListIcon(list.listType);
             const VisibilityIcon = getVisibilityIcon(list.visibility);
             
             return (
@@ -268,9 +273,9 @@ export default function ListsPage() {
                     <div className="flex items-center gap-2">
                       <VisibilityIcon className={`h-4 w-4 ${getVisibilityColor(list.visibility)}`} />
                       <span className="capitalize">
-                        {list.visibility === 'private' ? t('private') :
-                         list.visibility === 'family' ? t('family') :
-                         list.visibility === 'adults' ? t('adultsOnly') : list.visibility}
+                        {list.visibility === 'PRIVATE' ? t('private') :
+                         list.visibility === 'FAMILY' ? t('family') :
+                         list.visibility === 'ADULT' ? t('adultsOnly') : list.visibility}
                       </span>
                     </div>
                     <div className="flex items-center gap-4">

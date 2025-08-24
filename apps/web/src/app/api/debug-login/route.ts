@@ -26,6 +26,8 @@ export async function POST(request: NextRequest) {
       appUserId: user?.appUser?.id,
       familyId: user?.appUser?.familyId,
       role: user?.appUser?.role,
+      passwordValid: false as boolean,
+      passwordError: null as string | null,
     };
 
     // Test password verification if user exists

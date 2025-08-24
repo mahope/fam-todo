@@ -220,9 +220,9 @@ export default function ShoppingPage() {
                         <div className="flex items-center gap-2">
                           <VisibilityIcon className={`h-4 w-4 ${getVisibilityColor(list.visibility)}`} />
                           <span className="capitalize">
-                            {list.visibility === 'private' ? t('private') :
-                             list.visibility === 'family' ? t('family') :
-                             list.visibility === 'adults' ? t('adultsOnly') : list.visibility}
+                            {list.visibility === 'PRIVATE' ? t('private') :
+                             list.visibility === 'FAMILY' ? t('family') :
+                             list.visibility === 'ADULT' ? t('adultsOnly') : list.visibility}
                           </span>
                         </div>
                         <div className="flex items-center gap-4">
