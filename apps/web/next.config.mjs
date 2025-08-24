@@ -1,10 +1,14 @@
 
+import withNextIntl from 'next-intl/plugin';
+import { default as withSerwist } from '@serwist/next';
+
 /** @type {import('next').NextConfig} */
-const withNextIntl = require('next-intl/plugin')(
+const withNextIntlConfig = withNextIntl(
   // This is the default location for the i18n config
   './src/i18n/request.ts'
 );
-const withSerwist = require('@serwist/next').default({
+
+const withSerwistConfig = withSerwist({
   swSrc: 'src/sw.ts',
   swDest: 'public/sw.js',
   disable: process.env.NODE_ENV === 'development',
@@ -92,4 +96,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withNextIntl(withSerwist(nextConfig));
+export default withNextIntlConfig(withSerwistConfig(nextConfig));
