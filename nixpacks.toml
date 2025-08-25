@@ -2,12 +2,12 @@
 NODE_VERSION = "20.11.0"
 
 [phases.setup]
-nixPkgs = ["nodejs_20"]
+nixPkgs = ["nodejs"]
 
 [phases.build]
 workDir = "/app/apps/web"
 cmds = ["npm ci", "npx prisma generate", "npm run build"]
 
-[start]
+[phases.start]
 workDir = "/app/apps/web"
-cmd = "npm start"
+cmds = ["npm start"]
