@@ -8,7 +8,7 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "build:prod": "prisma generate && next build",
-    "start": "next start -p 8080",
+    "start": "node scripts/start-production.js",
     "start:prod": "node scripts/start-production.js",
     "validate:env": "node scripts/validate-environment.js",
     "verify:deployment": "node scripts/verify-deployment.js",
