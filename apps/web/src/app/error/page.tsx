@@ -6,26 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 
-export default function ErrorPage({
-  error,
-  reset,
-}: {
-  error?: Error & { digest?: string };
-  reset?: () => void;
-}) {
+export default function ErrorPage() {
   useEffect(() => {
     // Log error to monitoring service
-    if (error) {
-      console.error('Application error:', error);
-    }
-  }, [error]);
+    console.error('Error page accessed');
+  }, []);
 
   const handleRetry = () => {
-    if (reset) {
-      reset();
-    } else {
-      window.location.reload();
-    }
+    window.location.reload();
   };
 
   return (
@@ -42,17 +30,6 @@ export default function ErrorPage({
         </CardHeader>
         
         <CardContent className="space-y-4">
-          {process.env.NODE_ENV === 'development' && error && (
-            <div className="p-3 bg-muted rounded-md text-sm">
-              <p className="font-semibold mb-1">Error Details:</p>
-              <p className="text-muted-foreground">{error.message}</p>
-              {error.digest && (
-                <p className="text-xs mt-1 text-muted-foreground">
-                  Error ID: {error.digest}
-                </p>
-              )}
-            </div>
-          )}
 
           <div className="flex flex-col gap-2">
             <Button onClick={handleRetry} className="w-full">

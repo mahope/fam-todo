@@ -1,0 +1,18 @@
+[variables]
+NIXPACKS_NODE_VERSION = "20.11.0"
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "npm-9_x"]
+
+[phases.build]
+cmds = [
+    "cd apps/web && npm ci",
+    "cd apps/web && npx prisma generate", 
+    "cd apps/web && npm run build"
+]
+
+[phases.start]
+cmd = "cd apps/web && npm run start:prod"
+
+[phases.install]
+cmds = ["echo 'Using Node.js 20.11.0 for compatibility'"]
