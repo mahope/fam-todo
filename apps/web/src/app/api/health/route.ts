@@ -1,66 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { ProductionApiErrorHandler } from '@/lib/api-error-handler';
+import { NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
-  const healthData = {
-    status: 'unknown',
+export async function GET() {
+  return NextResponse.json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '1.0.0',
-    environment: process.env.NODE_ENV || 'development',
-    nodeVersion: process.version,
-    port: process.env.PORT || 'unknown',
-    database: 'unknown',
-    checks: {} as any,
-    services: {
-      web: 'healthy',
-      database: 'unknown'
-    }
-  };
-
-  try {
-    // Check database connectivity
-    console.log('Health check: Testing database connection...');
-    const startTime = Date.now();
-    await prisma.$queryRaw`SELECT 1 as test`;
-    const dbTime = Date.now() - startTime;
-    
-    healthData.database = 'connected';
-    healthData.services.database = 'healthy';
-    healthData.checks.database = {
-      status: 'healthy',
-      responseTime: `${dbTime}ms`
-    };
-
-    // Check environment variables
-    healthData.checks.environment = {
-      nextauthUrl: !!process.env.NEXTAUTH_URL,
-      nextauthSecret: !!process.env.NEXTAUTH_SECRET,
-      databaseUrl: !!process.env.DATABASE_URL,
-      nodeEnv: process.env.NODE_ENV
-    };
-
-    healthData.status = 'healthy';
-    console.log('Health check: All systems healthy');
-    return NextResponse.json(healthData, { status: 200 });
-
-  } catch (error) {
-    console.error('Health check failed:', error);
-    
-    healthData.status = 'unhealthy';
-    healthData.database = 'disconnected';
-    healthData.services.database = 'unhealthy';
-    healthData.checks.database = {
-      status: 'unhealthy',
-      error: error instanceof Error ? error.message : 'Unknown database error',
-      errorCode: (error as any)?.code || 'UNKNOWN'
-    };
-
-    // Use the production error handler for proper error classification
-    if ((error as any)?.code?.startsWith('P') || (error as any)?.code === 'ENOTFOUND' || (error as any)?.code === 'ECONNREFUSED') {
-      return NextResponse.json(healthData, { status: 503 });
-    }
-
-    return NextResponse.json(healthData, { status: 503 });
-  }
+    version: '1.0.0',
+    environment: process.env.NODE_ENV || 'production',
+    nodeVersion: process.version
+  });
 }

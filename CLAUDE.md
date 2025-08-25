@@ -309,11 +309,99 @@ Key user stories from PRD (see nestlist_prd.md for complete list):
 - **ESLint warnings** and TypeScript strict mode compliance (ongoing)
 - **Test coverage** expansion needed
 
+## Deployment Guide
+
+### Production Deployment with Dokploy + Nixpacks
+
+#### Required Environment Variables
+```bash
+DATABASE_URL="postgresql://username:password@host:port/database"
+NEXTAUTH_SECRET="your-nextauth-secret-key-minimum-32-characters"
+NEXTAUTH_URL="https://your-domain.com"
+NODE_ENV="production"
+```
+
+#### Deployment Configuration Files
+
+**1. nixpacks.toml (in project root)**
+```toml
+[variables]
+NODE_VERSION = "20.11.0"
+
+[phases.setup]
+nixPkgs = ["nodejs-20_x"]
+
+[phases.build]
+cmds = [
+    "cd apps/web && npm ci",
+    "cd apps/web && npx prisma generate", 
+    "cd apps/web && npm run build"
+]
+
+[phases.start]
+cmds = ["cd apps/web && npm run start:prod"]
+```
+
+**2. Key Configuration**
+- **Port**: Production runs on port 8080 (configured in start scripts)
+- **Build Command**: `npm run build` (includes Prisma generation)
+- **Start Command**: `npm run start:prod` (simple Next.js start)
+- **Node.js Version**: 20.11.0 (specified in nixpacks.toml)
+
+#### Deployment Process
+1. **Push to GitHub** - Ensure all changes are committed and pushed
+2. **Dokploy Auto-Deploy** - Reads nixpacks.toml configuration
+3. **Build Phase** - Installs dependencies, generates Prisma client, builds Next.js
+4. **Start Phase** - Starts production server on port 8080
+
+#### Health Check
+- **Endpoint**: `GET /api/health`
+- **Response**: `{"status":"healthy","timestamp":"...","version":"1.0.0","environment":"production","nodeVersion":"..."}`
+
+#### Common Issues & Solutions
+
+**❌ "No start command found"**
+- **Cause**: Missing or incorrect `nixpacks.toml` start phase
+- **Solution**: Ensure `[phases.start]` uses `cmds = ["..."]` (not `cmd = "..."`)
+
+**❌ "getToken is not exported"**
+- **Cause**: NextAuth.js middleware import issues
+- **Solution**: Use `export { default } from 'next-auth/middleware'`
+
+**❌ Node.js version warnings**
+- **Cause**: Nixpacks using old Node.js version
+- **Solution**: Specify `NODE_VERSION = "20.11.0"` in nixpacks.toml
+
+**❌ Database connection errors**
+- **Cause**: Incorrect DATABASE_URL or network issues
+- **Solution**: Verify DATABASE_URL format: `postgresql://user:pass@host:port/db`
+
+#### Pre-Deployment Testing
+```bash
+# Test build locally
+cd apps/web
+npm ci
+npx prisma generate
+npm run build
+
+# Test environment
+npm run validate:env
+
+# Test health endpoint after deployment
+curl https://your-domain.com/api/health
+```
+
+#### Simplified Architecture
+- **No complex startup scripts** - Simple Next.js start
+- **No database operations at startup** - Database handled separately
+- **No environment validation at runtime** - Next.js handles env validation
+- **Simple health check** - No database dependency for basic health
+
 ## Important Development Notes
 
-- **Port Configuration**: Development server runs on port 3000, ensure NEXTAUTH_URL matches
+- **Port Configuration**: Development server runs on port 3000, Production on port 8080
 - **Database Setup**: Requires external PostgreSQL database (no local Docker setup)
-- **Database Migrations**: Run `npm run migrate:deploy` after schema changes
+- **Database Migrations**: Run `npm run migrate:deploy` after schema changes  
 - **Build Process**: Use `npm run build:prod` for production builds with Prisma generation
 - **Real-time Testing**: Use multiple browser windows to test Socket.io functionality
 - **PWA Testing**: Test offline functionality with network throttling in DevTools
