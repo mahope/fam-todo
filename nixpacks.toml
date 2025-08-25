@@ -2,7 +2,7 @@
 NODE_VERSION = "20.11.0"
 
 [phases.setup]
-nixPkgs = ["nodejs-20_x"]
+nixPkgs = ["nodejs_20"]
 
 [phases.build]
 workDir = "/app/apps/web"
