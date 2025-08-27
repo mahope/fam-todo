@@ -80,13 +80,14 @@ The main configuration file that defines the build process:
 - **Reason**: Resolves the "Can't check signature: No public key" error that occurs in containerized environments
 
 #### Build Optimizations
-- **npm ci --no-audit --prefer-offline**: Faster, more reliable installation
+- **Monorepo package.json**: Created root package.json with workspace configuration
 - **Shared caches**: npm-cache and next-cache for better performance
-- **Step dependencies**: Ensures proper build order (install → generate → build)
+- **Simplified steps**: Uses npm scripts to handle monorepo navigation (install → build)
 
 #### Monorepo Support
-- All commands prefixed with `cd apps/web &&` to work within the monorepo structure
-- Focuses build process on the web application directory
+- **Root package.json**: Added with workspaces configuration pointing to `apps/web`
+- **npm scripts**: Handle directory changes (`npm run install`, `npm run build`, `npm run start`)
+- **Working directory**: All commands run from monorepo root, eliminating "can't cd" errors
 
 ## Deployment Process
 
