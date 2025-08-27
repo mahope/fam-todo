@@ -4,7 +4,7 @@ NODE_VERSION = "23"
 NIXPACKS_NODE_VERSION = "23"
 
 [phases.setup] 
-nixPkgs = ["nodejs_23"]
+nixPkgs = ["nodejs"]
 
 [phases.build]
 cmds = [
