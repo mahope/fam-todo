@@ -1,15 +1,17 @@
+# nixpacks.toml - Monorepo deployment configuration for Nixpacks v1.39.0+
 [variables]
-NODE_VERSION = "20.11.0"
+NODE_VERSION = "22"
+NIXPACKS_NODE_VERSION = "22"
 
-[phases.setup]
-nixPkgs = ["nodejs-20_x"]
+[phases.setup] 
+nixPkgs = ["nodejs-22_x"]
 
 [phases.build]
 cmds = [
     "cd apps/web && npm ci",
-    "cd apps/web && npx prisma generate",
+    "cd apps/web && npx prisma generate", 
     "cd apps/web && npm run build"
 ]
 
-[phases.start]
-cmds = ["cd apps/web && npm run start:prod"]
+[start]
+cmd = "cd apps/web && npm start"
