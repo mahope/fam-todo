@@ -1,0 +1,53 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "packages": {
+    "node": "22.11.0"
+  },
+  "buildAptPackages": ["git", "gnupg"],
+  "variables": {
+    "MISE_NODE_VERIFY": "false",
+    "MISE_NODE_GPG_VERIFY": "false",
+    "NODE_ENV": "production"
+  },
+  "caches": {
+    "npm-cache": {
+      "directory": "/root/.npm",
+      "type": "shared"
+    },
+    "next-cache": {
+      "directory": "apps/web/.next/cache",
+      "type": "shared"
+    }
+  },
+  "steps": {
+    "install": {
+      "commands": [
+        "cd apps/web && npm ci --no-audit --prefer-offline"
+      ],
+      "caches": ["npm-cache"]
+    },
+    "generate": {
+      "inputs": [{ "step": "install" }],
+      "commands": [
+        "cd apps/web && npx prisma generate"
+      ]
+    },
+    "build": {
+      "inputs": [{ "step": "generate" }],
+      "commands": [
+        "cd apps/web && npm run build"
+      ],
+      "caches": ["next-cache"]
+    }
+  },
+  "deploy": {
+    "base": {
+      "image": "ghcr.io/railwayapp/railpack-runtime:latest"
+    },
+    "startCommand": "cd apps/web && npm start",
+    "inputs": [
+      { "step": "build" }
+    ]
+  }
+}
