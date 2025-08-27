@@ -45,7 +45,8 @@
   ],
   "share_target": {
     "action": "/lists/new",
-    "method": "GET",
+    "method": "POST",
+    "enctype": "application/x-www-form-urlencoded",
     "params": {
       "title": "name",
       "text": "description",
