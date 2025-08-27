@@ -1,10 +1,10 @@
 # nixpacks.toml - Monorepo deployment configuration for Nixpacks v1.39.0+
 [variables]
-NODE_VERSION = "21"
-NIXPACKS_NODE_VERSION = "21"
+NODE_VERSION = "22"
+NIXPACKS_NODE_VERSION = "22"
 
 [phases.setup] 
-nixPkgs = ["nodejs_21"]
+nixpkgsArchive = '51ad838b03a05b1de6f9f2a0fffecee64a9788ee'
 
 [phases.build]
 cmds = [
