@@ -219,6 +219,38 @@ const config = {
             transform: "translateY(-4px) scale(0.95)" 
           },
         },
+        "slide-in-from-left-1/2": {
+          from: {
+            transform: "translateX(-50%)",
+          },
+          to: {
+            transform: "translateX(0)",
+          },
+        },
+        "slide-out-to-left-1/2": {
+          from: {
+            transform: "translateX(0)",
+          },
+          to: {
+            transform: "translateX(-50%)",
+          },
+        },
+        "slide-in-from-top-48": {
+          from: {
+            transform: "translateY(-48%)",
+          },
+          to: {
+            transform: "translateY(0)",
+          },
+        },
+        "slide-out-to-top-48": {
+          from: {
+            transform: "translateY(0)",
+          },
+          to: {
+            transform: "translateY(-48%)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -243,6 +275,10 @@ const config = {
         "zoom-out-95": "zoom-out-95 0.15s ease-in",
         "enter": "enter 0.15s ease-out",
         "exit": "exit 0.15s ease-in",
+        "slide-in-from-left-1/2": "slide-in-from-left-1/2 0.15s ease-out",
+        "slide-out-to-left-1/2": "slide-out-to-left-1/2 0.15s ease-in",
+        "slide-in-from-top-48": "slide-in-from-top-48 0.15s ease-out",
+        "slide-out-to-top-48": "slide-out-to-top-48 0.15s ease-in",
       },
     },
   },

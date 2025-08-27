@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST='{"..\\\\node_modules\\\\next\\\\dist\\\\client\\\\index.js -> ../pages/_app":{"id":58214,"files":["static/chunks/8214.da90296c46e74513.js"]},"..\\\\node_modules\\\\next\\\\dist\\\\client\\\\index.js -> ../pages/_error":{"id":37795,"files":["static/chunks/7795.7a5316c0da45ac91.js"]},"lib\\\\auth\\\\jwt.ts -> @/lib/prisma":{"id":28314,"files":["static/chunks/8314.f939639ccbcf5008.js"]},"lib\\\\logger.ts -> winston":{"id":99853,"files":[]}}';
