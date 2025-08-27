@@ -103,6 +103,86 @@ const config = {
             transform: "translateY(0)",
           },
         },
+        "slide-in-from-left-2": {
+          from: {
+            transform: "translateX(-8px)",
+          },
+          to: {
+            transform: "translateX(0)",
+          },
+        },
+        "slide-in-from-right-2": {
+          from: {
+            transform: "translateX(8px)",
+          },
+          to: {
+            transform: "translateX(0)",
+          },
+        },
+        "slide-out-to-left-1": {
+          from: {
+            transform: "translateX(0)",
+          },
+          to: {
+            transform: "translateX(-4px)",
+          },
+        },
+        "slide-out-to-left-2": {
+          from: {
+            transform: "translateX(0)",
+          },
+          to: {
+            transform: "translateX(-8px)",
+          },
+        },
+        "slide-out-to-right-1": {
+          from: {
+            transform: "translateX(0)",
+          },
+          to: {
+            transform: "translateX(4px)",
+          },
+        },
+        "slide-out-to-right-2": {
+          from: {
+            transform: "translateX(0)",
+          },
+          to: {
+            transform: "translateX(8px)",
+          },
+        },
+        "slide-out-to-top-1": {
+          from: {
+            transform: "translateY(0)",
+          },
+          to: {
+            transform: "translateY(-4px)",
+          },
+        },
+        "slide-out-to-top-2": {
+          from: {
+            transform: "translateY(0)",
+          },
+          to: {
+            transform: "translateY(-8px)",
+          },
+        },
+        "slide-out-to-bottom-1": {
+          from: {
+            transform: "translateY(0)",
+          },
+          to: {
+            transform: "translateY(4px)",
+          },
+        },
+        "slide-out-to-bottom-2": {
+          from: {
+            transform: "translateY(0)",
+          },
+          to: {
+            transform: "translateY(8px)",
+          },
+        },
         "fade-in-0": {
           from: { opacity: "0" },
           to: { opacity: "1" },
@@ -119,6 +199,26 @@ const config = {
           from: { transform: "scale(1)" },
           to: { transform: "scale(0.95)" },
         },
+        "enter": {
+          from: { 
+            opacity: "0", 
+            transform: "translateY(-4px) scale(0.95)" 
+          },
+          to: { 
+            opacity: "1", 
+            transform: "translateY(0) scale(1)" 
+          },
+        },
+        "exit": {
+          from: { 
+            opacity: "1", 
+            transform: "translateY(0) scale(1)" 
+          },
+          to: { 
+            opacity: "0", 
+            transform: "translateY(-4px) scale(0.95)" 
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -127,10 +227,22 @@ const config = {
         "animate-out": "animate-out 0.15s ease-in",
         "slide-in-from-bottom-2": "slide-in-from-bottom-2 0.2s ease-out",
         "slide-in-from-top-2": "slide-in-from-top-2 0.2s ease-out",
+        "slide-in-from-left-2": "slide-in-from-left-2 0.2s ease-out",
+        "slide-in-from-right-2": "slide-in-from-right-2 0.2s ease-out",
+        "slide-out-to-left-1": "slide-out-to-left-1 0.15s ease-in",
+        "slide-out-to-left-2": "slide-out-to-left-2 0.2s ease-in",
+        "slide-out-to-right-1": "slide-out-to-right-1 0.15s ease-in",
+        "slide-out-to-right-2": "slide-out-to-right-2 0.2s ease-in",
+        "slide-out-to-top-1": "slide-out-to-top-1 0.15s ease-in",
+        "slide-out-to-top-2": "slide-out-to-top-2 0.2s ease-in",
+        "slide-out-to-bottom-1": "slide-out-to-bottom-1 0.15s ease-in",
+        "slide-out-to-bottom-2": "slide-out-to-bottom-2 0.2s ease-in",
         "fade-in-0": "fade-in-0 0.15s ease-out",
         "fade-out-0": "fade-out-0 0.15s ease-in",
         "zoom-in-95": "zoom-in-95 0.15s ease-out",
         "zoom-out-95": "zoom-out-95 0.15s ease-in",
+        "enter": "enter 0.15s ease-out",
+        "exit": "exit 0.15s ease-in",
       },
     },
   },
