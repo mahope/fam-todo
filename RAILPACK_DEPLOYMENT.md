@@ -85,9 +85,20 @@ The main configuration file that defines the build process:
 - **Simplified steps**: Uses npm scripts to handle monorepo navigation (install → build)
 
 #### Monorepo Support
-- **Root package.json**: Added with workspaces configuration pointing to `apps/web`
-- **npm scripts**: Handle directory changes (`npm run install`, `npm run build`, `npm run start`)
-- **Working directory**: All commands run from monorepo root, eliminating "can't cd" errors
+- **Root Directory Configuration**: Set root directory to `/apps/web` in deployment service settings
+- **Clean Commands**: All commands run without directory prefixes (npm ci, npm run build, npm start)
+- **Build Context**: Railpack operates from apps/web as root, eliminating "can't cd" errors
+
+## Dokploy Configuration
+
+**CRITICAL**: For monorepo deployment, you must configure the root directory in Dokploy:
+
+1. Go to your application settings in Dokploy
+2. Find the "Build Configuration" or "Source" section
+3. Set **Root Directory** to: `/apps/web`
+4. Save the configuration
+
+This tells Railpack to use `apps/web` as the build context root, making package.json available at `/app/package.json` instead of `/app/apps/web/package.json`.
 
 ## Deployment Process
 

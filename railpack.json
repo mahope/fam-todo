@@ -16,20 +16,21 @@
       "type": "shared"
     },
     "next-cache": {
-      "directory": "/app/apps/web/.next/cache",
+      "directory": "/app/.next/cache",
       "type": "shared"
     }
   },
   "steps": {
     "install": {
       "commands": [
-        "npm run install"
+        "npm ci --no-audit --prefer-offline"
       ],
       "caches": ["npm-cache"]
     },
     "build": {
       "inputs": [{ "step": "install" }],
       "commands": [
+        "npx prisma generate",
         "npm run build"
       ],
       "caches": ["next-cache"]
@@ -39,7 +40,7 @@
     "base": {
       "image": "ghcr.io/railwayapp/railpack-runtime:latest"
     },
-    "startCommand": "npm run start",
+    "startCommand": "npm start",
     "inputs": [
       { "step": "build" }
     ]
