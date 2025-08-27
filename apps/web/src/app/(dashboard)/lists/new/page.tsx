@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as z from "zod";
 import { useApi } from "@/lib/api";
 // import { useSession } from "next-auth/react"; // Unused for now
@@ -54,6 +54,7 @@ const LIST_COLORS = [
 export default function NewListPage() {
   const router = useRouter();
   const api = useApi();
+  const queryClient = useQueryClient();
   // const { data: session } = useSession(); // Unused for now
 
   const form = useForm<CreateListFormValues>({
@@ -84,6 +85,10 @@ export default function NewListPage() {
       return response.data;
     },
     onSuccess: () => {
+      // Invalidate lists cache to trigger refetch
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
+      queryClient.invalidateQueries({ queryKey: ['folders'] });
+      
       // Redirect to lists page
       router.push("/lists");
     },
