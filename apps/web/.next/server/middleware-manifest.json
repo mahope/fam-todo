@@ -42,80 +42,40 @@
           "originalSource": "/shopping/:path*"
         },
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/lists(\\.json)?[\\/#\\?]?$",
-          "originalSource": "/api/lists"
-        },
-        {
           "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/lists(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/lists/:path*"
-        },
-        {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/tasks(\\.json)?[\\/#\\?]?$",
-          "originalSource": "/api/tasks"
         },
         {
           "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/tasks(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/tasks/:path*"
         },
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/family(\\.json)?[\\/#\\?]?$",
-          "originalSource": "/api/family"
-        },
-        {
           "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/family(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/family/:path*"
-        },
-        {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/folders(\\.json)?[\\/#\\?]?$",
-          "originalSource": "/api/folders"
         },
         {
           "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/folders(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/folders/:path*"
         },
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/shopping(\\.json)?[\\/#\\?]?$",
-          "originalSource": "/api/shopping"
-        },
-        {
           "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/shopping(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/shopping/:path*"
-        },
-        {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/notifications(\\.json)?[\\/#\\?]?$",
-          "originalSource": "/api/notifications"
         },
         {
           "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/notifications(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/notifications/:path*"
         },
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/profile(\\.json)?[\\/#\\?]?$",
-          "originalSource": "/api/profile"
-        },
-        {
           "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/profile(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/profile/:path*"
-        },
-        {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/settings(\\.json)?[\\/#\\?]?$",
-          "originalSource": "/api/settings"
         },
         {
           "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/settings(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/settings/:path*"
         },
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/search(\\.json)?[\\/#\\?]?$",
-          "originalSource": "/api/search"
-        },
-        {
           "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/search(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
           "originalSource": "/api/search/:path*"
-        },
-        {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/export(\\.json)?[\\/#\\?]?$",
-          "originalSource": "/api/export"
         },
         {
           "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/export(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
@@ -125,7 +85,7 @@
       "wasm": [],
       "assets": [],
       "env": {
-        "__NEXT_BUILD_ID": "45tgPF2DAyHiux5FTAYrD",
+        "__NEXT_BUILD_ID": "63b-D-IE_YHl8LH_kwlCo",
         "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "np/zkVk3mZjO/tqQP8qoaZFxrpksxQfuyG84xS+x84s=",
         "__NEXT_PREVIEW_MODE_ID": "272c5f45dc1f7340252999f786a9d667",
         "__NEXT_PREVIEW_MODE_SIGNING_KEY": "e29f99e6b34646c31120cc026f03f3a772f46e60abb961638120bef2f1051d7f",
