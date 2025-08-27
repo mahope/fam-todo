@@ -1,9 +1,9 @@
 # nixpacks.toml - Monorepo deployment configuration for Nixpacks v1.39.0+
 [variables]
 NODE_VERSION = "22"
-NIXPACKS_NODE_VERSION = "22"
 
-[phases.setup] 
+[phases.setup]
+nixPkgs = ["nodejs_22"]
 nixpkgsArchive = '51ad838b03a05b1de6f9f2a0fffecee64a9788ee'
 
 [phases.build]
@@ -13,5 +13,5 @@ cmds = [
     "cd apps/web && npm run build"
 ]
 
-[start]
-cmd = "cd apps/web && npm start"
+[phases.start]
+cmds = ["cd apps/web && npm start"]
