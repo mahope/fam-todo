@@ -206,7 +206,7 @@ export default function ListDetailPage() {
             <div className="text-center">
               <h3 className="text-lg font-semibold mb-2">List not found</h3>
               <p className="text-muted-foreground mb-4">
-                The list you're looking for doesn't exist or you don't have access to it.
+                The list you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.
               </p>
               <Button asChild>
                 <Link href="/lists">Back to Lists</Link>

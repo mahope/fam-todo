@@ -174,7 +174,7 @@ export default function SettingsPage() {
               Udseende
             </CardTitle>
             <CardDescription>
-              Tilpas app'ens udseende og tema
+              Tilpas app&apos;ens udseende og tema
             </CardDescription>
           </CardHeader>
           <CardContent>

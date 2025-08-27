@@ -130,7 +130,7 @@ export default function GlobalSearch({ onClose, className }: GlobalSearchProps) 
             ) : data.total === 0 && query.length >= 2 ? (
               <div className="p-4 text-center">
                 <Search className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">Ingen resultater fundet for "{query}"</p>
+                <p className="text-sm text-gray-500">Ingen resultater fundet for &quot;{query}&quot;</p>
               </div>
             ) : (
               <div className="max-h-[400px] overflow-y-auto">
@@ -289,7 +289,7 @@ export default function GlobalSearch({ onClose, className }: GlobalSearchProps) 
                 {data.total > 0 && (
                   <div className="px-4 py-2 bg-gray-50 border-t">
                     <p className="text-xs text-gray-500 text-center">
-                      {data.total} resultater fundet for "{query}"
+                      {data.total} resultater fundet for &quot;{query}&quot;
                     </p>
                   </div>
                 )}

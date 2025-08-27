@@ -39,7 +39,7 @@ export async function GET() {
       if (tablesExist) {
         userCount = await prisma.user.count();
       }
-    } catch (error) {
+    } catch {
       // Ignore error, already handled above
     }
 

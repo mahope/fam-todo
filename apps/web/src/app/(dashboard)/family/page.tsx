@@ -17,7 +17,6 @@ import {
   Crown,
   Mail,
   Calendar,
-  Activity
 } from "lucide-react";
 // import { useTranslations } from 'next-intl'; // Unused for now
 import { InviteMemberDialog } from "@/components/family/invite-member-dialog";
