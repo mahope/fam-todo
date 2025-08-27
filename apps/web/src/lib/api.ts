@@ -26,18 +26,31 @@ class ApiClient {
   }
 
   private async buildURL(endpoint: string, searchParams?: Record<string, any>): Promise<string> {
-    // Handle relative URLs by combining with window.location.origin
     let url: URL;
-    if (endpoint.startsWith('/')) {
-      // Relative URL - use current origin
-      url = new URL(endpoint, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
-    } else if (endpoint.startsWith('http')) {
-      // Absolute URL
+    
+    if (endpoint.startsWith('http')) {
+      // Absolute URL - use as is
       url = new URL(endpoint);
     } else {
-      // Relative to base URL
-      const baseURL = this.baseURL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
-      url = new URL(endpoint, baseURL);
+      const origin = typeof window !== 'undefined' ? window.location.origin : 
+        (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
+      
+      // Check if endpoint already includes API prefix
+      if (endpoint.startsWith('/api/') || endpoint.startsWith('api/')) {
+        // Endpoint already has API prefix, use as-is with origin
+        url = new URL(endpoint, origin);
+      } else {
+        // Add API prefix to relative endpoints
+        const baseURL = this.baseURL || '/api';
+        const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+        
+        // Handle empty endpoints
+        if (!cleanEndpoint) {
+          throw new Error('Empty API endpoint not allowed');
+        }
+        
+        url = new URL(`${baseURL}/${cleanEndpoint}`, origin);
+      }
     }
     
     if (searchParams) {
