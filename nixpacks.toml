@@ -2,12 +2,14 @@
 NODE_VERSION = "20.11.0"
 
 [phases.setup]
-nixPkgs = ["nodejs"]
+nixPkgs = ["nodejs-20_x"]
 
 [phases.build]
-workDir = "/app/apps/web"
-cmds = ["npm ci", "npx prisma generate", "npm run build"]
+cmds = [
+    "cd apps/web && npm ci",
+    "cd apps/web && npx prisma generate",
+    "cd apps/web && npm run build"
+]
 
 [phases.start]
-workDir = "/app/apps/web"
-cmds = ["npm start"]
+cmds = ["cd apps/web && npm run start:prod"]

@@ -1,40 +1,25 @@
 #!/usr/bin/env node
 
 /**
- * Simple production startup script
- * No complex validation - just start the server
+ * Ultra-simple production startup script
  */
 
 console.log('🚀 Starting NestList Production Server');
 console.log(`Node Version: ${process.version}`);
 console.log(`Environment: ${process.env.NODE_ENV || 'production'}`);
-console.log(`Port: 8080`);
 
-// Start Next.js directly
+// Start Next.js directly with simple spawn
 const { spawn } = require('child_process');
 
-const server = spawn('next', ['start', '-p', '8080'], {
+const server = spawn('next', ['start'], {
   stdio: 'inherit',
-  shell: true
+  shell: process.platform === 'win32'
 });
 
 server.on('error', (error) => {
-  console.error('❌ Server failed to start:', error.message);
+  console.error('❌ Server start error:', error.message);
   process.exit(1);
 });
 
-server.on('exit', (code) => {
-  console.log(`Server exited with code ${code}`);
-  process.exit(code);
-});
-
-// Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('Shutting down gracefully...');
-  server.kill('SIGINT');
-});
-
-process.on('SIGTERM', () => {
-  console.log('Shutting down gracefully...');
-  server.kill('SIGTERM');
-});
+process.on('SIGINT', () => server.kill('SIGINT'));
+process.on('SIGTERM', () => server.kill('SIGTERM'));
