@@ -2,6 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/lib/api';
 import type { List } from '@/lib/api';
 import { logger } from '@/lib/logger';
+import { 
+  ListItem, 
+  ListsApiResponseUnion, 
+  isLegacyListsResponse, 
+  isListsApiSuccess,
+  isListsApiError 
+} from '@/lib/types/lists';
 
 export const LISTS_QUERY_KEY = 'lists';
 
@@ -34,16 +41,63 @@ export function useLists() {
           throw new Error(errorMsg);
         }
         
-        // Ensure we always return an array
-        const data = response.data;
-        const lists = Array.isArray(data) ? data as List[] : [];
+        // Handle both old and new API response formats using type guards
+        const data = response.data as ListsApiResponseUnion;
+        let lists: ListItem[] = [];
+        
+        if (isLegacyListsResponse(data)) {
+          // Old format: direct array of lists
+          lists = data;
+          logger.info('useLists: Legacy API response format detected');
+        } else if (isListsApiSuccess(data)) {
+          // New format: structured response with success, lists, and meta
+          lists = data.lists;
+          logger.info('useLists: New API response format detected', { 
+            total: data.meta.total,
+            userRole: data.meta.userRole 
+          });
+        } else if (isListsApiError(data)) {
+          // API returned an error
+          logger.error('useLists: API returned error response', { 
+            error: data.error,
+            message: data.message 
+          });
+          throw new Error(data.message || data.error || 'API error');
+        } else {
+          // Fallback to empty array for unknown formats
+          logger.warn('useLists: Unknown response format, defaulting to empty array', data);
+          lists = [];
+        }
         
         logger.info('useLists: Successfully processed data', { 
           listCount: lists.length,
           listIds: lists.map(l => l.id)
         });
         
-        return lists;
+        // Map new format to legacy format for backward compatibility
+        const legacyLists: List[] = lists.map(list => ({
+          id: list.id,
+          name: list.name,
+          description: list.description || undefined,
+          color: list.color || undefined,
+          visibility: list.visibility,
+          listType: (list.type as 'TODO' | 'SHOPPING') || 'TODO',
+          created_at: list.createdAt,
+          updated_at: list.updatedAt,
+          owner: list.owner ? {
+            id: list.owner.id,
+            displayName: list.owner.name || list.owner.email,
+          } : undefined,
+          folder: list.folder ? {
+            id: list.folder.id,
+            name: list.folder.name,
+          } : undefined,
+          _count: {
+            tasks: list.taskCount
+          }
+        }));
+
+        return legacyLists;
       } catch (error) {
         logger.error('useLists: Query failed', { error: error instanceof Error ? error.message : error });
         throw error;

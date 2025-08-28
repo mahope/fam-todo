@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { useLists } from "@/lib/hooks/use-lists";
+import { useLists, LISTS_QUERY_KEY } from "@/lib/hooks/use-lists";
 import { useApi } from "@/lib/api";
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,8 +40,9 @@ export default function ListsPage() {
   // Fetch lists with optimized caching
   const { data: lists, isLoading, error } = useLists();
   
-  // API client for manual operations
+  // API client for manual operations and React Query client for cache management
   const api = useApi();
+  const queryClient = useQueryClient();
   
   // Memoized filtering for better performance
   const filteredLists = useMemo(() => {
@@ -73,8 +75,8 @@ export default function ListsPage() {
         if (response.error) {
           console.error('Error deleting list:', response.error);
         } else {
-          // Manually invalidate the query to refresh the list
-          window.location.reload();
+          // Invalidate the query to refresh the list - no more manual page reloads!
+          await queryClient.invalidateQueries({ queryKey: [LISTS_QUERY_KEY] });
         }
       } catch (error) {
         console.error('Failed to delete list:', error);

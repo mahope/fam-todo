@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Folder name is required' }, { status: 400 });
     }
 
-    if (data.visibility && !['PRIVATE', 'FAMILY', 'ADULTS'].includes(data.visibility)) {
+    if (data.visibility && !['PRIVATE', 'FAMILY', 'ADULT'].includes(data.visibility)) {
       return NextResponse.json({ error: 'Invalid visibility value' }, { status: 400 });
     }
 

@@ -22,11 +22,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { MoreVertical, Eye, EyeOff, Users, Trash2, Edit } from 'lucide-react';
-import { ListV2 } from '@/lib/hooks/use-lists-v2';
+import type { ListItem } from '@/lib/types/lists';
 import { logger } from '@/lib/logger';
 
 interface SimpleListCardProps {
-  list: ListV2;
+  list: ListItem;
   onDelete?: (listId: string) => void;
   isDeleting?: boolean;
 }

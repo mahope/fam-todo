@@ -1,57 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { handleApiError, logApiSuccess } from '@/lib/api-error-handler';
 import { logger } from '@/lib/logger';
-
-async function getSessionData() {
-  logger.info('Starting getSessionData');
-  
-  const session = await getServerSession(authOptions) as any;
-  logger.info('Session retrieved:', { 
-    hasSession: !!session, 
-    hasUser: !!session?.user,
-    userId: session?.user?.id 
-  });
-  
-  if (!session?.user?.id) {
-    logger.error('No session or user ID found');
-    throw new Error('Unauthorized');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { appUser: true },
-  });
-  
-  logger.info('User query result:', { 
-    hasUser: !!user, 
-    hasAppUser: !!user?.appUser,
-    familyId: user?.appUser?.familyId,
-    role: user?.appUser?.role
-  });
-
-  if (!user?.appUser) {
-    logger.error('App user not found for user:', session.user.id);
-    throw new Error('App user not found');
-  }
-
-  return {
-    userId: user.id,
-    appUserId: user.appUser.id,
-    familyId: user.appUser.familyId,
-    role: user.appUser.role,
-  };
-}
+import { getSessionData } from '@/lib/auth/session';
 
 export async function GET() {
-  logger.info('GET /api/lists - Starting request');
+  logger.info('GET /api/lists - Starting unified lists request');
   
   try {
-    const { familyId, appUserId, role } = await getSessionData();
-    logger.info('Session data obtained:', { familyId, appUserId, role });
+    // Use standardized session data retrieval
+    const { appUserId, familyId, role } = await getSessionData();
+    logger.info('GET /api/lists - Session data retrieved', { 
+      appUserId, 
+      familyId, 
+      role 
+    });
 
+    // Unified query based on user role - same logic as lists-v2
     const whereClause = {
       familyId,
       OR: [
@@ -61,64 +26,103 @@ export async function GET() {
       ],
     };
     
-    logger.info('Database query where clause:', whereClause);
+    logger.info('GET /api/lists - Database query where clause:', whereClause);
 
-    // Optimized query with proper selection and minimal data fetching
     const lists = await prisma.list.findMany({
       where: whereClause,
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        color: true,
-        visibility: true,
-        listType: true,
-        created_at: true,
-        updated_at: true,
+      include: {
         owner: {
           select: {
             id: true,
             displayName: true,
-          },
+            email: true
+          }
         },
         folder: {
           select: {
             id: true,
             name: true,
-          },
+            color: true
+          }
         },
         _count: {
           select: {
-            tasks: {
-              where: {
-                completed: false, // Only count incomplete tasks
-              },
-            },
-          },
-        },
+            tasks: true
+          }
+        }
       },
       orderBy: {
-        updated_at: 'desc', // Show recently updated lists first
-      },
-      take: 50, // Limit results for better performance
+        updated_at: 'desc'
+      }
     });
 
-    logger.info('Lists query result:', { 
+    logger.info('GET /api/lists - Lists retrieved successfully', { 
       count: lists.length,
-      listIds: lists.map(l => l.id)
+      userRole: role 
     });
 
-    return NextResponse.json(lists);
-  } catch (error) {
-    logger.error('GET /api/lists - Error occurred:', error as any);
-    
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    return handleApiError(error, {
-      operation: 'get_lists',
-      method: 'GET'
+    // Transform the data to match frontend expectations
+    const transformedLists = lists.map(list => ({
+      id: list.id,
+      name: list.name,
+      description: list.description,
+      color: list.color,
+      visibility: list.visibility,
+      type: list.listType,
+      ownerId: list.ownerId,
+      familyId: list.familyId,
+      folderId: list.folderId,
+      createdAt: list.created_at,
+      updatedAt: list.updated_at,
+      owner: {
+        id: list.owner.id,
+        name: list.owner.displayName,
+        email: list.owner.email
+      },
+      folder: list.folder,
+      taskCount: list._count.tasks,
+      // Add computed fields for easier frontend usage
+      isOwner: list.ownerId === appUserId,
+      canEdit: list.ownerId === appUserId || role === 'ADMIN',
+      canDelete: list.ownerId === appUserId || role === 'ADMIN'
+    }));
+
+    // Return in new structured format for better error handling
+    return NextResponse.json({
+      success: true,
+      lists: transformedLists,
+      meta: {
+        total: transformedLists.length,
+        userRole: role,
+        familyId: familyId
+      }
     });
+
+  } catch (error) {
+    logger.error('GET /api/lists - Unexpected error:', error as any);
+    
+    // Handle authentication errors specifically
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      return NextResponse.json({
+        success: false,
+        error: 'Unauthorized',
+        message: 'Authentication required'
+      }, { status: 401 });
+    }
+
+    if (error instanceof Error && error.message === 'App user not found') {
+      return NextResponse.json({
+        success: false,
+        error: 'User not found',
+        message: 'User not properly configured'
+      }, { status: 404 });
+    }
+    
+    return NextResponse.json({
+      success: false,
+      error: 'Internal server error',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 
