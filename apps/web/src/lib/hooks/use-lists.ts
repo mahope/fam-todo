@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/lib/api';
 import type { List } from '@/lib/api';
+import { logger } from '@/lib/logger';
 
 export const LISTS_QUERY_KEY = 'lists';
 
@@ -10,28 +11,60 @@ export function useLists() {
   return useQuery({
     queryKey: [LISTS_QUERY_KEY],
     queryFn: async () => {
-      const response = await api.get('/lists');
+      logger.info('useLists: Starting fetch');
       
-      // Check if we got HTML instead of JSON (indicates redirect to login)
-      if (response.data && typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-        throw new Error('Not authenticated - redirected to HTML page');
+      try {
+        const response = await api.get('/lists');
+        logger.info('useLists: API response received', { 
+          hasData: !!response.data,
+          dataType: typeof response.data,
+          error: response.error 
+        });
+        
+        // Check if we got HTML instead of JSON (indicates redirect to login)
+        if (response.data && typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+          logger.error('useLists: Received HTML instead of JSON - authentication failed');
+          throw new Error('Not authenticated - redirected to HTML page');
+        }
+        
+        // Check if the response itself is an error object
+        if (response.error || (response.data && typeof response.data === 'object' && 'error' in response.data)) {
+          const errorMsg = response.error || response.data?.error || 'Unknown error';
+          logger.error('useLists: API returned error', { error: errorMsg });
+          throw new Error(errorMsg);
+        }
+        
+        // Ensure we always return an array
+        const data = response.data;
+        const lists = Array.isArray(data) ? data as List[] : [];
+        
+        logger.info('useLists: Successfully processed data', { 
+          listCount: lists.length,
+          listIds: lists.map(l => l.id)
+        });
+        
+        return lists;
+      } catch (error) {
+        logger.error('useLists: Query failed', { error: error instanceof Error ? error.message : error });
+        throw error;
       }
-      
-      // Check if the response itself is an error object
-      if (response.error || (response.data && typeof response.data === 'object' && 'error' in response.data)) {
-        const errorMsg = response.error || response.data?.error || 'Unknown error';
-        throw new Error(errorMsg);
-      }
-      
-      // Ensure we always return an array
-      const data = response.data;
-      return Array.isArray(data) ? data as List[] : [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     // Enable background refetch for data freshness
     refetchOnWindowFocus: true,
     refetchInterval: 30 * 1000, // Refresh every 30 seconds when focused
+    // Add better error handling
+    retry: (failureCount, error) => {
+      logger.info('useLists: Retry attempt', { failureCount, error: error.message });
+      // Don't retry on authentication errors
+      if (error.message.includes('Unauthorized') || error.message.includes('authentication')) {
+        return false;
+      }
+      // Retry up to 3 times for other errors
+      return failureCount < 3;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 

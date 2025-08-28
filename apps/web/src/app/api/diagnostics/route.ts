@@ -1,95 +1,134 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
-import { ProductionApiErrorHandler } from '@/lib/api-error-handler';
+import { logger } from '@/lib/logger';
 
-export async function GET(request: NextRequest) {
-  const diagnostics = {
+export async function GET() {
+  const startTime = Date.now();
+  const diagnostics: any = {
     timestamp: new Date().toISOString(),
-    server: {
-      nodeVersion: process.version,
-      platform: process.platform,
-      arch: process.arch,
-      uptime: process.uptime(),
-      environment: process.env.NODE_ENV,
-      port: process.env.PORT || '8080',
-    },
-    database: {
-      status: 'unknown',
-      responseTime: null as number | null,
-      error: null as string | null,
-    },
-    environment: {
-      hasDatabase: !!process.env.DATABASE_URL,
-      hasNextAuth: !!process.env.NEXTAUTH_SECRET,
-      hasNextAuthUrl: !!process.env.NEXTAUTH_URL,
-      nextAuthUrl: process.env.NEXTAUTH_URL,
-      hasVapidKeys: !!(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY),
-    },
-    memory: {
-      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
-      external: Math.round(process.memoryUsage().external / 1024 / 1024),
-    },
-    checks: [] as any[],
+    environment: process.env.NODE_ENV,
+    checks: {}
   };
 
-  // Database connectivity test
+  logger.info('Starting diagnostics check');
+
+  // 1. Database Connection Test
   try {
-    console.log('Diagnostics: Testing database connection...');
-    const startTime = Date.now();
-    await prisma.$queryRaw`SELECT 1 as test`;
-    const dbTime = Date.now() - startTime;
-    
-    diagnostics.database.status = 'connected';
-    diagnostics.database.responseTime = dbTime;
-    diagnostics.checks.push({
-      name: 'Database Connection',
-      status: 'pass',
-      responseTime: `${dbTime}ms`
-    });
+    await prisma.$queryRaw`SELECT 1`;
+    diagnostics.checks.database = {
+      status: 'OK',
+      message: 'Database connection successful'
+    };
+    logger.info('Database connection: OK');
   } catch (error) {
-    console.error('Diagnostics: Database test failed:', error);
-    diagnostics.database.status = 'failed';
-    diagnostics.database.error = error instanceof Error ? error.message : 'Unknown error';
-    diagnostics.checks.push({
-      name: 'Database Connection',
-      status: 'fail',
-      error: error instanceof Error ? error.message : 'Unknown error',
-      errorCode: (error as any)?.code || 'UNKNOWN'
-    });
+    diagnostics.checks.database = {
+      status: 'ERROR',
+      message: `Database connection failed: ${error}`
+    };
+    logger.error('Database connection failed:', error);
   }
 
-  // Environment validation
-  const requiredEnvVars = ['DATABASE_URL', 'NEXTAUTH_SECRET', 'NEXTAUTH_URL'];
-  const missingVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
-  
-  diagnostics.checks.push({
-    name: 'Environment Variables',
-    status: missingVars.length === 0 ? 'pass' : 'fail',
-    missing: missingVars
+  // 2. Authentication Test
+  try {
+    const session = await getServerSession(authOptions);
+    diagnostics.checks.authentication = {
+      status: session ? 'OK' : 'NO_SESSION',
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id,
+      message: session ? 'Authentication working' : 'No active session'
+    };
+    logger.info('Authentication check:', { hasSession: !!session, hasUser: !!session?.user });
+  } catch (error) {
+    diagnostics.checks.authentication = {
+      status: 'ERROR',
+      message: `Authentication failed: ${error}`
+    };
+    logger.error('Authentication check failed:', error);
+  }
+
+  // 3. User Data Test (if authenticated)
+  if (diagnostics.checks.authentication.status === 'OK') {
+    try {
+      const session = await getServerSession(authOptions) as any;
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        include: { appUser: true },
+      });
+
+      diagnostics.checks.userData = {
+        status: user ? 'OK' : 'NOT_FOUND',
+        hasUser: !!user,
+        hasAppUser: !!user?.appUser,
+        familyId: user?.appUser?.familyId,
+        role: user?.appUser?.role,
+        message: user ? 'User data retrieved successfully' : 'User not found in database'
+      };
+      logger.info('User data check:', { hasUser: !!user, hasAppUser: !!user?.appUser });
+    } catch (error) {
+      diagnostics.checks.userData = {
+        status: 'ERROR',
+        message: `User data query failed: ${error}`
+      };
+      logger.error('User data check failed:', error);
+    }
+  }
+
+  // 4. Lists Query Test (if user data exists)
+  if (diagnostics.checks.userData?.status === 'OK') {
+    try {
+      const session = await getServerSession(authOptions) as any;
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        include: { appUser: true },
+      });
+
+      const lists = await prisma.list.findMany({
+        where: {
+          familyId: user!.appUser!.familyId,
+        },
+        select: { id: true, name: true, visibility: true },
+        take: 5
+      });
+
+      diagnostics.checks.listsQuery = {
+        status: 'OK',
+        count: lists.length,
+        sampleLists: lists,
+        message: `Found ${lists.length} lists in database`
+      };
+      logger.info('Lists query check:', { count: lists.length });
+    } catch (error) {
+      diagnostics.checks.listsQuery = {
+        status: 'ERROR',
+        message: `Lists query failed: ${error}`
+      };
+      logger.error('Lists query check failed:', error);
+    }
+  }
+
+  // 5. Environment Variables Check
+  diagnostics.checks.environment = {
+    status: 'INFO',
+    variables: {
+      DATABASE_URL: process.env.DATABASE_URL ? 'SET' : 'MISSING',
+      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ? 'SET' : 'MISSING',
+      NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'NOT_SET',
+      NODE_ENV: process.env.NODE_ENV
+    }
+  };
+
+  diagnostics.responseTime = `${Date.now() - startTime}ms`;
+  diagnostics.overallStatus = Object.values(diagnostics.checks).some((check: any) => check.status === 'ERROR') ? 'ERROR' : 'OK';
+
+  logger.info('Diagnostics completed:', { 
+    overallStatus: diagnostics.overallStatus,
+    responseTime: diagnostics.responseTime 
   });
 
-  // Next.js API test
-  try {
-    diagnostics.checks.push({
-      name: 'Next.js API',
-      status: 'pass',
-      message: 'API routing working correctly'
-    });
-  } catch (error) {
-    diagnostics.checks.push({
-      name: 'Next.js API',
-      status: 'fail',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-
-  const allPassed = diagnostics.checks.every(check => check.status === 'pass');
-  
-  return NextResponse.json({
-    status: allPassed ? 'healthy' : 'degraded',
-    ...diagnostics
-  }, { 
-    status: allPassed ? 200 : 503 
+  return NextResponse.json(diagnostics, {
+    status: diagnostics.overallStatus === 'ERROR' ? 500 : 200
   });
 }

@@ -10,6 +10,7 @@ import { Header } from "@/components/header";
 import { ClientOnly } from "@/components/client-only";
 import { logger } from '@/lib/logger';
 import { SkipLinks, KeyboardHints, RouteAnnouncer } from '@/components/accessibility/skip-links';
+import DiagnosticsPanel from '@/components/debug/DiagnosticsPanel';
 
 // Initialize logging on app start (server-side only)
 if (typeof window === 'undefined') {
@@ -60,6 +61,9 @@ export default async function RootLayout({
             <main id="main-content" className="flex-1" tabIndex={-1}>
               {children}
             </main>
+            <ClientOnly fallback={null}>
+              <DiagnosticsPanel />
+            </ClientOnly>
           </NextIntlClientProvider>
         </Providers>
       </body>

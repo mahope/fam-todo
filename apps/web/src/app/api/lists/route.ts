@@ -3,10 +3,20 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { handleApiError, logApiSuccess } from '@/lib/api-error-handler';
+import { logger } from '@/lib/logger';
 
 async function getSessionData() {
+  logger.info('Starting getSessionData');
+  
   const session = await getServerSession(authOptions) as any;
+  logger.info('Session retrieved:', { 
+    hasSession: !!session, 
+    hasUser: !!session?.user,
+    userId: session?.user?.id 
+  });
+  
   if (!session?.user?.id) {
+    logger.error('No session or user ID found');
     throw new Error('Unauthorized');
   }
 
@@ -14,8 +24,16 @@ async function getSessionData() {
     where: { id: session.user.id },
     include: { appUser: true },
   });
+  
+  logger.info('User query result:', { 
+    hasUser: !!user, 
+    hasAppUser: !!user?.appUser,
+    familyId: user?.appUser?.familyId,
+    role: user?.appUser?.role
+  });
 
   if (!user?.appUser) {
+    logger.error('App user not found for user:', session.user.id);
     throw new Error('App user not found');
   }
 
@@ -28,19 +46,26 @@ async function getSessionData() {
 }
 
 export async function GET() {
+  logger.info('GET /api/lists - Starting request');
+  
   try {
     const { familyId, appUserId, role } = await getSessionData();
+    logger.info('Session data obtained:', { familyId, appUserId, role });
+
+    const whereClause = {
+      familyId,
+      OR: [
+        { visibility: 'FAMILY' },
+        { visibility: 'PRIVATE', ownerId: appUserId },
+        ...(role === 'ADULT' || role === 'ADMIN' ? [{ visibility: 'ADULT' as const }] : []),
+      ],
+    };
+    
+    logger.info('Database query where clause:', whereClause);
 
     // Optimized query with proper selection and minimal data fetching
     const lists = await prisma.list.findMany({
-      where: {
-        familyId,
-        OR: [
-          { visibility: 'FAMILY' },
-          { visibility: 'PRIVATE', ownerId: appUserId },
-          ...(role === 'ADULT' || role === 'ADMIN' ? [{ visibility: 'ADULT' as const }] : []),
-        ],
-      },
+      where: whereClause,
       select: {
         id: true,
         name: true,
@@ -78,8 +103,15 @@ export async function GET() {
       take: 50, // Limit results for better performance
     });
 
+    logger.info('Lists query result:', { 
+      count: lists.length,
+      listIds: lists.map(l => l.id)
+    });
+
     return NextResponse.json(lists);
   } catch (error) {
+    logger.error('GET /api/lists - Error occurred:', error);
+    
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
