@@ -188,7 +188,7 @@ export function Sidebar({ className }: SidebarProps) {
           {/* Main Navigation */}
           <div>
             <nav className="space-y-1">
-              {mainNavItems.map((item) => {
+              {(mainNavItems || []).map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
                 
@@ -219,7 +219,7 @@ export function Sidebar({ className }: SidebarProps) {
               Ressourcer
             </h3>
             <nav className="space-y-1">
-              {resourceNavItems.map((item) => {
+              {(resourceNavItems || []).map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
                 
@@ -386,7 +386,7 @@ export function Sidebar({ className }: SidebarProps) {
       {/* Bottom Navigation */}
       <div className="p-4 border-t mt-auto">
         <nav className="space-y-1">
-          {bottomNavItems.map((item) => {
+          {(bottomNavItems || []).map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
             
