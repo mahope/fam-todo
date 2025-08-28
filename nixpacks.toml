@@ -1,0 +1,15 @@
+[variables]
+NODE_VERSION = "22.18.0"
+
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.build]
+cmds = [
+    "cd apps/web && npm ci",
+    "cd apps/web && npx prisma generate", 
+    "cd apps/web && npm run build"
+]
+
+[phases.start]
+cmds = ["cd apps/web && npm run start:prod"]

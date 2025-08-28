@@ -1,15 +1,15 @@
 [variables]
-NODE_VERSION = "20.11.0"
+NODE_VERSION = "22.18.0"
 
 [phases.setup]
-nixPkgs = ["nodejs-20_x"]
+nixPkgs = ["nodejs_22"]
 
 [phases.build]
 cmds = [
-    "cd apps/web && npm ci",
-    "cd apps/web && npx prisma generate", 
-    "cd apps/web && npm run build"
+    "npm ci",
+    "npx prisma generate", 
+    "npm run build"
 ]
 
 [phases.start]
-cmd = "cd apps/web && npm run start:prod"
+cmds = ["npm run start:prod"]
