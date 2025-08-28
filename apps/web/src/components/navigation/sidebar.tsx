@@ -107,7 +107,7 @@ export function Sidebar({ className }: SidebarProps) {
   const [recentListsExpanded, setRecentListsExpanded] = useState(true);
 
   // Fetch recent lists
-  const { data: recentLists } = useQuery({
+  const { data: recentLists = [] } = useQuery({
     queryKey: ["recent-lists"],
     queryFn: async () => {
       const response = await fetch("/api/lists?limit=5&sortBy=updated_at&sortOrder=desc", {
@@ -119,13 +119,22 @@ export function Sidebar({ className }: SidebarProps) {
         return [];
       }
 
-      return response.json() as Promise<List[]>;
+      const data = await response.json();
+      // Handle both array and object API responses
+      if (Array.isArray(data)) {
+        return data as List[];
+      }
+      // Handle new API format { lists: [], meta: {...} }
+      if (data?.lists && Array.isArray(data.lists)) {
+        return data.lists as List[];
+      }
+      return [];
     },
     enabled: api.status === "authenticated" && !!session?.user,
   });
 
   // Fetch folders
-  const { data: folders } = useQuery({
+  const { data: folders = [] } = useQuery({
     queryKey: ["sidebar-folders"],
     queryFn: async () => {
       const response = await fetch("/api/folders", {
@@ -137,7 +146,16 @@ export function Sidebar({ className }: SidebarProps) {
         return [];
       }
 
-      return response.json() as Promise<Folder[]>;
+      const data = await response.json();
+      // Handle both array and object API responses
+      if (Array.isArray(data)) {
+        return data as Folder[];
+      }
+      // Handle object with folders property
+      if (data?.folders && Array.isArray(data.folders)) {
+        return data.folders as Folder[];
+      }
+      return [];
     },
     enabled: api.status === "authenticated" && !!session?.user,
   });
@@ -245,7 +263,7 @@ export function Sidebar({ className }: SidebarProps) {
               
               {recentListsExpanded && (
                 <nav className="mt-2 space-y-1">
-                  {recentLists.slice(0, 5).map((list) => {
+                  {(recentLists || []).slice(0, 5).map((list) => {
                     const active = pathname === `/lists/${list.id}`;
                     
                     return (
@@ -299,7 +317,7 @@ export function Sidebar({ className }: SidebarProps) {
               
               {foldersExpanded && (
                 <nav className="mt-2 space-y-1">
-                  {folders.slice(0, 8).map((folder) => {
+                  {(folders || []).slice(0, 8).map((folder) => {
                     const active = pathname === `/folders/${folder.id}`;
                     
                     return (
