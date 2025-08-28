@@ -7,7 +7,7 @@ export async function GET() {
   logger.info('Debug session endpoint called');
   
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as any;
     
     const debugInfo = {
       timestamp: new Date().toISOString(),
