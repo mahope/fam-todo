@@ -55,8 +55,8 @@ export async function GET() {
     const whereClause = {
       familyId,
       OR: [
-        { visibility: 'FAMILY' },
-        { visibility: 'PRIVATE', ownerId: appUserId },
+        { visibility: 'FAMILY' as const },
+        { visibility: 'PRIVATE' as const, ownerId: appUserId },
         ...(role === 'ADULT' || role === 'ADMIN' ? [{ visibility: 'ADULT' as const }] : []),
       ],
     };
@@ -110,7 +110,7 @@ export async function GET() {
 
     return NextResponse.json(lists);
   } catch (error) {
-    logger.error('GET /api/lists - Error occurred:', error);
+    logger.error('GET /api/lists - Error occurred:', error as any);
     
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

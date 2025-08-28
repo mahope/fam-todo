@@ -27,12 +27,12 @@ export async function GET() {
       status: 'ERROR',
       message: `Database connection failed: ${error}`
     };
-    logger.error('Database connection failed:', error);
+    logger.error('Database connection failed:', error as any);
   }
 
   // 2. Authentication Test
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as any;
     diagnostics.checks.authentication = {
       status: session ? 'OK' : 'NO_SESSION',
       hasSession: !!session,
@@ -46,7 +46,7 @@ export async function GET() {
       status: 'ERROR',
       message: `Authentication failed: ${error}`
     };
-    logger.error('Authentication check failed:', error);
+    logger.error('Authentication check failed:', error as any);
   }
 
   // 3. User Data Test (if authenticated)
@@ -72,7 +72,7 @@ export async function GET() {
         status: 'ERROR',
         message: `User data query failed: ${error}`
       };
-      logger.error('User data check failed:', error);
+      logger.error('User data check failed:', error as any);
     }
   }
 
@@ -105,7 +105,7 @@ export async function GET() {
         status: 'ERROR',
         message: `Lists query failed: ${error}`
       };
-      logger.error('Lists query check failed:', error);
+      logger.error('Lists query check failed:', error as any);
     }
   }
 
