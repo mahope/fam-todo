@@ -32,9 +32,10 @@ export default function DiagnosticsPanel() {
     }
   };
 
-  if (process.env.NODE_ENV === 'production') {
-    return null; // Hide in production
-  }
+  // Temporarily show in production for debugging
+  // if (process.env.NODE_ENV === 'production') {
+  //   return null; // Hide in production
+  // }
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
