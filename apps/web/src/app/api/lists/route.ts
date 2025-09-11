@@ -1,172 +1,109 @@
+// Clean API routes using unified ListService
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { handleApiError, logApiSuccess } from '@/lib/api-error-handler';
-import { logger } from '@/lib/logger';
 import { getSessionData } from '@/lib/auth/session';
+import { ListService } from '@/lib/services/lists';
+import { logger } from '@/lib/logger';
+import { 
+  isListError,
+  CreateListRequest,
+  ListQueryOptions 
+} from '@/lib/types/list';
 
-export async function GET() {
-  logger.info('GET /api/lists - Starting unified lists request');
+export async function GET(request: NextRequest) {
+  logger.info('GET /api/lists');
   
   try {
-    // Use standardized session data retrieval
-    const { appUserId, familyId, role } = await getSessionData();
-    logger.info('GET /api/lists - Session data retrieved', { 
-      appUserId, 
-      familyId, 
-      role 
-    });
-
-    // Unified query based on user role - same logic as lists-v2
-    const whereClause = {
-      familyId,
-      OR: [
-        { visibility: 'FAMILY' as const },
-        { visibility: 'PRIVATE' as const, ownerId: appUserId },
-        ...(role === 'ADULT' || role === 'ADMIN' ? [{ visibility: 'ADULT' as const }] : []),
-      ],
-    };
+    const { appUserId: userId, familyId, role } = await getSessionData();
+    const { searchParams } = new URL(request.url);
     
-    logger.info('GET /api/lists - Database query where clause:', whereClause);
+    // Parse query parameters
+    const options: ListQueryOptions = {
+      listType: searchParams.get('listType') as 'TODO' | 'SHOPPING' || undefined,
+      folderId: searchParams.get('folderId') || undefined,
+      visibility: searchParams.get('visibility') as 'PRIVATE' | 'FAMILY' | 'ADULT' || undefined,
+      search: searchParams.get('search') || undefined,
+      orderBy: searchParams.get('orderBy') as 'name' | 'created_at' | 'updated_at' || 'updated_at',
+      orderDirection: searchParams.get('orderDirection') as 'asc' | 'desc' || 'desc',
+    };
 
-    const lists = await prisma.list.findMany({
-      where: whereClause,
-      include: {
-        owner: {
-          select: {
-            id: true,
-            displayName: true,
-            email: true
-          }
-        },
-        folder: {
-          select: {
-            id: true,
-            name: true,
-            color: true
-          }
-        },
-        _count: {
-          select: {
-            tasks: true
-          }
-        }
-      },
-      orderBy: {
-        updated_at: 'desc'
-      }
-    });
+    const permissions = { userId, familyId, role };
+    const lists = await ListService.getLists(permissions, options);
 
-    logger.info('GET /api/lists - Lists retrieved successfully', { 
-      count: lists.length,
-      userRole: role 
-    });
-
-    // Transform the data to match frontend expectations
-    const transformedLists = lists.map(list => ({
-      id: list.id,
-      name: list.name,
-      description: list.description,
-      color: list.color,
-      visibility: list.visibility,
-      type: list.listType,
-      ownerId: list.ownerId,
-      familyId: list.familyId,
-      folderId: list.folderId,
-      createdAt: list.created_at,
-      updatedAt: list.updated_at,
-      owner: {
-        id: list.owner.id,
-        name: list.owner.displayName,
-        email: list.owner.email
-      },
-      folder: list.folder,
-      taskCount: list._count.tasks,
-      // Add computed fields for easier frontend usage
-      isOwner: list.ownerId === appUserId,
-      canEdit: list.ownerId === appUserId || role === 'ADMIN',
-      canDelete: list.ownerId === appUserId || role === 'ADMIN'
-    }));
-
-    // Return in new structured format for better error handling
     return NextResponse.json({
-      success: true,
-      lists: transformedLists,
+      lists,
       meta: {
-        total: transformedLists.length,
+        total: lists.length,
         userRole: role,
-        familyId: familyId
-      }
+        familyId,
+      },
     });
 
   } catch (error) {
-    logger.error('GET /api/lists - Unexpected error:', error as any);
+    logger.error('GET /api/lists failed', { error });
     
-    // Handle authentication errors specifically
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({
-        success: false,
-        error: 'Unauthorized',
-        message: 'Authentication required'
-      }, { status: 401 });
-    }
-
-    if (error instanceof Error && error.message === 'App user not found') {
-      return NextResponse.json({
-        success: false,
-        error: 'User not found',
-        message: 'User not properly configured'
-      }, { status: 404 });
+    if (error instanceof Error) {
+      if (error.message === 'Unauthorized') {
+        return NextResponse.json(
+          { error: 'Unauthorized', message: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+      if (error.message === 'App user not found') {
+        return NextResponse.json(
+          { error: 'User not found', message: 'User not properly configured' },
+          { status: 404 }
+        );
+      }
     }
     
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error', message: 'Failed to fetch lists' },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
+  logger.info('POST /api/lists');
+  
   try {
-    const { familyId, appUserId } = await getSessionData();
-    const data = await request.json();
+    const { appUserId: userId, familyId, role } = await getSessionData();
+    const data: CreateListRequest = await request.json();
 
-    const list = await prisma.list.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        color: data.color,
-        familyId,
-        ownerId: appUserId,
-        folderId: data.folderId || null,
-        visibility: data.visibility || 'FAMILY',
-        listType: data.listType || 'TODO',
-      },
-      include: {
-        owner: {
-          select: {
-            id: true,
-            displayName: true,
-            email: true,
-          },
-        },
-        folder: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
+    // Basic validation
+    if (!data.name?.trim()) {
+      return NextResponse.json(
+        { error: 'Validation error', message: 'List name is required', field: 'name' },
+        { status: 400 }
+      );
+    }
+
+    const permissions = { userId, familyId, role };
+    const list = await ListService.createList(data, permissions);
 
     return NextResponse.json(list, { status: 201 });
+
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    logger.error('POST /api/lists failed', { error });
+    
+    if (error instanceof Error) {
+      if (error.message === 'Unauthorized') {
+        return NextResponse.json(
+          { error: 'Unauthorized', message: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+      if (error.message.includes('Folder not found')) {
+        return NextResponse.json(
+          { error: 'Validation error', message: error.message, field: 'folderId' },
+          { status: 400 }
+        );
+      }
     }
-    return handleApiError(error, {
-      operation: 'create_list',
-      method: 'POST'
-    });
+    
+    return NextResponse.json(
+      { error: 'Internal server error', message: 'Failed to create list' },
+      { status: 500 }
+    );
   }
 }

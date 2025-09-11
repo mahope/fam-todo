@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@radix-ui/react-scroll-area": "^1.2.10",
+    "multer": "^2.0.2",
+    "sharp": "^0.34.3",
+    "tesseract.js": "^6.0.1"
+  }
+}

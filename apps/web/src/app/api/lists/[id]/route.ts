@@ -1,97 +1,24 @@
+// Clean individual list API using unified ListService
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
-import { prisma } from '@/lib/prisma';
+import { getSessionData } from '@/lib/auth/session';
+import { ListService } from '@/lib/services/lists';
+import { logger } from '@/lib/logger';
+import { UpdateListRequest } from '@/lib/types/list';
 
-async function getSessionData() {
-  const session = await getServerSession(authOptions) as any;
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { appUser: true },
-  });
-
-  if (!user?.appUser) {
-    throw new Error('App user not found');
-  }
-
-  return {
-    userId: user.id,
-    appUserId: user.appUser.id,
-    familyId: user.appUser.familyId,
-    role: user.appUser.role,
-  };
-}
-
-// GET /api/lists/[id] - Get individual list
+// GET /api/lists/[id] - Get individual list with details
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { familyId, appUserId, role } = await getSessionData();
+    const { appUserId: userId, familyId, role } = await getSessionData();
     const params = await context.params;
     const listId = params.id;
 
-    const list = await prisma.list.findFirst({
-      where: {
-        id: listId,
-        familyId,
-        OR: [
-          { visibility: 'FAMILY' },
-          { visibility: 'PRIVATE', ownerId: appUserId },
-          ...(role === 'ADULT' || role === 'ADMIN' ? [{ visibility: 'ADULT' as const }] : []),
-        ],
-      },
-      include: {
-        owner: {
-          select: {
-            id: true,
-            displayName: true,
-            email: true,
-          },
-        },
-        folder: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        tasks: {
-          where: {
-            completed: false,
-          },
-          select: {
-            id: true,
-            title: true,
-            completed: true,
-            priority: true,
-            deadline: true,
-          },
-          orderBy: {
-            created_at: 'desc',
-          },
-        },
-        shoppingItems: {
-          where: {
-            purchased: false,
-          },
-          select: {
-            id: true,
-            name: true,
-            purchased: true,
-            quantity: true,
-            unit: true,
-          },
-          orderBy: {
-            created_at: 'desc',
-          },
-        },
-      },
-    });
+    logger.info('GET /api/lists/[id]', { listId });
+
+    const permissions = { userId, familyId, role };
+    const list = await ListService.getListWithDetails(listId, permissions);
 
     if (!list) {
       return NextResponse.json(
@@ -101,12 +28,21 @@ export async function GET(
     }
 
     return NextResponse.json(list);
+
   } catch (error) {
-    console.error('Get list error:', error);
+    logger.error('GET /api/lists/[id] failed', { error });
+    
     if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'Authentication required' },
+        { status: 401 }
+      );
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    
+    return NextResponse.json(
+      { error: 'Internal server error', message: 'Failed to fetch list' },
+      { status: 500 }
+    );
   }
 }
 
@@ -116,77 +52,60 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { familyId, appUserId, role } = await getSessionData();
+    const { appUserId: userId, familyId, role } = await getSessionData();
     const params = await context.params;
     const listId = params.id;
-    const data = await request.json();
+    const data: UpdateListRequest = await request.json();
 
-    // First, check if list exists and user has access
-    const existingList = await prisma.list.findFirst({
-      where: {
-        id: listId,
-        familyId,
-        OR: [
-          { visibility: 'FAMILY' },
-          { visibility: 'PRIVATE', ownerId: appUserId },
-          ...(role === 'ADULT' || role === 'ADMIN' ? [{ visibility: 'ADULT' as const }] : []),
-        ],
-      },
-    });
+    logger.info('PATCH /api/lists/[id]', { listId, data });
 
-    if (!existingList) {
+    // Basic validation
+    if (data.name !== undefined && !data.name.trim()) {
       return NextResponse.json(
-        { error: 'List not found or access denied' },
-        { status: 404 }
+        { error: 'Validation error', message: 'List name cannot be empty', field: 'name' },
+        { status: 400 }
       );
     }
 
-    // Only owner or admin can modify list properties
-    if (existingList.ownerId !== appUserId && role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Only list owner or admin can modify list' },
-        { status: 403 }
-      );
-    }
-
-    // Prepare update data
-    const updateData: any = {};
-    
-    if (data.name) updateData.name = data.name.trim();
-    if (data.description !== undefined) updateData.description = data.description?.trim() || null;
-    if (data.color !== undefined) updateData.color = data.color || null;
-    if (data.visibility && ['PRIVATE', 'FAMILY', 'ADULT'].includes(data.visibility)) {
-      updateData.visibility = data.visibility;
-    }
-    if (data.folderId !== undefined) updateData.folderId = data.folderId || null;
-
-    const updatedList = await prisma.list.update({
-      where: { id: listId },
-      data: updateData,
-      include: {
-        owner: {
-          select: {
-            id: true,
-            displayName: true,
-            email: true,
-          },
-        },
-        folder: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
+    const permissions = { userId, familyId, role };
+    const updatedList = await ListService.updateList(listId, data, permissions);
 
     return NextResponse.json(updatedList);
+
   } catch (error) {
-    console.error('Update list error:', error);
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    logger.error('PATCH /api/lists/[id] failed', { error });
+    
+    if (error instanceof Error) {
+      if (error.message === 'Unauthorized') {
+        return NextResponse.json(
+          { error: 'Unauthorized', message: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+      if (error.message === 'List not found or access denied') {
+        return NextResponse.json(
+          { error: 'Not found', message: error.message },
+          { status: 404 }
+        );
+      }
+      if (error.message.includes('Only list owner or admin')) {
+        return NextResponse.json(
+          { error: 'Forbidden', message: error.message },
+          { status: 403 }
+        );
+      }
+      if (error.message.includes('Folder not found')) {
+        return NextResponse.json(
+          { error: 'Validation error', message: error.message, field: 'folderId' },
+          { status: 400 }
+        );
+      }
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    
+    return NextResponse.json(
+      { error: 'Internal server error', message: 'Failed to update list' },
+      { status: 500 }
+    );
   }
 }
 
@@ -196,49 +115,47 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { familyId, appUserId, role } = await getSessionData();
+    const { appUserId: userId, familyId, role } = await getSessionData();
     const params = await context.params;
     const listId = params.id;
 
-    // First, check if list exists and user has access
-    const existingList = await prisma.list.findFirst({
-      where: {
-        id: listId,
-        familyId,
-        OR: [
-          { visibility: 'FAMILY' },
-          { visibility: 'PRIVATE', ownerId: appUserId },
-          ...(role === 'ADULT' || role === 'ADMIN' ? [{ visibility: 'ADULT' as const }] : []),
-        ],
-      },
+    logger.info('DELETE /api/lists/[id]', { listId });
+
+    const permissions = { userId, familyId, role };
+    await ListService.deleteList(listId, permissions);
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'List deleted successfully' 
     });
 
-    if (!existingList) {
-      return NextResponse.json(
-        { error: 'List not found or access denied' },
-        { status: 404 }
-      );
-    }
-
-    // Only owner or admin can delete list
-    if (existingList.ownerId !== appUserId && role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Only list owner or admin can delete list' },
-        { status: 403 }
-      );
-    }
-
-    // Delete list (cascade will handle tasks and shopping items)
-    await prisma.list.delete({
-      where: { id: listId },
-    });
-
-    return NextResponse.json({ success: true, message: 'List deleted successfully' });
   } catch (error) {
-    console.error('Delete list error:', error);
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    logger.error('DELETE /api/lists/[id] failed', { error });
+    
+    if (error instanceof Error) {
+      if (error.message === 'Unauthorized') {
+        return NextResponse.json(
+          { error: 'Unauthorized', message: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+      if (error.message === 'List not found or access denied') {
+        return NextResponse.json(
+          { error: 'Not found', message: error.message },
+          { status: 404 }
+        );
+      }
+      if (error.message.includes('Only list owner or admin')) {
+        return NextResponse.json(
+          { error: 'Forbidden', message: error.message },
+          { status: 403 }
+        );
+      }
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    
+    return NextResponse.json(
+      { error: 'Internal server error', message: 'Failed to delete list' },
+      { status: 500 }
+    );
   }
 }
