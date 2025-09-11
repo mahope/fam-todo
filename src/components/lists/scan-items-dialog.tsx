@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Camera, Upload, X, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Camera, Upload, X, Loader2, Check, AlertCircle, Eye } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,9 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
-import { useScanListItems } from '@/lib/hooks/use-scan';
+import { useScanListItems, useExtractOCR } from '@/lib/hooks/use-scan';
+import { OCRReviewDialog } from './ocr-review-dialog';
+import { ParsedListItem } from '@/lib/services/ocr';
 
 interface ScanItemsDialogProps {
   listId: string;
@@ -40,13 +42,19 @@ export function ScanItemsDialog({
   const [autoCategories, setAutoCategories] = useState(true);
   const [isCapturing, setIsCapturing] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [showReview, setShowReview] = useState(false);
+  const [extractedItems, setExtractedItems] = useState<ParsedListItem[]>([]);
+  const [ocrConfidence, setOcrConfidence] = useState(0);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
-  const { mutate: scanItems, isPending, isSuccess, data } = useScanListItems(listId);
+  const { mutate: extractOCR, isPending: isExtracting } = useExtractOCR();
+  const { mutate: scanItems, isPending: isSaving, isSuccess, data } = useScanListItems(listId);
+  
+  const isPending = isExtracting || isSaving;
 
   // Start camera capture
   const startCamera = useCallback(async () => {
@@ -121,8 +129,8 @@ export function ScanItemsDialog({
     }
   };
 
-  // Handle scan submission
-  const handleScan = () => {
+  // Handle OCR extraction
+  const handleExtract = () => {
     if (!image) {
       toast({
         title: 'No Image',
@@ -132,33 +140,67 @@ export function ScanItemsDialog({
       return;
     }
 
-    scanItems(
+    extractOCR(
       {
         image,
+        listType,
+      },
+      {
+        onSuccess: (result) => {
+          setExtractedItems(result.items);
+          setOcrConfidence(result.confidence);
+          setShowReview(true);
+        },
+        onError: (error) => {
+          toast({
+            title: 'OCR Failed',
+            description: error instanceof Error ? error.message : 'Failed to extract text from image',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+  };
+
+  // Handle confirmed items from review
+  const handleConfirmItems = (items: ParsedListItem[]) => {
+    scanItems(
+      {
+        items,
         mode,
         autoCategories: listType === 'SHOPPING' ? autoCategories : false,
       },
       {
         onSuccess: (result) => {
           toast({
-            title: 'Scan Successful',
-            description: `Added ${result.created} items to your list with ${Math.round(result.confidence)}% confidence.`,
+            title: 'Items Added Successfully',
+            description: `Added ${result.created} items to your list.`,
           });
+          setShowReview(false);
           onOpenChange(false);
           onSuccess?.();
           // Reset state
           setImage(null);
           setImageFile(null);
+          setExtractedItems([]);
         },
         onError: (error) => {
           toast({
-            title: 'Scan Failed',
-            description: error instanceof Error ? error.message : 'Failed to process image',
+            title: 'Failed to Add Items',
+            description: error instanceof Error ? error.message : 'Failed to add items to list',
             variant: 'destructive',
           });
         },
       }
     );
+  };
+
+  // Handle retry from review
+  const handleRetryOCR = () => {
+    setShowReview(false);
+    setExtractedItems([]);
+    // Re-run OCR
+    handleExtract();
   };
 
   // Reset state when dialog closes
@@ -168,6 +210,8 @@ export function ScanItemsDialog({
       setImage(null);
       setImageFile(null);
       setMode('append');
+      setShowReview(false);
+      setExtractedItems([]);
     }
     onOpenChange(newOpen);
   };
@@ -310,13 +354,23 @@ export function ScanItemsDialog({
             )}
 
             {/* Progress indicator */}
-            {isPending && (
+            {isExtracting && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span>Processing image...</span>
+                  <span>Extracting text from image...</span>
                   <Loader2 className="h-4 w-4 animate-spin" />
                 </div>
-                <Progress value={66} className="w-full" />
+                <Progress value={50} className="w-full" />
+              </div>
+            )}
+            
+            {isSaving && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Adding items to list...</span>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+                <Progress value={90} className="w-full" />
               </div>
             )}
 
@@ -340,18 +394,18 @@ export function ScanItemsDialog({
               Cancel
             </Button>
             <Button
-              onClick={handleScan}
+              onClick={handleExtract}
               disabled={!image || isPending}
             >
-              {isPending ? (
+              {isExtracting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
+                  Extracting...
                 </>
               ) : (
                 <>
-                  <Check className="mr-2 h-4 w-4" />
-                  Add Items
+                  <Eye className="mr-2 h-4 w-4" />
+                  Review Items
                 </>
               )}
             </Button>
@@ -366,6 +420,18 @@ export function ScanItemsDialog({
         accept="image/*"
         onChange={handleFileUpload}
         className="hidden"
+      />
+      
+      {/* OCR Review Dialog */}
+      <OCRReviewDialog
+        open={showReview}
+        onOpenChange={setShowReview}
+        items={extractedItems}
+        confidence={ocrConfidence}
+        listType={listType}
+        onConfirm={handleConfirmItems}
+        onRetry={handleRetryOCR}
+        isProcessing={isSaving}
       />
     </>
   );

@@ -3,9 +3,21 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/lib/api';
 import { logger } from '@/lib/logger';
 import { LISTS_QUERY_KEY, LIST_QUERY_KEY } from './use-lists';
+import { ParsedListItem } from '@/lib/services/ocr';
+
+export interface ExtractRequest {
+  image: string; // Base64 encoded image
+  listType: 'TODO' | 'SHOPPING';
+}
+
+export interface ExtractResult {
+  items: ParsedListItem[];
+  confidence: number;
+  lines: string[];
+}
 
 export interface ScanRequest {
-  image: string; // Base64 encoded image
+  items: ParsedListItem[];
   mode?: 'append' | 'replace';
   autoCategories?: boolean;
 }
@@ -15,21 +27,50 @@ export interface ScanResult {
   listId: string;
   listType: 'TODO' | 'SHOPPING';
   mode: 'append' | 'replace';
-  extracted: number;
   created: number;
   items: any[];
-  confidence: number;
 }
 
+// Hook for extracting OCR text without saving
+export function useExtractOCR() {
+  const api = useApi();
+
+  return useMutation<ExtractResult, Error, ExtractRequest>({
+    mutationFn: async (data: ExtractRequest) => {
+      logger.info('useExtractOCR: Extracting text from image', { listType: data.listType });
+      
+      const response = await api.post('/ocr/extract', data);
+      
+      if (response.error) {
+        logger.error('useExtractOCR: API error', { error: response.error });
+        throw new Error(response.error);
+      }
+      
+      if (!response.data?.items) {
+        logger.error('useExtractOCR: Invalid response', response.data);
+        throw new Error('Failed to extract text from image');
+      }
+      
+      logger.info('useExtractOCR: Extraction successful', { 
+        itemCount: response.data.items.length,
+        confidence: response.data.confidence
+      });
+      
+      return response.data;
+    },
+  });
+}
+
+// Hook for saving confirmed items to list
 export function useScanListItems(listId: string) {
   const api = useApi();
   const queryClient = useQueryClient();
 
   return useMutation<ScanResult, Error, ScanRequest>({
     mutationFn: async (data: ScanRequest) => {
-      logger.info('useScanListItems: Scanning image', { listId, mode: data.mode });
+      logger.info('useScanListItems: Adding items to list', { listId, mode: data.mode, itemCount: data.items.length });
       
-      const response = await api.post(`/lists/${listId}/scan`, data);
+      const response = await api.post(`/lists/${listId}/items/batch`, data);
       
       if (response.error) {
         logger.error('useScanListItems: API error', { error: response.error });
@@ -37,14 +78,12 @@ export function useScanListItems(listId: string) {
       }
       
       if (!response.data?.success) {
-        logger.error('useScanListItems: Scan failed', response.data);
-        throw new Error(response.data?.message || 'Failed to scan image');
+        logger.error('useScanListItems: Failed to add items', response.data);
+        throw new Error(response.data?.message || 'Failed to add items to list');
       }
       
-      logger.info('useScanListItems: Scan successful', { 
-        extracted: response.data.extracted,
-        created: response.data.created,
-        confidence: response.data.confidence
+      logger.info('useScanListItems: Items added successfully', { 
+        created: response.data.created
       });
       
       return response.data;
