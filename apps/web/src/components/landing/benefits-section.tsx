@@ -51,7 +51,7 @@ const benefits = [
 
 export function BenefitsSection() {
   return (
-    <section className="py-20 sm:py-28 bg-gradient-to-b from-white to-blue-50 dark:from-background dark:to-blue-950/20">
+    <section id="benefits" className="py-20 sm:py-28 bg-gradient-to-b from-white to-blue-50 dark:from-background dark:to-blue-950/20">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">

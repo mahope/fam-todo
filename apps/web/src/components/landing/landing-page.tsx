@@ -1,5 +1,6 @@
 "use client";
 
+import { LandingHeader } from "./landing-header";
 import { HeroSection } from "./hero-section";
 import { FeaturesSection } from "./features-section";
 import { BenefitsSection } from "./benefits-section";
@@ -15,6 +16,7 @@ export function LandingPage() {
     <>
       <StructuredData />
       <div className="flex flex-col min-h-screen">
+        <LandingHeader />
         <HeroSection />
         <FeaturesSection />
         <BenefitsSection />

@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useTranslations } from 'next-intl';
-import { 
-  Home, 
-  ListTodo, 
-  ShoppingCart, 
-  Settings, 
-  LogOut, 
-  Moon, 
+import { usePathname } from "next/navigation";
+import {
+  Home,
+  ListTodo,
+  ShoppingCart,
+  Settings,
+  LogOut,
+  Moon,
   Sun,
   Menu,
   X,
@@ -38,8 +39,14 @@ export function Header() {
   const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const t = useTranslations('navigation');
+  const pathname = usePathname();
 
   const user = session?.user;
+
+  // Don't show header on landing page when user is not logged in
+  if (pathname === "/" && !user && !isPending) {
+    return null;
+  }
   const initials = user?.name
     ?.split(" ")
     .map((n) => n[0])
