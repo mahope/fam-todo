@@ -23,9 +23,67 @@ if (typeof window === 'undefined') {
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "NestList",
-  description: "Familie Opgave Håndtering",
+  title: {
+    default: "NestList - Den Komplette Familieorganisator | Opgaver, Lister & Samarbejde",
+    template: "%s | NestList"
+  },
+  description: "Hold din familie organiseret med NestList. Smart opgavestyring, indkøbslister og koordinering for hele familien. Gratis, nemt og sikkert. Synkronisering i realtid og offline support.",
+  keywords: [
+    "familie opgaver",
+    "familie organisering",
+    "opgavestyring familie",
+    "indkøbsliste app",
+    "familie kalender",
+    "delt opgaveliste",
+    "familie samarbejde",
+    "task manager familie",
+    "husstandsplanlægning",
+    "familie koordinering",
+    "gratis opgave app",
+    "dansk familie app"
+  ],
+  authors: [{ name: "NestList" }],
+  creator: "NestList",
+  publisher: "NestList",
   manifest: "/manifest.json",
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
+  openGraph: {
+    type: "website",
+    locale: "da_DK",
+    url: "/",
+    title: "NestList - Den Komplette Familieorganisator",
+    description: "Hold din familie organiseret med NestList. Smart opgavestyring, indkøbslister og koordinering for hele familien.",
+    siteName: "NestList",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "NestList - Familieorganisator"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NestList - Den Komplette Familieorganisator",
+    description: "Hold din familie organiseret med NestList. Gratis, nemt og sikkert.",
+    images: ["/og-image.png"]
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export const viewport: Viewport = {
