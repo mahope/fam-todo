@@ -43,6 +43,11 @@ export function LandingFooter() {
                 </Link>
               </li>
               <li>
+                <Link href="/pricing" className="hover:text-white hover:underline transition-colors">
+                  Priser
+                </Link>
+              </li>
+              <li>
                 <Link href="/#features" className="hover:text-white hover:underline transition-colors">
                   Funktioner
                 </Link>
@@ -97,9 +102,14 @@ export function LandingFooter() {
             <h3 className="text-white font-semibold text-lg">Firma</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="#" className="hover:text-white hover:underline transition-colors">
+                <Link href="/about" className="hover:text-white hover:underline transition-colors">
                   Om os
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-white hover:underline transition-colors">
+                  Kontakt os
+                </Link>
               </li>
               <li>
                 <a href="#" className="hover:text-white hover:underline transition-colors">
@@ -150,7 +160,7 @@ export function LandingFooter() {
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-500">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-green-500" />
-              <span>100% Gratis</span>
+              <span>60 dage gratis</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-green-500" />
