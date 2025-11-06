@@ -89,13 +89,14 @@ export class OCRService {
       // Perform OCR
       const { data } = await worker.recognize(processedImage);
       
-      logger.info('OCRService: OCR completed', { 
+      logger.info('OCRService: OCR completed', {
         confidence: data.confidence,
-        textLength: data.text.length 
+        textLength: data.text.length
       });
-      
+
       // Extract lines of text
-      const lines = data.lines.map(line => line.text.trim()).filter(text => text.length > 0);
+      // Note: We split by newlines as a fallback since the lines property may not be available in all versions
+      const lines = data.text.split('\n').map(line => line.trim()).filter(text => text.length > 0);
       
       // Parse items from the text
       const items = this.parseListItems(lines, data.confidence);
