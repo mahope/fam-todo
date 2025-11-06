@@ -65,28 +65,28 @@ export function LandingFooter() {
             <h3 className="text-white font-semibold text-lg">Resurser</h3>
             <ul className="space-y-3 text-sm">
               <li>
+                <Link href="/help" className="hover:text-white hover:underline transition-colors">
+                  Hjælpecenter
+                </Link>
+              </li>
+              <li>
                 <Link href="/faq" className="hover:text-white hover:underline transition-colors">
                   FAQ
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="hover:text-white hover:underline transition-colors">
-                  Hjælp & Support
+                  Kontakt Support
+                </Link>
+              </li>
+              <li>
+                <Link href="/changelog" className="hover:text-white hover:underline transition-colors">
+                  Changelog
                 </Link>
               </li>
               <li>
                 <a href="#" className="hover:text-white hover:underline transition-colors">
-                  Brugervejledning
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white hover:underline transition-colors">
                   Blog
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white hover:underline transition-colors">
-                  Community
                 </a>
               </li>
             </ul>
