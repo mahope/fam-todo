@@ -25,7 +25,7 @@ export function HeroSection() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800">
               <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                Den komplette familieorganisator
+                Prøv gratis i 60 dage - ingen binding
               </span>
             </div>
 
@@ -66,7 +66,7 @@ export function HeroSection() {
                 asChild
               >
                 <Link href="/register">
-                  Kom i gang gratis
+                  Start 60 dages gratis trial
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
@@ -76,8 +76,8 @@ export function HeroSection() {
                 className="text-lg px-8 h-14 border-2"
                 asChild
               >
-                <Link href="/login">
-                  Log ind
+                <Link href="#pricing">
+                  Se priser
                 </Link>
               </Button>
             </div>
@@ -86,11 +86,15 @@ export function HeroSection() {
             <div className="flex items-center gap-6 justify-center lg:justify-start pt-4 text-sm text-gray-600 dark:text-gray-400">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <span>Gratis at bruge</span>
+                <span>60 dages gratis trial</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-600" />
                 <span>Ingen kreditkort påkrævet</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <span>Derefter kun 59 kr/md</span>
               </div>
             </div>
           </div>
@@ -147,10 +151,10 @@ export function HeroSection() {
 
             {/* Floating badges */}
             <div className="absolute -top-4 -right-4 z-20 bg-green-500 text-white px-4 py-2 rounded-full shadow-lg transform rotate-12">
-              <span className="text-sm font-bold">100% Gratis</span>
+              <span className="text-sm font-bold">60 dage gratis</span>
             </div>
             <div className="absolute -bottom-4 -left-4 z-20 bg-purple-500 text-white px-4 py-2 rounded-full shadow-lg transform -rotate-12">
-              <span className="text-sm font-bold">Offline support</span>
+              <span className="text-sm font-bold">Kun 59 kr/md</span>
             </div>
 
             {/* Background decoration */}

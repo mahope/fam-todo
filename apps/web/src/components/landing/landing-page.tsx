@@ -5,6 +5,8 @@ import { HeroSection } from "./hero-section";
 import { FeaturesSection } from "./features-section";
 import { BenefitsSection } from "./benefits-section";
 import { HowItWorksSection } from "./how-it-works-section";
+import { PricingSection } from "./pricing-section";
+import { ComparisonSection } from "./comparison-section";
 import { TestimonialsSection } from "./testimonials-section";
 import { FAQSection } from "./faq-section";
 import { CTASection } from "./cta-section";
@@ -21,6 +23,8 @@ export function LandingPage() {
         <FeaturesSection />
         <BenefitsSection />
         <HowItWorksSection />
+        <PricingSection />
+        <ComparisonSection />
         <TestimonialsSection />
         <FAQSection />
         <CTASection />

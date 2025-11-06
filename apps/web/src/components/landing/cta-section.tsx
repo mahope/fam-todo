@@ -18,31 +18,31 @@ export function CTASection() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
             <Sparkles className="h-4 w-4 text-white" />
             <span className="text-sm font-medium text-white">
-              Klar til at transformere din familieliv?
+              Prøv gratis i 60 dage - ingen risiko
             </span>
           </div>
 
           {/* Heading */}
           <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-white">
-            Få hele familien
+            Start din gratis trial
             <span className="block mt-2">
-              organiseret i dag
+              og transform din hverdag
             </span>
           </h2>
 
           {/* Description */}
           <p className="text-xl sm:text-2xl text-blue-50 max-w-2xl mx-auto">
-            Slut med kaos og glemte opgaver. Start med NestList og oplev
-            forskellen allerede i dag - helt gratis!
+            Prøv NestList gratis i 60 dage. Ingen binding, ingen kreditkort.
+            Derefter kun 59 kr/måned - mindre end en kop kaffe om ugen!
           </p>
 
           {/* Benefits */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-white pt-4">
             {[
-              "Gratis for evigt",
+              "60 dages gratis trial",
               "Ingen kreditkort",
               "Kom i gang på 2 min",
-              "Ingen begrænsninger"
+              "Derefter kun 59 kr/md"
             ].map((benefit, index) => (
               <div key={index} className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5" />
@@ -59,7 +59,7 @@ export function CTASection() {
               asChild
             >
               <Link href="/register">
-                Opret familie gratis
+                Start 60 dages gratis trial
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
@@ -69,8 +69,8 @@ export function CTASection() {
               className="text-lg px-10 h-16 border-2 border-white text-white hover:bg-white/10 backdrop-blur-sm"
               asChild
             >
-              <Link href="/login">
-                Log ind
+              <Link href="#pricing">
+                Se priser
               </Link>
             </Button>
           </div>

@@ -30,6 +30,12 @@ export function LandingHeader() {
               Funktioner
             </a>
             <a
+              href="#pricing"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+            >
+              Priser
+            </a>
+            <a
               href="#benefits"
               className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
             >
@@ -61,7 +67,7 @@ export function LandingHeader() {
               <Link href="/login">Log ind</Link>
             </Button>
             <Button asChild className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
-              <Link href="/register">Kom i gang</Link>
+              <Link href="/register">Prøv 60 dage gratis</Link>
             </Button>
           </div>
         </div>
