@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import webpush from 'web-push';
+import { logger } from '@/lib/logger';
 
 export interface PushSubscription {
   endpoint: string;
@@ -33,10 +34,10 @@ export class PushNotificationService {
     this.vapidPublicKey = process.env.VAPID_PUBLIC_KEY || '';
     this.vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || '';
     
-    if (!this.vapidPublicKey || !this.vapidPrivateKey || 
+    if (!this.vapidPublicKey || !this.vapidPrivateKey ||
         this.vapidPrivateKey === 'your_vapid_private_key_here' ||
         this.vapidPublicKey === 'your_vapid_public_key_here') {
-      console.warn('VAPID keys not configured. Push notifications will not work.');
+      logger.warn('VAPID keys not configured. Push notifications will not work.');
     } else {
       try {
         // Configure web-push with VAPID keys only if they are valid
@@ -46,7 +47,7 @@ export class PushNotificationService {
           this.vapidPrivateKey
         );
       } catch (error) {
-        console.warn('Invalid VAPID keys provided. Push notifications will not work.', error);
+        logger.warn('Invalid VAPID keys provided. Push notifications will not work.', { error: error instanceof Error ? error.message : String(error) });
       }
     }
   }

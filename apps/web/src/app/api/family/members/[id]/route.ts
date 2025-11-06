@@ -1,31 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
-
-async function getSessionData() {
-  const session = await getServerSession(authOptions) as any;
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { appUser: true },
-  });
-
-  if (!user?.appUser) {
-    throw new Error('App user not found');
-  }
-
-  return {
-    userId: user.id,
-    appUserId: user.appUser.id,
-    familyId: user.appUser.familyId,
-    role: user.appUser.role,
-  };
-}
+import { getSessionData } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 export async function GET(
   request: NextRequest,
@@ -85,7 +62,7 @@ export async function GET(
 
     return NextResponse.json(member);
   } catch (error) {
-    console.error('Get family member error:', error);
+    logger.error('Get family member error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -216,7 +193,7 @@ export async function PUT(
 
     return NextResponse.json(updatedMember);
   } catch (error) {
-    console.error('Update family member error:', error);
+    logger.error('Update family member error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -279,7 +256,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Member deleted successfully' });
   } catch (error) {
-    console.error('Delete family member error:', error);
+    logger.error('Delete family member error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

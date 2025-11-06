@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export type ActivityAction = 
   | 'CREATE' | 'UPDATE' | 'DELETE' | 'COMPLETE' | 'ASSIGN' | 'SHARE' | 'ARCHIVE' | 'RESTORE';
@@ -43,7 +44,7 @@ export class ActivityLogService {
         },
       });
     } catch (error) {
-      console.error('Failed to log activity:', error);
+      logger.error('Failed to log activity', { error: error instanceof Error ? error.message : String(error) });
       // Don't throw error to avoid breaking the main operation
       return null;
     }

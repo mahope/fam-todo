@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -77,12 +78,12 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Registration error:', error);
-    
+    logger.error('Registration error', { error: error instanceof Error ? error.message : String(error) });
+
     // More specific error logging for debugging
     let errorMessage = 'Der opstod en fejl ved oprettelse af bruger';
     if (error instanceof Error) {
-      console.error('Error details:', error.message, error.stack);
+      logger.error('Error details', { message: error.message, stack: error.stack });
       // Don't expose internal errors to users in production
       if (process.env.NODE_ENV === 'development') {
         errorMessage = `Debug: ${error.message}`;

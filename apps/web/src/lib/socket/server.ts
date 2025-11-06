@@ -4,6 +4,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { prisma } from '@/lib/prisma';
 import { verifyJwt } from '@/lib/auth/jwt';
 import { env } from '@/lib/env-validation';
+import { logger } from '@/lib/logger';
 
 export type NextApiResponseServerIO = NextApiResponse & {
   socket: {
@@ -91,14 +92,14 @@ class SocketService {
 
         next();
       } catch (error) {
-        console.error('Socket authentication error:', error);
+        logger.error('Socket authentication error', { error: error instanceof Error ? error.message : String(error) });
         next(new Error('Authentication failed'));
       }
     });
 
     this.io.on('connection', (socket) => {
       const auth = (socket as any).auth as AuthenticatedSocket;
-      console.log(`User ${auth.appUserId} connected to family ${auth.familyId}`);
+      logger.info('User connected to real-time server', { userId: auth.appUserId, familyId: auth.familyId });
 
       // Join family room
       socket.join(`family:${auth.familyId}`);
@@ -125,8 +126,8 @@ class SocketService {
 
       // Handle disconnection
       socket.on('disconnect', () => {
-        console.log(`User ${auth.appUserId} disconnected from family ${auth.familyId}`);
-        
+        logger.info('User disconnected from real-time server', { userId: auth.appUserId, familyId: auth.familyId });
+
         socket.to(`family:${auth.familyId}`).emit('user_presence', {
           type: 'user_left',
           userId: auth.appUserId,

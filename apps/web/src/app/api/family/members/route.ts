@@ -1,32 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
 import crypto from 'crypto';
-
-async function getSessionData() {
-  const session = await getServerSession(authOptions) as any;
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { appUser: true },
-  });
-
-  if (!user?.appUser) {
-    throw new Error('App user not found');
-  }
-
-  return {
-    userId: user.id,
-    appUserId: user.appUser.id,
-    familyId: user.appUser.familyId,
-    role: user.appUser.role,
-  };
-}
+import { getSessionData } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 export async function GET() {
   try {
@@ -78,7 +55,7 @@ export async function GET() {
 
     return NextResponse.json(members);
   } catch (error) {
-    console.error('Get family members error:', error);
+    logger.error('Get family members error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -189,7 +166,7 @@ export async function POST(request: NextRequest) {
       inviter: invite.inviter,
     }, { status: 201 });
   } catch (error) {
-    console.error('Create family invite error:', error);
+    logger.error('Create family invite error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

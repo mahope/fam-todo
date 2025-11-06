@@ -1,30 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
-
-async function getSessionData() {
-  const session = await getServerSession(authOptions) as any;
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { appUser: true },
-  });
-
-  if (!user?.appUser) {
-    throw new Error('App user not found');
-  }
-
-  return {
-    userId: user.id,
-    appUserId: user.appUser.id,
-    familyId: user.appUser.familyId,
-    role: user.appUser.role,
-  };
-}
+import { getSessionData } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 // GET /api/shopping/autocomplete - Get autocomplete suggestions for shopping items
 export async function GET(request: NextRequest) {
@@ -127,7 +104,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(uniqueSuggestions);
   } catch (error) {
-    console.error('Autocomplete error:', error);
+    logger.error('Autocomplete error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -182,7 +159,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Learn from input error:', error);
+    logger.error('Learn from input error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

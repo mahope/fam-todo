@@ -1,5 +1,6 @@
 import { jwtVerify, SignJWT } from 'jose';
 import { env } from '@/lib/env-validation';
+import { logger } from '@/lib/logger';
 
 const JWT_SECRET = new TextEncoder().encode(env.NEXTAUTH_SECRET);
 
@@ -31,7 +32,7 @@ export async function verifyJwt(token: string): Promise<JWTPayload | null> {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     return payload as unknown as JWTPayload;
   } catch (error) {
-    console.error('JWT verification failed:', error);
+    logger.error('JWT verification failed', { error: error instanceof Error ? error.message : String(error) });
     return null;
   }
 }
@@ -59,7 +60,7 @@ export async function createJwtFromSession(session: any): Promise<string | null>
       role: user.appUser.role,
     });
   } catch (error) {
-    console.error('Error creating JWT from session:', error);
+    logger.error('Error creating JWT from session', { error: error instanceof Error ? error.message : String(error) });
     return null;
   }
 }

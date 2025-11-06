@@ -1,39 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { writeFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-
-async function getSessionData() {
-  const session = await getServerSession(authOptions) as any;
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { appUser: true },
-  });
-
-  if (!user?.appUser) {
-    throw new Error('App user not found');
-  }
-
-  return {
-    userId: user.id,
-    appUserId: user.appUser.id,
-    familyId: user.appUser.familyId,
-    role: user.appUser.role,
-    currentAvatar: user.image,
-  };
-}
+import { getSessionData } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 // POST /api/profile/avatar - Upload new avatar
 export async function POST(request: NextRequest) {
   try {
-    const { userId, currentAvatar } = await getSessionData();
+    const { userId } = await getSessionData();
+
+    // Get current avatar for cleanup
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { image: true },
+    });
+    const currentAvatar = user?.image;
     
     const formData = await request.formData();
     const file = formData.get('avatar') as File;
@@ -86,7 +69,7 @@ export async function POST(request: NextRequest) {
     try {
       await writeFile(filePath, buffer);
     } catch (error) {
-      console.error('File write error:', error);
+      logger.error('File write error', { error: error instanceof Error ? error.message : String(error) });
       return NextResponse.json(
         { error: 'Failed to save file' },
         { status: 500 }
@@ -109,7 +92,7 @@ export async function POST(request: NextRequest) {
         await unlink(oldFilePath);
       } catch (error) {
         // Ignore errors when cleaning up old files
-        console.warn('Failed to clean up old avatar:', error);
+        logger.warn('Failed to clean up old avatar', { error: error instanceof Error ? error.message : String(error) });
       }
     }
 
@@ -120,7 +103,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Avatar upload error:', error);
+    logger.error('Avatar upload error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -131,7 +114,14 @@ export async function POST(request: NextRequest) {
 // DELETE /api/profile/avatar - Remove avatar
 export async function DELETE(request: NextRequest) {
   try {
-    const { userId, currentAvatar } = await getSessionData();
+    const { userId } = await getSessionData();
+
+    // Get current avatar for cleanup
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { image: true },
+    });
+    const currentAvatar = user?.image;
 
     // Update user's avatar to null in database
     await prisma.user.update({
@@ -146,7 +136,7 @@ export async function DELETE(request: NextRequest) {
         await unlink(filePath);
       } catch (error) {
         // Ignore errors when cleaning up files
-        console.warn('Failed to clean up avatar file:', error);
+        logger.warn('Failed to clean up avatar file', { error: error instanceof Error ? error.message : String(error) });
       }
     }
 
@@ -156,7 +146,7 @@ export async function DELETE(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Avatar remove error:', error);
+    logger.error('Avatar remove error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

@@ -99,8 +99,9 @@ class PerformanceMonitor {
       this.metrics.shift();
     }
 
-    // Log to console in development
+    // Log to console in development (client-side code)
     if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
       console.log(`Performance: ${name} = ${value}ms`, metadata);
     }
 
@@ -128,8 +129,9 @@ class PerformanceMonitor {
       this.apiMetrics.shift();
     }
 
-    // Log slow API calls
+    // Log slow API calls (client-side code)
     if (duration > 1000) {
+      // eslint-disable-next-line no-console
       console.warn(`Slow API call: ${method} ${endpoint} took ${duration}ms`);
     }
   }
@@ -166,6 +168,8 @@ class PerformanceMonitor {
           this.recordMetric(name, measure.duration);
         }
       } catch (error) {
+        // Client-side code
+        // eslint-disable-next-line no-console
         console.warn('Failed to measure performance:', error);
       }
     }

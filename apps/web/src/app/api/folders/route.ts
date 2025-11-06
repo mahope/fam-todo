@@ -1,32 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/lib/api-error-handler';
-
-async function getSessionData() {
-  const session = await getServerSession(authOptions) as any;
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { appUser: true },
-  });
-
-  if (!user?.appUser) {
-    throw new Error('App user not found');
-  }
-
-  return {
-    userId: user.id,
-    appUserId: user.appUser.id,
-    familyId: user.appUser.familyId,
-    role: user.appUser.role,
-  };
-}
+import { getSessionData } from '@/lib/auth/session';
 
 // GET /api/folders - Get all folders for the family
 export async function GET() {

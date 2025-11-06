@@ -1,30 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
-
-async function getSessionData() {
-  const session = await getServerSession(authOptions) as any;
-  if (!session?.user?.email) {
-    throw new Error('Unauthorized');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { appUser: true },
-  });
-
-  if (!user?.appUser) {
-    throw new Error('App user not found');
-  }
-
-  return {
-    userId: user.id,
-    appUserId: user.appUser.id,
-    familyId: user.appUser.familyId,
-    role: user.appUser.role,
-  };
-}
+import { getSessionData } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 // GET /api/export - Export family data
 export async function GET(request: NextRequest) {
@@ -153,7 +130,7 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('Export data error:', error);
+    logger.error('Export data error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

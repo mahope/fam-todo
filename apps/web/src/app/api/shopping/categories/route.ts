@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
+import { getSessionData } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 // Shopping categories enum
 const SHOPPING_CATEGORIES = [
@@ -85,29 +85,6 @@ const CATEGORY_INFO = {
   },
 } as const;
 
-async function getSessionData() {
-  const session = await getServerSession(authOptions) as any;
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { appUser: true },
-  });
-
-  if (!user?.appUser) {
-    throw new Error('App user not found');
-  }
-
-  return {
-    userId: user.id,
-    appUserId: user.appUser.id,
-    familyId: user.appUser.familyId,
-    role: user.appUser.role,
-  };
-}
-
 export async function GET(request: NextRequest) {
   try {
     const { familyId, appUserId, role } = await getSessionData();
@@ -186,7 +163,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Get shopping categories error:', error);
+    logger.error('Get shopping categories error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -206,7 +183,7 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
-    console.error('Create shopping category error:', error);
+    logger.error('Create shopping category error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
+import { getSessionData } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 // Shopping categories enum for validation
 const SHOPPING_CATEGORIES = [
@@ -20,29 +20,6 @@ interface ShoppingItemFilters {
   sortOrder?: 'asc' | 'desc';
   limit?: number;
   offset?: number;
-}
-
-async function getSessionData() {
-  const session = await getServerSession(authOptions) as any;
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { appUser: true },
-  });
-
-  if (!user?.appUser) {
-    throw new Error('App user not found');
-  }
-
-  return {
-    userId: user.id,
-    appUserId: user.appUser.id,
-    familyId: user.appUser.familyId,
-    role: user.appUser.role,
-  };
 }
 
 function parseShoppingFilters(searchParams: URLSearchParams): ShoppingItemFilters {
@@ -211,7 +188,7 @@ export async function GET(request: NextRequest) {
       categories: SHOPPING_CATEGORIES,
     });
   } catch (error) {
-    console.error('Get shopping items error:', error);
+    logger.error('Get shopping items error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -320,7 +297,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(shoppingItem, { status: 201 });
   } catch (error) {
-    console.error('Create shopping item error:', error);
+    logger.error('Create shopping item error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

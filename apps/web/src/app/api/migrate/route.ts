@@ -1,35 +1,36 @@
 import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { logger } from '@/lib/logger';
 
 const execAsync = promisify(exec);
 
 export async function POST() {
   try {
-    console.log('Starting manual database migration...');
-    
+    logger.info('Starting manual database migration...');
+
     // Run prisma migrate deploy
     const { stdout, stderr } = await execAsync('cd apps/web && npx prisma migrate deploy', {
       cwd: '/app',
       timeout: 60000, // 60 second timeout
     });
-    
-    console.log('Migration stdout:', stdout);
+
+    logger.info('Migration stdout', { stdout });
     if (stderr) {
-      console.log('Migration stderr:', stderr);
+      logger.warn('Migration stderr', { stderr });
     }
-    
+
     // Run prisma generate to ensure client is up to date
     const { stdout: generateStdout, stderr: generateStderr } = await execAsync('cd apps/web && npx prisma generate', {
       cwd: '/app',
       timeout: 30000,
     });
-    
-    console.log('Generate stdout:', generateStdout);
+
+    logger.info('Generate stdout', { stdout: generateStdout });
     if (generateStderr) {
-      console.log('Generate stderr:', generateStderr);
+      logger.warn('Generate stderr', { stderr: generateStderr });
     }
-    
+
     return NextResponse.json({
       success: true,
       message: 'Database migration completed successfully',
@@ -43,10 +44,10 @@ export async function POST() {
       },
       timestamp: new Date().toISOString(),
     });
-    
+
   } catch (error) {
-    console.error('Migration failed:', error);
-    
+    logger.error('Migration failed', { error: error instanceof Error ? error.message : String(error) });
+
     return NextResponse.json(
       {
         success: false,

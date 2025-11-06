@@ -44,15 +44,21 @@ class RealtimeClient {
       });
 
       this.socket.on('connect', () => {
+        // Using console.log here since this is client-side code
+        // eslint-disable-next-line no-console
         console.log('Connected to real-time server');
         this.isConnecting = false;
       });
 
       this.socket.on('disconnect', () => {
+        // Using console.log here since this is client-side code
+        // eslint-disable-next-line no-console
         console.log('Disconnected from real-time server');
       });
 
       this.socket.on('connect_error', (error) => {
+        // Using console.error here since this is client-side code
+        // eslint-disable-next-line no-console
         console.error('Socket connection error:', error);
         this.isConnecting = false;
       });
@@ -67,10 +73,14 @@ class RealtimeClient {
 
       this.socket.on('notification', (notification: any) => {
         // Handle real-time notifications
+        // Using console.log here since this is client-side code
+        // eslint-disable-next-line no-console
         console.log('Real-time notification:', notification);
       });
 
     } catch (error) {
+      // Using console.error here since this is client-side code
+      // eslint-disable-next-line no-console
       console.error('Failed to connect to real-time server:', error);
       this.isConnecting = false;
     }
@@ -111,6 +121,8 @@ class RealtimeClient {
   }
 
   private handleRealtimeEvent(event: RealtimeEvent) {
+    // Using console.log here since this is client-side code
+    // eslint-disable-next-line no-console
     console.log('Real-time event received:', event);
 
     // Call type-specific callbacks

@@ -22,11 +22,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { MoreVertical, Eye, EyeOff, Users, Trash2, Edit } from 'lucide-react';
-import type { ListItem } from '@/lib/types/lists';
+import type { ListWithRelations } from '@/lib/types/list';
 import { logger } from '@/lib/logger';
 
 interface SimpleListCardProps {
-  list: ListItem;
+  list: ListWithRelations;
   onDelete?: (listId: string) => void;
   isDeleting?: boolean;
 }
@@ -157,7 +157,7 @@ export default function SimpleListCard({ list, onDelete, isDeleting = false }: S
           {/* Owner Info */}
           {!list.isOwner && list.owner && (
             <div className="mt-2 text-xs text-gray-500">
-              Ejes af {list.owner.name || list.owner.email}
+              Ejes af {list.owner.displayName || list.owner.email}
             </div>
           )}
         </CardContent>

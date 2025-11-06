@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit } from './rate-limiter';
 import { SecurityHeaders } from './input-validation';
+import { logger } from '@/lib/logger';
 
 // Session data interface
 export interface SessionData {
@@ -213,10 +214,10 @@ export function withAuth<T extends any[]>(
       });
       
       return response;
-      
+
     } catch (error) {
-      console.error('Auth middleware error:', error);
-      
+      logger.error('Auth middleware error', { error: error instanceof Error ? error.message : String(error) });
+
       const headers = new Headers(SecurityHeaders);
       
       if (error instanceof AuthenticationError) {
@@ -354,7 +355,7 @@ export async function validateResourceAccess(
         return false;
     }
   } catch (error) {
-    console.error('Resource access validation error:', error);
+    logger.error('Resource access validation error', { error: error instanceof Error ? error.message : String(error) });
     return false;
   }
 }

@@ -1,31 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { NotificationService } from '@/lib/services/notifications';
-
-async function getSessionData() {
-  const session = await getServerSession(authOptions) as any;
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: { appUser: true },
-  });
-
-  if (!user?.appUser) {
-    throw new Error('App user not found');
-  }
-
-  return {
-    userId: user.id,
-    appUserId: user.appUser.id,
-    familyId: user.appUser.familyId,
-    role: user.appUser.role,
-  };
-}
+import { getSessionData } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 // GET /api/notifications/[id] - Get individual notification
 export async function GET(
@@ -61,7 +38,7 @@ export async function GET(
 
     return NextResponse.json(notification);
   } catch (error) {
-    console.error('Get notification error:', error);
+    logger.error('Get notification error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -115,7 +92,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedNotification);
   } catch (error) {
-    console.error('Update notification error:', error);
+    logger.error('Update notification error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -154,7 +131,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: 'Notification deleted successfully' });
   } catch (error) {
-    console.error('Delete notification error:', error);
+    logger.error('Delete notification error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

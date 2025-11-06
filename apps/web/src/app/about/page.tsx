@@ -97,7 +97,7 @@ export default function AboutPage() {
                 </p>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                   Hver uge var det det samme: Glemte indkøb. Dobbelte aftaler. Børn der
-                  spurgte "hvem henter mig i dag?" Sticky notes overalt. SMS'er der forsvandt
+                  spurgte &ldquo;hvem henter mig i dag?&rdquo; Sticky notes overalt. SMS&apos;er der forsvandt
                   i beskedelavet. Vi prøvede alt - fra tavler på køleskabet til komplicerede
                   apps der var designet til virksomheder, ikke familier.
                 </p>
@@ -135,11 +135,11 @@ export default function AboutPage() {
                   >
                     jordoghimmel.dk
                   </a>
-                  ) tænkte vi: "Hvis ikke den findes, laver vi den selv."
+                  ) tænkte vi: &ldquo;Hvis ikke den findes, laver vi den selv.&rdquo;
                 </p>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                   NestList blev født i vores køkken, testet med vores egne børn, og forfinet
-                  gennem utallige "det ville være fedt hvis..."-samtaler ved morgenmaden.
+                  gennem utallige &ldquo;det ville være fedt hvis...&rdquo;-samtaler ved morgenmaden.
                 </p>
               </CardContent>
             </Card>

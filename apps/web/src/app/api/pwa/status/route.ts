@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/security/auth-middleware';
 import { SessionData } from '@/lib/auth/types';
+import { logger } from '@/lib/logger';
 
 export const GET = withAuth(
   async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
@@ -55,7 +56,7 @@ export const GET = withAuth(
         ],
       });
     } catch (error) {
-      console.error('Failed to get PWA status:', error);
+      logger.error('Failed to get PWA status', { error: error instanceof Error ? error.message : String(error) });
       return NextResponse.json(
         { error: 'Failed to retrieve PWA status' },
         { status: 500 }

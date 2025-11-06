@@ -1,40 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { getSessionData } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
-async function getSessionData() {
-  const session = await getServerSession(authOptions) as any;
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
+export async function GET() {
+  try {
+    const { userId } = await getSessionData();
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: {
-      appUser: {
-        include: {
-          family: {
-            select: {
-              id: true,
-              name: true,
+    // Fetch user with family details
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        appUser: {
+          include: {
+            family: {
+              select: {
+                id: true,
+                name: true,
+              },
             },
           },
         },
       },
-    },
-  });
-
-  if (!user) {
-    throw new Error('User not found');
-  }
-
-  return { user, session };
-}
-
-export async function GET() {
-  try {
-    const { user } = await getSessionData();
+    });
     
     return NextResponse.json({
       id: user.id,
@@ -46,7 +34,7 @@ export async function GET() {
       family: user.appUser?.family || null,
     });
   } catch (error) {
-    console.error('Get profile error:', error);
+    logger.error('Get profile error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -56,7 +44,29 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { user } = await getSessionData();
+    const { userId } = await getSessionData();
+
+    // Fetch user details
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        appUser: {
+          include: {
+            family: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     const body = await req.json();
     
     const { name, email } = body;
@@ -104,7 +114,7 @@ export async function PATCH(req: NextRequest) {
       family: updatedUser.appUser?.family || null,
     });
   } catch (error) {
-    console.error('Update profile error:', error);
+    logger.error('Update profile error', { error: error instanceof Error ? error.message : String(error) });
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

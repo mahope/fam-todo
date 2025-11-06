@@ -268,8 +268,9 @@ export class QueryPerformanceMonitor {
         times.shift();
       }
       
-      // Log slow queries
+      // Log slow queries (server-side code)
       if (duration > 1000) {
+        // eslint-disable-next-line no-console
         console.warn(`Slow query detected: ${queryName} took ${duration}ms`);
       }
     };
@@ -377,8 +378,10 @@ export const WarmupQueries = {
   async warmupConnection(prisma: any) {
     try {
       await prisma.$queryRaw`SELECT 1`;
+      // eslint-disable-next-line no-console
       console.log('Database connection warmed up');
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Database warmup failed:', error);
     }
   },
@@ -400,9 +403,11 @@ export const WarmupQueries = {
           orderBy: { sortOrder: 'asc' },
         }),
       ]);
-      
+
+      // eslint-disable-next-line no-console
       console.log('Common data preloaded for family:', familyId);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Data preload failed:', error);
     }
   },
