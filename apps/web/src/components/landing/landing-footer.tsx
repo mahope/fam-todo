@@ -48,18 +48,13 @@ export function LandingFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="hover:text-white hover:underline transition-colors">
+                <Link href="/features" className="hover:text-white hover:underline transition-colors">
                   Funktioner
                 </Link>
               </li>
               <li>
-                <Link href="/#how-it-works" className="hover:text-white hover:underline transition-colors">
+                <Link href="/how-it-works" className="hover:text-white hover:underline transition-colors">
                   Sådan virker det
-                </Link>
-              </li>
-              <li>
-                <Link href="/#faq" className="hover:text-white hover:underline transition-colors">
-                  FAQ
                 </Link>
               </li>
             </ul>
@@ -70,9 +65,14 @@ export function LandingFooter() {
             <h3 className="text-white font-semibold text-lg">Resurser</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="#" className="hover:text-white hover:underline transition-colors">
+                <Link href="/faq" className="hover:text-white hover:underline transition-colors">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-white hover:underline transition-colors">
                   Hjælp & Support
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="hover:text-white hover:underline transition-colors">
@@ -87,11 +87,6 @@ export function LandingFooter() {
               <li>
                 <a href="#" className="hover:text-white hover:underline transition-colors">
                   Community
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white hover:underline transition-colors">
-                  Status
                 </a>
               </li>
             </ul>
@@ -112,19 +107,19 @@ export function LandingFooter() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white hover:underline transition-colors">
+                <Link href="/privacy" className="hover:text-white hover:underline transition-colors">
                   Privatlivspolitik
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white hover:underline transition-colors">
+                <Link href="/terms" className="hover:text-white hover:underline transition-colors">
                   Servicevilkår
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white hover:underline transition-colors">
+                <Link href="/cookies" className="hover:text-white hover:underline transition-colors">
                   Cookie Politik
-                </a>
+                </Link>
               </li>
             </ul>
 
