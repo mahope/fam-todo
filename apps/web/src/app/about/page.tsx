@@ -74,7 +74,7 @@ export default function AboutPage() {
 
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               NestList startede ikke som en forretningsidé, men som en løsning
-              på vores eget kaos i en travl hverdag med 3 børn.
+              på vores eget familiekaos - Mads, Tea og vores 3 vidunderlige børn.
             </p>
           </div>
         </div>
@@ -91,9 +91,26 @@ export default function AboutPage() {
               </h2>
               <div className="prose prose-lg dark:prose-invert max-w-none">
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  Vi er Mads og min kone - to almindelige forældre med 3 vidunderlige børn,
-                  travle karrierer, studier og en masse fritidsinteresser. Livet var godt,
-                  men også kaotisk.
+                  Vi er Mads og Tea - to almindelige forældre med 3 vidunderlige børn,
+                  travle karrierer, studier og en masse fritidsinteresser. Mads driver{" "}
+                  <a
+                    href="https://mahope.dk"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                  >
+                    mahope.dk
+                  </a>
+                  {" "}som WordPress-freelancer, og Tea driver{" "}
+                  <a
+                    href="https://jordoghimmel.dk"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                  >
+                    Jord og Himmel
+                  </a>
+                  {" "}mens hun studerer. Livet var godt, men også kaotisk.
                 </p>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                   Hver uge var det det samme: Glemte indkøb. Dobbelte aftaler. Børn der
@@ -117,29 +134,16 @@ export default function AboutPage() {
                 </div>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
                   En aften, efter endnu en misforståelse om hvem der skulle købe mælk,
-                  besluttede vi os: Der MÅ være en bedre løsning. Som udviklere (jeg driver{" "}
-                  <a
-                    href="https://mahope.dk"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                  >
-                    mahope.dk
-                  </a>
-                  , og min kone{" "}
-                  <a
-                    href="https://jordoghimmel.dk"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                  >
-                    jordoghimmel.dk
-                  </a>
-                  ) tænkte vi: &ldquo;Hvis ikke den findes, laver vi den selv.&rdquo;
+                  besluttede vi os: Der MÅ være en bedre løsning. Med Mads&apos; erfaring
+                  som udvikler og Tea&apos;s praktiske tilgang til hverdagsudfordringer,
+                  tænkte vi: &ldquo;Hvis ikke den findes, laver vi den selv.&rdquo;
                 </p>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  NestList blev født i vores køkken, testet med vores egne børn, og forfinet
-                  gennem utallige &ldquo;det ville være fedt hvis...&rdquo;-samtaler ved morgenmaden.
+                  NestList blev født i vores køkken på vores landbrug i Fyn, testet med
+                  vores egne 3 børn, og forfinet gennem utallige
+                  &ldquo;det ville være fedt hvis...&rdquo;-samtaler ved morgenmaden.
+                  Hver funktion er tænkt igennem fra både Mads&apos; tekniske perspektiv
+                  og Tea&apos;s praktiske hverdagserfaringer.
                 </p>
               </CardContent>
             </Card>
