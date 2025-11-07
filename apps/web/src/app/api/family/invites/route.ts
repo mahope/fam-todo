@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { v4 as uuidv4 } from 'uuid';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
-export async function GET() {
-  try {
-    const { familyId, role } = await getSessionData();
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, role } = sessionData;
 
     // Only admins can view family invites
     if (role !== 'ADMIN') {
@@ -40,19 +41,23 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(invites);
-  } catch (error) {
-    logger.error('Get family invites error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(invites);
+    } catch (error) {
+      logger.error('Get family invites error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
-export async function DELETE(request: NextRequest) {
-  try {
-    const { familyId, role } = await getSessionData();
+export const DELETE = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, role } = sessionData;
 
     // Only admins can cancel invites
     if (role !== 'ADMIN') {
@@ -84,20 +89,24 @@ export async function DELETE(request: NextRequest) {
       where: { id: inviteId },
     });
 
-    return NextResponse.json({ message: 'Invite cancelled successfully' });
-  } catch (error) {
-    logger.error('Cancel family invite error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ message: 'Invite cancelled successfully' });
+    } catch (error) {
+      logger.error('Cancel family invite error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'admin',
+    allowedMethods: ['DELETE'],
   }
-}
+);
 
 // POST /api/family/invites - Create new family invite
-export async function POST(request: NextRequest) {
-  try {
-    const { appUserId, familyId, role } = await getSessionData();
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { appUserId, familyId, role } = sessionData;
     
     if (role !== 'ADMIN') {
       return NextResponse.json(
@@ -211,14 +220,17 @@ export async function POST(request: NextRequest) {
         inviter: (invite as any).inviter,
         family: (invite as any).family,
       },
-      message: 'Family invite sent successfully',
-    });
+        message: 'Family invite sent successfully',
+      });
 
-  } catch (error) {
-    logger.error('Create family invite error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    } catch (error) {
+      logger.error('Create family invite error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'admin',
+    allowedMethods: ['POST'],
   }
-}
+);

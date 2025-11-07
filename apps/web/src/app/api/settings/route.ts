@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 // GET /api/settings - Get user settings
-export async function GET() {
-  try {
-    const { appUserId } = await getSessionData();
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { appUserId } = sessionData;
 
     let settings = await prisma.userSetting.findUnique({
       where: { userId: appUserId },
@@ -21,20 +22,24 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json(settings);
-  } catch (error) {
-    logger.error('Get settings error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(settings);
+    } catch (error) {
+      logger.error('Get settings error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
 // PATCH /api/settings - Update user settings
-export async function PATCH(request: NextRequest) {
-  try {
-    const { appUserId } = await getSessionData();
+export const PATCH = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { appUserId } = sessionData;
     const data = await request.json();
 
     // Validate settings data
@@ -90,12 +95,15 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(settings);
-  } catch (error) {
-    logger.error('Update settings error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(settings);
+    } catch (error) {
+      logger.error('Update settings error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['PATCH'],
   }
-}
+);

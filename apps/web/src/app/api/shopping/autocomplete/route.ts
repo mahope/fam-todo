@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 // GET /api/shopping/autocomplete - Get autocomplete suggestions for shopping items
-export async function GET(request: NextRequest) {
-  try {
-    const { familyId } = await getSessionData();
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId } = sessionData;
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q')?.trim().toLowerCase();
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -102,20 +103,24 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.json(uniqueSuggestions);
-  } catch (error) {
-    logger.error('Autocomplete error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(uniqueSuggestions);
+    } catch (error) {
+      logger.error('Autocomplete error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
 // POST /api/shopping/autocomplete - Learn from user input to improve suggestions
-export async function POST(request: NextRequest) {
-  try {
-    const { familyId } = await getSessionData();
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId } = sessionData;
     const data = await request.json();
 
     if (!data.name || !data.category) {
@@ -157,12 +162,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    logger.error('Learn from input error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: true });
+    } catch (error) {
+      logger.error('Learn from input error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['POST'],
   }
-}
+);

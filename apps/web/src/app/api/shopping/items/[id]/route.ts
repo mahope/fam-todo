@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 // Shopping categories enum for validation
@@ -100,178 +100,181 @@ async function smartCategorizeItem(name: string, familyId: string): Promise<Shop
   return 'other';
 }
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
-    const params = await context.params;
-    
-    const shoppingItem = await findShoppingItem(params.id, familyId, appUserId, role);
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
+      const resolvedParams = await params;
 
-    if (!shoppingItem) {
-      return NextResponse.json(
-        { error: 'Shopping item not found' },
-        { status: 404 }
-      );
-    }
+      const shoppingItem = await findShoppingItem(resolvedParams.id, familyId, appUserId, role);
 
-    return NextResponse.json(shoppingItem);
-  } catch (error) {
-    logger.error('Get shopping item error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      if (!shoppingItem) {
+        return NextResponse.json(
+          { error: 'Shopping item not found' },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(shoppingItem);
+    } catch (error) {
+      logger.error('Get shopping item error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
-    const params = await context.params;
-    const data = await request.json();
+export const PUT = withAuth(
+  async (request: NextRequest, sessionData: SessionData, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
+      const resolvedParams = await params;
+      const data = await request.json();
 
-    // Find the shopping item
-    const existingItem = await findShoppingItem(params.id, familyId, appUserId, role);
+      // Find the shopping item
+      const existingItem = await findShoppingItem(resolvedParams.id, familyId, appUserId, role);
 
-    if (!existingItem) {
-      return NextResponse.json(
-        { error: 'Shopping item not found' },
-        { status: 404 }
-      );
-    }
+      if (!existingItem) {
+        return NextResponse.json(
+          { error: 'Shopping item not found' },
+          { status: 404 }
+        );
+      }
 
-    // Validate category if provided
-    if (data.category && !SHOPPING_CATEGORIES.includes(data.category)) {
-      return NextResponse.json(
-        { error: 'Invalid category value' },
-        { status: 400 }
-      );
-    }
+      // Validate category if provided
+      if (data.category && !SHOPPING_CATEGORIES.includes(data.category)) {
+        return NextResponse.json(
+          { error: 'Invalid category value' },
+          { status: 400 }
+        );
+      }
 
-    // Validate quantity if provided
-    let quantity: number | null = existingItem.quantity;
-    if (data.quantity !== undefined) {
-      if (data.quantity === null) {
-        quantity = null;
-      } else {
-        quantity = parseFloat(data.quantity);
-        if (isNaN(quantity) || quantity <= 0) {
-          return NextResponse.json(
-            { error: 'Quantity must be a positive number or null' },
-            { status: 400 }
-          );
+      // Validate quantity if provided
+      let quantity: number | null = existingItem.quantity;
+      if (data.quantity !== undefined) {
+        if (data.quantity === null) {
+          quantity = null;
+        } else {
+          quantity = parseFloat(data.quantity);
+          if (isNaN(quantity) || quantity <= 0) {
+            return NextResponse.json(
+              { error: 'Quantity must be a positive number or null' },
+              { status: 400 }
+            );
+          }
         }
       }
-    }
 
-    // Prepare update data
-    const updateData: any = {};
-    
-    if (data.name !== undefined) {
-      updateData.name = data.name.trim();
-      updateData.normalizedName = data.name.trim().toLowerCase();
-      
-      // Smart re-categorization if name changed but category not explicitly provided
-      if (!data.category && data.name.trim() !== existingItem.name) {
-        updateData.category = await smartCategorizeItem(data.name, familyId);
+      // Prepare update data
+      const updateData: any = {};
+
+      if (data.name !== undefined) {
+        updateData.name = data.name.trim();
+        updateData.normalizedName = data.name.trim().toLowerCase();
+
+        // Smart re-categorization if name changed but category not explicitly provided
+        if (!data.category && data.name.trim() !== existingItem.name) {
+          updateData.category = await smartCategorizeItem(data.name, familyId);
+        }
       }
-    }
-    
-    if (data.category !== undefined) {
-      updateData.category = data.category;
-    }
-    
-    if (data.quantity !== undefined) {
-      updateData.quantity = quantity;
-    }
-    
-    if (data.unit !== undefined) {
-      updateData.unit = data.unit?.trim() || null;
-    }
-    
-    if (data.purchased !== undefined) {
-      updateData.purchased = Boolean(data.purchased);
-    }
-    
-    // sortIndex field removed from schema
 
-    // Update the shopping item
-    const updatedItem = await prisma.shoppingItem.update({
-      where: { id: params.id },
-      data: updateData,
-      include: {
-        list: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-            listType: true,
-            visibility: true,
+      if (data.category !== undefined) {
+        updateData.category = data.category;
+      }
+
+      if (data.quantity !== undefined) {
+        updateData.quantity = quantity;
+      }
+
+      if (data.unit !== undefined) {
+        updateData.unit = data.unit?.trim() || null;
+      }
+
+      if (data.purchased !== undefined) {
+        updateData.purchased = Boolean(data.purchased);
+      }
+
+      // sortIndex field removed from schema
+
+      // Update the shopping item
+      const updatedItem = await prisma.shoppingItem.update({
+        where: { id: resolvedParams.id },
+        data: updateData,
+        include: {
+          list: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+              listType: true,
+              visibility: true,
+            },
           },
         },
-      },
-    });
-
-    // Update dictionary suggestion hits if item exists in dictionary and name was updated
-    if (updateData.normalizedName) {
-      await prisma.shoppingDictionary.updateMany({
-        where: {
-          OR: [
-            { familyId, key: updateData.normalizedName },
-            { familyId: null, key: updateData.normalizedName }
-          ]
-        },
-        data: {
-          suggestionHits: { increment: 1 }
-        }
       });
-    }
 
-    return NextResponse.json(updatedItem);
-  } catch (error) {
-    logger.error('Update shopping item error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      // Update dictionary suggestion hits if item exists in dictionary and name was updated
+      if (updateData.normalizedName) {
+        await prisma.shoppingDictionary.updateMany({
+          where: {
+            OR: [
+              { familyId, key: updateData.normalizedName },
+              { familyId: null, key: updateData.normalizedName }
+            ]
+          },
+          data: {
+            suggestionHits: { increment: 1 }
+          }
+        });
+      }
+
+      return NextResponse.json(updatedItem);
+    } catch (error) {
+      logger.error('Update shopping item error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['PUT'],
   }
-}
+);
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
-    const params = await context.params;
+export const DELETE = withAuth(
+  async (request: NextRequest, sessionData: SessionData, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
+      const resolvedParams = await params;
 
-    // Find the shopping item
-    const existingItem = await findShoppingItem(params.id, familyId, appUserId, role);
+      // Find the shopping item
+      const existingItem = await findShoppingItem(resolvedParams.id, familyId, appUserId, role);
 
-    if (!existingItem) {
-      return NextResponse.json(
-        { error: 'Shopping item not found' },
-        { status: 404 }
-      );
+      if (!existingItem) {
+        return NextResponse.json(
+          { error: 'Shopping item not found' },
+          { status: 404 }
+        );
+      }
+
+      // Delete the shopping item
+      await prisma.shoppingItem.delete({
+        where: { id: resolvedParams.id },
+      });
+
+      return NextResponse.json({ message: 'Shopping item deleted successfully' });
+    } catch (error) {
+      logger.error('Delete shopping item error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    // Delete the shopping item
-    await prisma.shoppingItem.delete({
-      where: { id: params.id },
-    });
-
-    return NextResponse.json({ message: 'Shopping item deleted successfully' });
-  } catch (error) {
-    logger.error('Delete shopping item error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['DELETE'],
   }
-}
+);

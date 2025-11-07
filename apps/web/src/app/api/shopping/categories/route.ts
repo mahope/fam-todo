@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 // Shopping categories enum
@@ -85,9 +85,10 @@ const CATEGORY_INFO = {
   },
 } as const;
 
-export async function GET(request: NextRequest) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
     const { searchParams } = new URL(request.url);
     
     const includeStats = searchParams.get('includeStats') === 'true';
@@ -162,31 +163,38 @@ export async function GET(request: NextRequest) {
         categoriesWithItems: categoryStats.filter(cat => cat.stats.total > 0).length,
       }
     });
-  } catch (error) {
-    logger.error('Get shopping categories error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    } catch (error) {
+      logger.error('Get shopping categories error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
-export async function POST(request: NextRequest) {
-  try {
-    // Note: This endpoint could be used in the future to create custom categories
-    // For now, we use predefined categories, but this provides extensibility
-    return NextResponse.json(
-      { 
-        error: 'Custom categories not supported yet. Use predefined categories.',
-        availableCategories: SHOPPING_CATEGORIES
-      }, 
-      { status: 400 }
-    );
-  } catch (error) {
-    logger.error('Create shopping category error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      // Note: This endpoint could be used in the future to create custom categories
+      // For now, we use predefined categories, but this provides extensibility
+      return NextResponse.json(
+        {
+          error: 'Custom categories not supported yet. Use predefined categories.',
+          availableCategories: SHOPPING_CATEGORIES
+        },
+        { status: 400 }
+      );
+    } catch (error) {
+      logger.error('Create shopping category error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['POST'],
   }
-}
+);

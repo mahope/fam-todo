@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
-    const params = await context.params;
-    const memberId = params.id;
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
+      const resolvedParams = await params;
+      const memberId = resolvedParams.id;
 
     // Users can view their own profile, or admins can view any family member
     const canView = role === 'ADMIN' || appUserId === memberId;
@@ -60,24 +58,25 @@ export async function GET(
       return NextResponse.json({ error: 'Member not found' }, { status: 404 });
     }
 
-    return NextResponse.json(member);
-  } catch (error) {
-    logger.error('Get family member error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(member);
+    } catch (error) {
+      logger.error('Get family member error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
-    const params = await context.params;
-    const memberId = params.id;
+export const PUT = withAuth(
+  async (request: NextRequest, sessionData: SessionData, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
+      const resolvedParams = await params;
+      const memberId = resolvedParams.id;
 
     // Users can edit their own profile, or admins can edit any family member
     const canEdit = role === 'ADMIN' || appUserId === memberId;
@@ -191,24 +190,25 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json(updatedMember);
-  } catch (error) {
-    logger.error('Update family member error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(updatedMember);
+    } catch (error) {
+      logger.error('Update family member error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['PUT'],
   }
-}
+);
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
-    const params = await context.params;
-    const memberId = params.id;
+export const DELETE = withAuth(
+  async (request: NextRequest, sessionData: SessionData, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
+      const resolvedParams = await params;
+      const memberId = resolvedParams.id;
 
     // Only admins can delete family members
     if (role !== 'ADMIN') {
@@ -254,12 +254,15 @@ export async function DELETE(
       });
     });
 
-    return NextResponse.json({ message: 'Member deleted successfully' });
-  } catch (error) {
-    logger.error('Delete family member error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ message: 'Member deleted successfully' });
+    } catch (error) {
+      logger.error('Delete family member error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'admin',
+    allowedMethods: ['DELETE'],
   }
-}
+);

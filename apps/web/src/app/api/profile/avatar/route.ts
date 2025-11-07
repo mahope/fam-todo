@@ -3,13 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { writeFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 // POST /api/profile/avatar - Upload new avatar
-export async function POST(request: NextRequest) {
-  try {
-    const { userId } = await getSessionData();
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { userId } = sessionData;
 
     // Get current avatar for cleanup
     const user = await prisma.user.findUnique({
@@ -102,19 +103,23 @@ export async function POST(request: NextRequest) {
       message: 'Avatar uploaded successfully',
     });
 
-  } catch (error) {
-    logger.error('Avatar upload error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    } catch (error) {
+      logger.error('Avatar upload error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'upload',
+    allowedMethods: ['POST'],
   }
-}
+);
 
 // DELETE /api/profile/avatar - Remove avatar
-export async function DELETE(request: NextRequest) {
-  try {
-    const { userId } = await getSessionData();
+export const DELETE = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { userId } = sessionData;
 
     // Get current avatar for cleanup
     const user = await prisma.user.findUnique({
@@ -145,11 +150,14 @@ export async function DELETE(request: NextRequest) {
       message: 'Avatar removed successfully',
     });
 
-  } catch (error) {
-    logger.error('Avatar remove error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    } catch (error) {
+      logger.error('Avatar remove error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'upload',
+    allowedMethods: ['DELETE'],
   }
-}
+);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 // Shopping categories enum
@@ -22,9 +22,10 @@ interface SearchSuggestion {
   matchedText: string;
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    const { familyId } = await getSessionData();
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId } = sessionData;
     const { searchParams } = new URL(request.url);
     
     const query = searchParams.get('q')?.trim();
@@ -202,18 +203,22 @@ export async function GET(request: NextRequest) {
         hasMore: familyResults.length + globalResults.length > limit,
       },
     });
-  } catch (error) {
-    logger.error('Dictionary search error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    } catch (error) {
+      logger.error('Dictionary search error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
-export async function POST(request: NextRequest) {
-  try {
-    const { familyId } = await getSessionData();
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId } = sessionData;
     const data = await request.json();
 
     // This endpoint can be used to record when a suggestion was used
@@ -251,15 +256,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      message: 'Suggestion usage recorded successfully',
-      updatedEntries: updatedEntries.count
-    });
-  } catch (error) {
-    logger.error('Record suggestion usage error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({
+        message: 'Suggestion usage recorded successfully',
+        updatedEntries: updatedEntries.count
+      });
+    } catch (error) {
+      logger.error('Record suggestion usage error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['POST'],
   }
-}
+);

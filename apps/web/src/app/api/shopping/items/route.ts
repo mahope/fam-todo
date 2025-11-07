@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 // Shopping categories enum for validation
@@ -131,9 +131,10 @@ async function smartCategorizeItem(name: string, familyId: string): Promise<Shop
   return 'other';
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
     const { searchParams } = new URL(request.url);
     const filters = parseShoppingFilters(searchParams);
 
@@ -187,18 +188,22 @@ export async function GET(request: NextRequest) {
       },
       categories: SHOPPING_CATEGORIES,
     });
-  } catch (error) {
-    logger.error('Get shopping items error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    } catch (error) {
+      logger.error('Get shopping items error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
-export async function POST(request: NextRequest) {
-  try {
-    const { familyId, appUserId } = await getSessionData();
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
     const data = await request.json();
 
     // Validate required fields
@@ -219,7 +224,7 @@ export async function POST(request: NextRequest) {
           { visibility: 'FAMILY' },
           { visibility: 'PRIVATE', ownerId: appUserId },
           // Only include adult visibility if user is adult or admin
-          ...(await getSessionData()).role === 'ADULT' || (await getSessionData()).role === 'ADMIN' ? [{ visibility: 'ADULT' as const }] : [],
+          ...(role === 'ADULT' || role === 'ADMIN') ? [{ visibility: 'ADULT' as const }] : [],
         ],
       },
     });
@@ -295,12 +300,15 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(shoppingItem, { status: 201 });
-  } catch (error) {
-    logger.error('Create shopping item error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(shoppingItem, { status: 201 });
+    } catch (error) {
+      logger.error('Create shopping item error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['POST'],
   }
-}
+);

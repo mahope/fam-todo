@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
 import crypto from 'crypto';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
-export async function GET() {
-  try {
-    const { familyId, role } = await getSessionData();
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, role } = sessionData;
 
     // Only admins can view all family members
     if (role !== 'ADMIN') {
@@ -53,19 +54,23 @@ export async function GET() {
       ],
     });
 
-    return NextResponse.json(members);
-  } catch (error) {
-    logger.error('Get family members error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(members);
+    } catch (error) {
+      logger.error('Get family members error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'admin',
+    allowedMethods: ['GET'],
   }
-}
+);
 
-export async function POST(request: NextRequest) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
 
     // Only admins can invite new family members
     if (role !== 'ADMIN') {
@@ -164,12 +169,15 @@ export async function POST(request: NextRequest) {
       created_at: invite.created_at,
       family: invite.family,
       inviter: invite.inviter,
-    }, { status: 201 });
-  } catch (error) {
-    logger.error('Create family invite error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }, { status: 201 });
+    } catch (error) {
+      logger.error('Create family invite error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'admin',
+    allowedMethods: ['POST'],
   }
-}
+);

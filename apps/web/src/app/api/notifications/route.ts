@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { NotificationService } from '@/lib/services/notifications';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 // GET /api/notifications - Get notifications for the current user
-export async function GET(request: NextRequest) {
-  try {
-    const { appUserId } = await getSessionData();
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { appUserId } = sessionData;
     const { searchParams } = new URL(request.url);
     
     const unreadOnly = searchParams.get('unread_only') === 'true';
@@ -22,28 +23,32 @@ export async function GET(request: NextRequest) {
 
     const unreadCount = await NotificationService.getUnreadCount(appUserId);
 
-    return NextResponse.json({
-      notifications,
-      unreadCount,
-      pagination: {
-        limit,
-        offset,
-        hasMore: notifications.length === limit,
-      },
-    });
-  } catch (error) {
-    logger.error('Get notifications error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({
+        notifications,
+        unreadCount,
+        pagination: {
+          limit,
+          offset,
+          hasMore: notifications.length === limit,
+        },
+      });
+    } catch (error) {
+      logger.error('Get notifications error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
 // POST /api/notifications - Create a new notification (admin only)
-export async function POST(request: NextRequest) {
-  try {
-    const { familyId, role } = await getSessionData();
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, role } = sessionData;
     const data = await request.json();
 
     // Only admins can create manual notifications
@@ -87,12 +92,15 @@ export async function POST(request: NextRequest) {
       userId: data.userId,
     });
 
-    return NextResponse.json(notification, { status: 201 });
-  } catch (error) {
-    logger.error('Create notification error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(notification, { status: 201 });
+    } catch (error) {
+      logger.error('Create notification error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'admin',
+    allowedMethods: ['POST'],
   }
-}
+);
