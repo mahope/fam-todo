@@ -2,17 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/lib/api-error-handler';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 
 // GET /api/folders/[id] - Get individual folder
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
-    const params = await context.params;
-    const folderId = params.id;
+export const GET = withAuth(
+  async (
+    request: NextRequest,
+    sessionData: SessionData,
+    { params }: { params: Promise<{ id: string }> }
+  ): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
+      const resolvedParams = await params;
+      const folderId = resolvedParams.id;
 
     const folder = await prisma.folder.findFirst({
       where: {
@@ -64,22 +66,30 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(folder);
-  } catch (error) {
-    const params = await context.params;
-    return handleApiError(error, { operation: 'get_folder', folderId: params.id });
+      return NextResponse.json(folder);
+    } catch (error) {
+      const resolvedParams = await params;
+      return handleApiError(error, { operation: 'get_folder', folderId: resolvedParams.id });
+    }
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
 // PATCH /api/folders/[id] - Update individual folder
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
-    const params = await context.params;
-    const folderId = params.id;
+export const PATCH = withAuth(
+  async (
+    request: NextRequest,
+    sessionData: SessionData,
+    { params }: { params: Promise<{ id: string }> }
+  ): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
+      const resolvedParams = await params;
+      const folderId = resolvedParams.id;
     const data = await request.json();
 
     // Check if folder exists and user has access
@@ -137,25 +147,32 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json(updatedFolder);
-    logger.info('Folder updated', { folderId, updateData, ownerId: appUserId });
+      logger.info('Folder updated', { folderId, updateData, ownerId: appUserId });
 
-    return NextResponse.json(updatedFolder);
-  } catch (error) {
-    const params = await context.params;
-    return handleApiError(error, { operation: 'update_folder', folderId: params.id });
+      return NextResponse.json(updatedFolder);
+    } catch (error) {
+      const resolvedParams = await params;
+      return handleApiError(error, { operation: 'update_folder', folderId: resolvedParams.id });
+    }
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['PATCH'],
   }
-}
+);
 
 // DELETE /api/folders/[id] - Delete individual folder
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
-    const params = await context.params;
-    const folderId = params.id;
+export const DELETE = withAuth(
+  async (
+    request: NextRequest,
+    sessionData: SessionData,
+    { params }: { params: Promise<{ id: string }> }
+  ): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
+      const resolvedParams = await params;
+      const folderId = resolvedParams.id;
 
     // Check if folder exists and user has access
     const existingFolder = await prisma.folder.findFirst({
@@ -202,12 +219,17 @@ export async function DELETE(
       where: { id: folderId },
     });
 
-    return NextResponse.json({ success: true, message: 'Folder deleted successfully' });
-    logger.info('Folder deleted', { folderId, ownerId: appUserId });
+      logger.info('Folder deleted', { folderId, ownerId: appUserId });
 
-    return NextResponse.json({ success: true, message: 'Folder deleted successfully' });
-  } catch (error) {
-    const params = await context.params;
-    return handleApiError(error, { operation: 'delete_folder', folderId: params.id });
+      return NextResponse.json({ success: true, message: 'Folder deleted successfully' });
+    } catch (error) {
+      const resolvedParams = await params;
+      return handleApiError(error, { operation: 'delete_folder', folderId: resolvedParams.id });
+    }
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['DELETE'],
   }
-}
+);

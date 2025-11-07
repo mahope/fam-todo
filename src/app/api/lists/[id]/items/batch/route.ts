@@ -1,6 +1,6 @@
 // API endpoint for batch adding items to a list
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { ListService } from '@/lib/services/lists';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
@@ -13,16 +13,17 @@ interface BatchItemsRequest {
 }
 
 // POST /api/lists/[id]/items/batch - Add multiple items to list
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  logger.info('POST /api/lists/[id]/items/batch');
-  
-  try {
-    const { appUserId: userId, familyId, role } = await getSessionData();
-    const params = await context.params;
-    const listId = params.id;
+export const POST = withAuth(
+  async (
+    request: NextRequest,
+    sessionData: SessionData,
+    { params }: { params: { id: string } }
+  ): Promise<NextResponse> => {
+    logger.info('POST /api/lists/[id]/items/batch');
+
+    try {
+      const { appUserId: userId, familyId, role } = sessionData;
+      const listId = params.id;
     
     // Parse request body
     const body: BatchItemsRequest = await request.json();
@@ -163,14 +164,8 @@ export async function POST(
     
   } catch (error) {
     logger.error('POST /api/lists/[id]/items/batch failed', { error });
-    
+
     if (error instanceof Error) {
-      if (error.message === 'Unauthorized') {
-        return NextResponse.json(
-          { error: 'Unauthorized', message: 'Authentication required' },
-          { status: 401 }
-        );
-      }
       if (error.message === 'List not found or access denied') {
         return NextResponse.json(
           { error: 'Not found', message: error.message },
@@ -178,10 +173,16 @@ export async function POST(
         );
       }
     }
-    
+
     return NextResponse.json(
       { error: 'Internal server error', message: 'Failed to add items' },
       { status: 500 }
     );
   }
+},
+{
+  requireAuth: true,
+  rateLimitRule: 'api',
+  allowedMethods: ['POST'],
 }
+);

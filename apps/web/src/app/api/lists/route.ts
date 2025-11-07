@@ -1,19 +1,20 @@
 // Clean API routes using unified ListService
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { ListService } from '@/lib/services/lists';
 import { logger } from '@/lib/logger';
-import { 
+import {
   isListError,
   CreateListRequest,
-  ListQueryOptions 
+  ListQueryOptions
 } from '@/lib/types/list';
 
-export async function GET(request: NextRequest) {
-  logger.info('GET /api/lists');
-  
-  try {
-    const { appUserId: userId, familyId, role } = await getSessionData();
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    logger.info('GET /api/lists');
+
+    try {
+      const { appUserId: userId, familyId, role } = sessionData;
     const { searchParams } = new URL(request.url);
     
     // Parse query parameters
@@ -38,36 +39,43 @@ export async function GET(request: NextRequest) {
       },
     });
 
-  } catch (error) {
-    logger.error('GET /api/lists failed', { error });
-    
-    if (error instanceof Error) {
-      if (error.message === 'Unauthorized') {
-        return NextResponse.json(
-          { error: 'Unauthorized', message: 'Authentication required' },
-          { status: 401 }
-        );
-      }
-      if (error.message === 'App user not found') {
-        return NextResponse.json(
-          { error: 'User not found', message: 'User not properly configured' },
-          { status: 404 }
-        );
-      }
-    }
-    
-    return NextResponse.json(
-      { error: 'Internal server error', message: 'Failed to fetch lists' },
-      { status: 500 }
-    );
-  }
-}
+    } catch (error) {
+      logger.error('GET /api/lists failed', { error });
 
-export async function POST(request: NextRequest) {
-  logger.info('POST /api/lists');
-  
-  try {
-    const { appUserId: userId, familyId, role } = await getSessionData();
+      if (error instanceof Error) {
+        if (error.message === 'Unauthorized') {
+          return NextResponse.json(
+            { error: 'Unauthorized', message: 'Authentication required' },
+            { status: 401 }
+          );
+        }
+        if (error.message === 'App user not found') {
+          return NextResponse.json(
+            { error: 'User not found', message: 'User not properly configured' },
+            { status: 404 }
+          );
+        }
+      }
+
+      return NextResponse.json(
+        { error: 'Internal server error', message: 'Failed to fetch lists' },
+        { status: 500 }
+      );
+    }
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
+  }
+);
+
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    logger.info('POST /api/lists');
+
+    try {
+      const { appUserId: userId, familyId, role } = sessionData;
     const data: CreateListRequest = await request.json();
 
     // Basic validation
@@ -81,29 +89,35 @@ export async function POST(request: NextRequest) {
     const permissions = { userId, familyId, role };
     const list = await ListService.createList(data, permissions);
 
-    return NextResponse.json(list, { status: 201 });
+      return NextResponse.json(list, { status: 201 });
 
-  } catch (error) {
-    logger.error('POST /api/lists failed', { error });
-    
-    if (error instanceof Error) {
-      if (error.message === 'Unauthorized') {
-        return NextResponse.json(
-          { error: 'Unauthorized', message: 'Authentication required' },
-          { status: 401 }
-        );
+    } catch (error) {
+      logger.error('POST /api/lists failed', { error });
+
+      if (error instanceof Error) {
+        if (error.message === 'Unauthorized') {
+          return NextResponse.json(
+            { error: 'Unauthorized', message: 'Authentication required' },
+            { status: 401 }
+          );
+        }
+        if (error.message.includes('Folder not found')) {
+          return NextResponse.json(
+            { error: 'Validation error', message: error.message, field: 'folderId' },
+            { status: 400 }
+          );
+        }
       }
-      if (error.message.includes('Folder not found')) {
-        return NextResponse.json(
-          { error: 'Validation error', message: error.message, field: 'folderId' },
-          { status: 400 }
-        );
-      }
+
+      return NextResponse.json(
+        { error: 'Internal server error', message: 'Failed to create list' },
+        { status: 500 }
+      );
     }
-    
-    return NextResponse.json(
-      { error: 'Internal server error', message: 'Failed to create list' },
-      { status: 500 }
-    );
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['POST'],
   }
-}
+);

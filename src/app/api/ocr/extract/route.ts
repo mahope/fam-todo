@@ -1,6 +1,6 @@
 // API endpoint for extracting text from images using OCR
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { OCRService } from '@/lib/services/ocr';
 import { logger } from '@/lib/logger';
 
@@ -13,12 +13,12 @@ interface ExtractRequest {
 }
 
 // POST /api/ocr/extract - Extract text from image using OCR
-export async function POST(request: NextRequest) {
-  logger.info('POST /api/ocr/extract');
-  
-  try {
-    // Verify user is authenticated
-    await getSessionData();
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    logger.info('POST /api/ocr/extract');
+
+    try {
+      // User is already authenticated via withAuth
     
     // Parse request body
     const body: ExtractRequest = await request.json();
@@ -72,17 +72,11 @@ export async function POST(request: NextRequest) {
     
   } catch (error) {
     logger.error('POST /api/ocr/extract failed', { error });
-    
+
     // Clean up OCR worker on error
     await OCRService.cleanup();
-    
+
     if (error instanceof Error) {
-      if (error.message === 'Unauthorized') {
-        return NextResponse.json(
-          { error: 'Unauthorized', message: 'Authentication required' },
-          { status: 401 }
-        );
-      }
       if (error.message.includes('OCR') || error.message.includes('extract')) {
         return NextResponse.json(
           { error: 'OCR error', message: error.message },
@@ -90,10 +84,16 @@ export async function POST(request: NextRequest) {
         );
       }
     }
-    
+
     return NextResponse.json(
       { error: 'Internal server error', message: 'Failed to extract text from image' },
       { status: 500 }
     );
   }
+},
+{
+  requireAuth: true,
+  rateLimitRule: 'upload',
+  allowedMethods: ['POST'],
 }
+);

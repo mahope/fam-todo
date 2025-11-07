@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pushNotificationService, NotificationPayload } from '@/lib/services/push-notifications';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 // POST /api/push/send - Send push notification (admin/testing only)
-export async function POST(request: NextRequest) {
-  try {
-    const { appUserId, familyId, role } = await getSessionData();
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { appUserId, familyId, role } = sessionData;
     
     // Only allow admins to send push notifications directly
     if (role !== 'ADMIN') {
@@ -70,9 +71,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('Push send error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+},
+{
+  requireAuth: true,
+  rateLimitRule: 'api',
+  allowedMethods: ['POST'],
 }
+);

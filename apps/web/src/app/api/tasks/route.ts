@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Priority, Recurrence, Visibility } from '@prisma/client';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 type TaskFilterParams = {
@@ -114,9 +114,10 @@ function buildTaskOrderBy(sortBy: string, sortOrder: 'asc' | 'desc') {
   return orderBy;
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
     const { searchParams } = new URL(request.url);
     const filters = parseTaskFilters(searchParams);
     
@@ -221,18 +222,22 @@ export async function GET(request: NextRequest) {
         hasMore: skip + take < totalCount,
       },
     });
-  } catch (error) {
-    logger.error('Get tasks error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    } catch (error) {
+      logger.error('Get tasks error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
-export async function POST(request: NextRequest) {
-  try {
-    const { familyId, appUserId } = await getSessionData();
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
     const data = await request.json();
 
     // Validate required fields
@@ -251,7 +256,7 @@ export async function POST(request: NextRequest) {
         OR: [
           { visibility: 'FAMILY' },
           { visibility: 'PRIVATE', ownerId: appUserId },
-          ...(await getSessionData()).role === 'ADULT' || (await getSessionData()).role === 'ADMIN' ? [{ visibility: 'ADULT' as const }] : [],
+          ...(role === 'ADULT' || role === 'ADMIN') ? [{ visibility: 'ADULT' as const }] : [],
         ],
       },
     });
@@ -443,12 +448,15 @@ export async function POST(request: NextRequest) {
         : 0,
     };
 
-    return NextResponse.json(taskWithComputed, { status: 201 });
-  } catch (error) {
-    logger.error('Create task error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(taskWithComputed, { status: 201 });
+    } catch (error) {
+      logger.error('Create task error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['POST'],
   }
-}
+);

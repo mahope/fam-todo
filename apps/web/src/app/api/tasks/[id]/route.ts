@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Priority, Recurrence } from '@prisma/client';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 async function verifyTaskAccess(taskId: string, familyId: string, appUserId: string, role: string) {
@@ -60,14 +60,16 @@ async function verifyTaskAccess(taskId: string, familyId: string, appUserId: str
 }
 
 // GET /api/tasks/[id] - Get a specific task
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
-    const params = await context.params;
-    const task = await verifyTaskAccess(params.id, familyId, appUserId, role);
+export const GET = withAuth(
+  async (
+    request: NextRequest,
+    sessionData: SessionData,
+    { params }: { params: Promise<{ id: string }> }
+  ): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
+      const resolvedParams = await params;
+      const task = await verifyTaskAccess(resolvedParams.id, familyId, appUserId, role);
 
     if (!task) {
       return NextResponse.json(
@@ -87,30 +89,35 @@ export async function GET(
         : 0,
     };
 
-    return NextResponse.json(taskWithComputed);
-  } catch (error) {
-    logger.error('Get task error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(taskWithComputed);
+    } catch (error) {
+      logger.error('Get task error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
 // PUT /api/tasks/[id] - Update a specific task
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
-    const params = await context.params;
-    const data = await request.json();
+export const PUT = withAuth(
+  async (
+    request: NextRequest,
+    sessionData: SessionData,
+    { params }: { params: Promise<{ id: string }> }
+  ): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
+      const resolvedParams = await params;
+      const data = await request.json();
 
-    // Verify task exists and user has access
-    const existingTask = await verifyTaskAccess(params.id, familyId, appUserId, role);
-    
-    if (!existingTask) {
+      // Verify task exists and user has access
+      const existingTask = await verifyTaskAccess(resolvedParams.id, familyId, appUserId, role);
+
+      if (!existingTask) {
       return NextResponse.json(
         { error: 'Task not found or access denied' },
         { status: 404 }
@@ -200,11 +207,11 @@ export async function PUT(
     if (data.hasOwnProperty('recurrence')) updateData.recurrence = data.recurrence;
     if (tags !== undefined) updateData.tags = tags;
 
-    // Update task and handle subtasks in transaction
-    const result = await prisma.$transaction(async (prisma) => {
-      // Update the task
-      const updatedTask = await prisma.task.update({
-        where: { id: params.id },
+      // Update task and handle subtasks in transaction
+      const result = await prisma.$transaction(async (prisma) => {
+        // Update the task
+        const updatedTask = await prisma.task.update({
+          where: { id: resolvedParams.id },
         data: updateData,
         include: {
           owner: {
@@ -245,19 +252,19 @@ export async function PUT(
         },
       });
 
-      // Handle subtasks if provided
-      if (data.hasOwnProperty('subtasks') && Array.isArray(data.subtasks)) {
-        // Delete existing subtasks
-        await prisma.subtask.deleteMany({
-          where: { taskId: params.id },
-        });
+        // Handle subtasks if provided
+        if (data.hasOwnProperty('subtasks') && Array.isArray(data.subtasks)) {
+          // Delete existing subtasks
+          await prisma.subtask.deleteMany({
+            where: { taskId: resolvedParams.id },
+          });
 
-        // Create new subtasks if any
-        const validSubtasks = data.subtasks
-          .filter((st: any) => st.title && typeof st.title === 'string')
-          .slice(0, 20)
-          .map((st: any) => ({
-            taskId: params.id,
+          // Create new subtasks if any
+          const validSubtasks = data.subtasks
+            .filter((st: any) => st.title && typeof st.title === 'string')
+            .slice(0, 20)
+            .map((st: any) => ({
+              taskId: resolvedParams.id,
             title: st.title.trim(),
             completed: Boolean(st.completed),
           }));
@@ -268,9 +275,9 @@ export async function PUT(
           });
         }
 
-        // Refetch with new subtasks
-        return prisma.task.findUnique({
-          where: { id: params.id },
+          // Refetch with new subtasks
+          return prisma.task.findUnique({
+            where: { id: resolvedParams.id },
           include: {
             owner: {
               select: {
@@ -325,64 +332,67 @@ export async function PUT(
         : 0,
     };
 
-    return NextResponse.json(taskWithComputed);
-  } catch (error) {
-    logger.error('Update task error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(taskWithComputed);
+    } catch (error) {
+      logger.error('Update task error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['PUT'],
   }
-}
+);
 
 // PATCH /api/tasks/[id] - Update a specific task (alias for PUT)
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  return PUT(request, context);
-}
+export const PATCH = PUT;
 
 // DELETE /api/tasks/[id] - Delete a specific task
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
-    const params = await context.params;
+export const DELETE = withAuth(
+  async (
+    request: NextRequest,
+    sessionData: SessionData,
+    { params }: { params: Promise<{ id: string }> }
+  ): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
+      const resolvedParams = await params;
 
-    // Verify task exists and user has access
-    const existingTask = await verifyTaskAccess(params.id, familyId, appUserId, role);
-    
-    if (!existingTask) {
-      return NextResponse.json(
-        { error: 'Task not found or access denied' },
-        { status: 404 }
-      );
+      // Verify task exists and user has access
+      const existingTask = await verifyTaskAccess(resolvedParams.id, familyId, appUserId, role);
+
+      if (!existingTask) {
+        return NextResponse.json(
+          { error: 'Task not found or access denied' },
+          { status: 404 }
+        );
+      }
+
+      // Check if user can delete this task (owner or admin)
+      const canDelete = existingTask.ownerId === appUserId || role === 'ADMIN';
+
+      if (!canDelete) {
+        return NextResponse.json(
+          { error: 'Not authorized to delete this task' },
+          { status: 403 }
+        );
+      }
+
+      // Delete the task (subtasks will be deleted via CASCADE)
+      await prisma.task.delete({
+        where: { id: resolvedParams.id },
+      });
+
+      return NextResponse.json({ message: 'Task deleted successfully' });
+    } catch (error) {
+      logger.error('Delete task error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-
-    // Check if user can delete this task (owner or admin)
-    const canDelete = existingTask.ownerId === appUserId || role === 'ADMIN';
-    
-    if (!canDelete) {
-      return NextResponse.json(
-        { error: 'Not authorized to delete this task' },
-        { status: 403 }
-      );
-    }
-
-    // Delete the task (subtasks will be deleted via CASCADE)
-    await prisma.task.delete({
-      where: { id: params.id },
-    });
-
-    return NextResponse.json({ message: 'Task deleted successfully' });
-  } catch (error) {
-    logger.error('Delete task error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['DELETE'],
   }
-}
+);

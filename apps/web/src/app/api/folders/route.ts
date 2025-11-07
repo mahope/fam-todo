@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/lib/api-error-handler';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 
 // GET /api/folders - Get all folders for the family
-export async function GET() {
-  try {
-    const { familyId, appUserId, role } = await getSessionData();
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId, role } = sessionData;
 
     const folders = await prisma.folder.findMany({
       where: {
@@ -36,16 +37,23 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(folders);
-  } catch (error) {
-    return handleApiError(error, { operation: 'get_folders' });
+      return NextResponse.json(folders);
+    } catch (error) {
+      return handleApiError(error, { operation: 'get_folders' });
+    }
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['GET'],
   }
-}
+);
 
 // POST /api/folders - Create a new folder
-export async function POST(request: NextRequest) {
-  try {
-    const { familyId, appUserId } = await getSessionData();
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, appUserId } = sessionData;
     const data = await request.json();
 
     // Validate required fields
@@ -84,10 +92,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    logger.info('Folder created', { folderId: folder.id, name: folder.name, ownerId: appUserId });
+      logger.info('Folder created', { folderId: folder.id, name: folder.name, ownerId: appUserId });
 
-    return NextResponse.json(folder, { status: 201 });
-  } catch (error) {
-    return handleApiError(error, { operation: 'create_folder' });
+      return NextResponse.json(folder, { status: 201 });
+    } catch (error) {
+      return handleApiError(error, { operation: 'create_folder' });
+    }
+  },
+  {
+    requireAuth: true,
+    rateLimitRule: 'api',
+    allowedMethods: ['POST'],
   }
-}
+);

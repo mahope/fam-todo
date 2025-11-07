@@ -1,6 +1,6 @@
 // API endpoint for scanning images and adding items to lists
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { ListService } from '@/lib/services/lists';
 import { OCRService } from '@/lib/services/ocr';
 import { prisma } from '@/lib/prisma';
@@ -16,16 +16,17 @@ interface ScanRequest {
 }
 
 // POST /api/lists/[id]/scan - Scan image and add items to list
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  logger.info('POST /api/lists/[id]/scan');
-  
-  try {
-    const { appUserId: userId, familyId, role } = await getSessionData();
-    const params = await context.params;
-    const listId = params.id;
+export const POST = withAuth(
+  async (
+    request: NextRequest,
+    sessionData: SessionData,
+    { params }: { params: { id: string } }
+  ): Promise<NextResponse> => {
+    logger.info('POST /api/lists/[id]/scan');
+
+    try {
+      const { appUserId: userId, familyId, role } = sessionData;
+      const listId = params.id;
     
     // Parse request body
     const body: ScanRequest = await request.json();
@@ -181,17 +182,11 @@ export async function POST(
     
   } catch (error) {
     logger.error('POST /api/lists/[id]/scan failed', { error });
-    
+
     // Clean up OCR worker on error
     await OCRService.cleanup();
-    
+
     if (error instanceof Error) {
-      if (error.message === 'Unauthorized') {
-        return NextResponse.json(
-          { error: 'Unauthorized', message: 'Authentication required' },
-          { status: 401 }
-        );
-      }
       if (error.message.includes('OCR')) {
         return NextResponse.json(
           { error: 'OCR error', message: error.message },
@@ -199,10 +194,16 @@ export async function POST(
         );
       }
     }
-    
+
     return NextResponse.json(
       { error: 'Internal server error', message: 'Failed to process image' },
       { status: 500 }
     );
   }
+},
+{
+  requireAuth: true,
+  rateLimitRule: 'upload',
+  allowedMethods: ['POST'],
 }
+);

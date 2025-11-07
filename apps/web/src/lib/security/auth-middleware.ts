@@ -6,16 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { checkRateLimit } from './rate-limiter';
 import { SecurityHeaders } from './input-validation';
 import { logger } from '@/lib/logger';
-
-// Session data interface
-export interface SessionData {
-  userId: string;
-  appUserId: string;
-  familyId: string;
-  role: 'ADMIN' | 'ADULT' | 'CHILD';
-  email: string;
-  displayName: string;
-}
+import { SessionData } from '@/lib/auth/session';
 
 // Authorization options
 export interface AuthOptions {

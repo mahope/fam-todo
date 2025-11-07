@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pushNotificationService } from '@/lib/services/push-notifications';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 // POST /api/push/subscribe - Subscribe to push notifications
-export async function POST(request: NextRequest) {
-  try {
-    const { appUserId } = await getSessionData();
-    const body = await request.json();
+export const POST = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { appUserId } = sessionData;
+      const body = await request.json();
     
     const { subscription } = body;
     
@@ -35,18 +36,22 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     logger.error('Push subscription error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+},
+{
+  requireAuth: true,
+  rateLimitRule: 'api',
+  allowedMethods: ['POST'],
 }
+);
 
 // DELETE /api/push/subscribe - Unsubscribe from push notifications
-export async function DELETE(request: NextRequest) {
-  try {
-    const { appUserId } = await getSessionData();
-    const body = await request.json();
+export const DELETE = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { appUserId } = sessionData;
+      const body = await request.json();
     
     const { endpoint } = body;
     
@@ -66,9 +71,12 @@ export async function DELETE(request: NextRequest) {
 
   } catch (error) {
     logger.error('Push unsubscription error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+},
+{
+  requireAuth: true,
+  rateLimitRule: 'api',
+  allowedMethods: ['DELETE'],
 }
+);

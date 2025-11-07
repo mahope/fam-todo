@@ -1,25 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionData } from '@/lib/auth/session';
+import { withAuth, SessionData } from '@/lib/security/auth-middleware';
 import { logger } from '@/lib/logger';
 
 // GET /api/export - Export family data
-export async function GET(request: NextRequest) {
-  try {
-    const { familyId, role } = await getSessionData();
-    const { searchParams } = new URL(request.url);
-    
-    const format = searchParams.get('format') || 'json';
-    const includeCompleted = searchParams.get('include_completed') === 'true';
-    const includeArchived = searchParams.get('include_archived') === 'true';
+export const GET = withAuth(
+  async (request: NextRequest, sessionData: SessionData): Promise<NextResponse> => {
+    try {
+      const { familyId, role } = sessionData;
+      const { searchParams } = new URL(request.url);
 
-    // Only admins and adults can export data
-    if (role === 'CHILD') {
-      return NextResponse.json(
-        { error: 'Insufficient permissions to export data' },
-        { status: 403 }
-      );
-    }
+      const format = searchParams.get('format') || 'json';
+      const includeCompleted = searchParams.get('include_completed') === 'true';
+      const includeArchived = searchParams.get('include_archived') === 'true';
+
+      // Only admins and adults can export data
+      if (role === 'CHILD') {
+        return NextResponse.json(
+          { error: 'Insufficient permissions to export data' },
+          { status: 403 }
+        );
+      }
 
     // Get family data
     const family = await prisma.family.findUnique({
@@ -131,12 +132,15 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     logger.error('Export data error', { error: error instanceof Error ? error.message : String(error) });
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+},
+{
+  requireAuth: true,
+  rateLimitRule: 'api',
+  allowedMethods: ['GET'],
 }
+);
 
 function convertToCSV(data: any): string {
   const csvLines: string[] = [];

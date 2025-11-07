@@ -10,6 +10,7 @@ export interface SessionData {
   familyId: string;
   role: Role;
   email: string;
+  displayName: string;
 }
 
 /**
@@ -55,6 +56,7 @@ export async function getSessionData(): Promise<SessionData> {
       familyId: user.appUser.familyId,
       role: user.appUser.role,
       email: user.appUser.email,
+      displayName: user.name || user.appUser.email.split('@')[0],
     };
 
     logger.info('getSessionData: Session data prepared successfully', sessionData);
