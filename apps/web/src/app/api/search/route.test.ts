@@ -35,7 +35,7 @@ describe('/api/search', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -57,7 +57,7 @@ describe('/api/search', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -90,9 +90,9 @@ describe('/api/search', () => {
         },
       ];
 
-      mockPrisma.task.findMany.mockResolvedValue(mockTasks as any);
-      mockPrisma.list.findMany.mockResolvedValue([]);
-      mockPrisma.folder.findMany.mockResolvedValue([]);
+      (mockPrisma.task.findMany as jest.Mock).mockResolvedValue(mockTasks as any);
+      (mockPrisma.list.findMany as jest.Mock).mockResolvedValue([]);
+      (mockPrisma.folder.findMany as jest.Mock).mockResolvedValue([]);
 
       const request = new NextRequest('http://localhost/api/search?q=test&type=tasks');
       const response = await GET(request);
@@ -110,7 +110,7 @@ describe('/api/search', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -140,9 +140,9 @@ describe('/api/search', () => {
         },
       ];
 
-      mockPrisma.task.findMany.mockResolvedValue([]);
-      mockPrisma.list.findMany.mockResolvedValue(mockLists as any);
-      mockPrisma.folder.findMany.mockResolvedValue([]);
+      (mockPrisma.task.findMany as jest.Mock).mockResolvedValue([]);
+      (mockPrisma.list.findMany as jest.Mock).mockResolvedValue(mockLists as any);
+      (mockPrisma.folder.findMany as jest.Mock).mockResolvedValue([]);
 
       const request = new NextRequest('http://localhost/api/search?q=test&type=lists');
       const response = await GET(request);
@@ -160,7 +160,7 @@ describe('/api/search', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -185,9 +185,9 @@ describe('/api/search', () => {
         },
       ];
 
-      mockPrisma.task.findMany.mockResolvedValue([]);
-      mockPrisma.list.findMany.mockResolvedValue([]);
-      mockPrisma.folder.findMany.mockResolvedValue(mockFolders as any);
+      (mockPrisma.task.findMany as jest.Mock).mockResolvedValue([]);
+      (mockPrisma.list.findMany as jest.Mock).mockResolvedValue([]);
+      (mockPrisma.folder.findMany as jest.Mock).mockResolvedValue(mockFolders as any);
 
       const request = new NextRequest('http://localhost/api/search?q=test&type=folders');
       const response = await GET(request);
@@ -206,7 +206,7 @@ describe('/api/search', () => {
       } as any);
 
       // Test as CHILD user
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -215,9 +215,9 @@ describe('/api/search', () => {
         },
       } as any);
 
-      mockPrisma.task.findMany.mockResolvedValue([]);
-      mockPrisma.list.findMany.mockResolvedValue([]);
-      mockPrisma.folder.findMany.mockResolvedValue([]);
+      (mockPrisma.task.findMany as jest.Mock).mockResolvedValue([]);
+      (mockPrisma.list.findMany as jest.Mock).mockResolvedValue([]);
+      (mockPrisma.folder.findMany as jest.Mock).mockResolvedValue([]);
 
       const request = new NextRequest('http://localhost/api/search?q=test');
       const response = await GET(request);
@@ -243,7 +243,7 @@ describe('/api/search', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -288,9 +288,9 @@ describe('/api/search', () => {
         },
       ];
 
-      mockPrisma.task.findMany.mockResolvedValue(mockTasks as any);
-      mockPrisma.list.findMany.mockResolvedValue([]);
-      mockPrisma.folder.findMany.mockResolvedValue([]);
+      (mockPrisma.task.findMany as jest.Mock).mockResolvedValue(mockTasks as any);
+      (mockPrisma.list.findMany as jest.Mock).mockResolvedValue([]);
+      (mockPrisma.folder.findMany as jest.Mock).mockResolvedValue([]);
 
       const request = new NextRequest('http://localhost/api/search?q=exact match');
       const response = await GET(request);
@@ -314,7 +314,7 @@ describe('/api/search', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -323,9 +323,9 @@ describe('/api/search', () => {
         },
       } as any);
 
-      mockPrisma.task.findMany.mockResolvedValue([]);
-      mockPrisma.list.findMany.mockResolvedValue([]);
-      mockPrisma.folder.findMany.mockResolvedValue([]);
+      (mockPrisma.task.findMany as jest.Mock).mockResolvedValue([]);
+      (mockPrisma.list.findMany as jest.Mock).mockResolvedValue([]);
+      (mockPrisma.folder.findMany as jest.Mock).mockResolvedValue([]);
 
       const request = new NextRequest('http://localhost/api/search?q=test&limit=5');
       await GET(request);

@@ -50,7 +50,7 @@ describe('/api/profile/avatar', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -78,7 +78,7 @@ describe('/api/profile/avatar', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -109,7 +109,7 @@ describe('/api/profile/avatar', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -142,7 +142,7 @@ describe('/api/profile/avatar', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -152,7 +152,7 @@ describe('/api/profile/avatar', () => {
         image: null,
       } as any);
 
-      mockPrisma.user.update.mockResolvedValue({
+      (mockPrisma.user.update as jest.Mock).mockResolvedValue({
         id: 'user1',
         image: '/uploads/avatars/mock-uuid-123.jpg',
       } as any);
@@ -193,7 +193,7 @@ describe('/api/profile/avatar', () => {
       } as any);
 
       const oldAvatarPath = '/uploads/avatars/old-avatar.jpg';
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -203,7 +203,7 @@ describe('/api/profile/avatar', () => {
         image: oldAvatarPath,
       } as any);
 
-      mockPrisma.user.update.mockResolvedValue({
+      (mockPrisma.user.update as jest.Mock).mockResolvedValue({
         id: 'user1',
         image: '/uploads/avatars/mock-uuid-123.jpg',
       } as any);
@@ -236,7 +236,7 @@ describe('/api/profile/avatar', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -284,12 +284,12 @@ describe('/api/profile/avatar', () => {
 
     it('should remove avatar successfully', async () => {
       const currentAvatar = '/uploads/avatars/current-avatar.jpg';
-      
+
       mockGetServerSession.mockResolvedValue({
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -299,7 +299,7 @@ describe('/api/profile/avatar', () => {
         image: currentAvatar,
       } as any);
 
-      mockPrisma.user.update.mockResolvedValue({
+      (mockPrisma.user.update as jest.Mock).mockResolvedValue({
         id: 'user1',
         image: null,
       } as any);
@@ -332,7 +332,7 @@ describe('/api/profile/avatar', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -342,7 +342,7 @@ describe('/api/profile/avatar', () => {
         image: null,
       } as any);
 
-      mockPrisma.user.update.mockResolvedValue({
+      (mockPrisma.user.update as jest.Mock).mockResolvedValue({
         id: 'user1',
         image: null,
       } as any);

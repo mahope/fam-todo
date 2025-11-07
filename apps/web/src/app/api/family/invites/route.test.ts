@@ -25,8 +25,7 @@ describe('/api/family/invites', () => {
     it('should return 401 if user is not authenticated', async () => {
       mockGetServerSession.mockResolvedValue(null);
 
-      const request = new NextRequest('http://localhost/api/family/invites');
-      const response = await GET(request);
+      const response = await GET();
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -38,7 +37,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -47,8 +46,7 @@ describe('/api/family/invites', () => {
         },
       } as any);
 
-      const request = new NextRequest('http://localhost/api/family/invites');
-      const response = await GET(request);
+      const response = await GET();
       const data = await response.json();
 
       expect(response.status).toBe(403);
@@ -60,7 +58,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -85,10 +83,9 @@ describe('/api/family/invites', () => {
         },
       ];
 
-      mockPrisma.familyInvite.findMany.mockResolvedValue(mockInvites as any);
+      (mockPrisma.familyInvite.findMany as jest.Mock).mockResolvedValue(mockInvites as any);
 
-      const request = new NextRequest('http://localhost/api/family/invites');
-      const response = await GET(request);
+      const response = await GET();
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -100,7 +97,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -109,10 +106,9 @@ describe('/api/family/invites', () => {
         },
       } as any);
 
-      mockPrisma.familyInvite.findMany.mockResolvedValue([]);
+      (mockPrisma.familyInvite.findMany as jest.Mock).mockResolvedValue([]);
 
-      const request = new NextRequest('http://localhost/api/family/invites?status=ACCEPTED');
-      await GET(request);
+      await GET();
 
       expect(mockPrisma.familyInvite.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -149,7 +145,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -175,7 +171,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -201,7 +197,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -212,9 +208,9 @@ describe('/api/family/invites', () => {
 
       const request = new NextRequest('http://localhost/api/family/invites', {
         method: 'POST',
-        body: JSON.stringify({ 
-          email: 'test@example.com', 
-          role: 'INVALID_ROLE' 
+        body: JSON.stringify({
+          email: 'test@example.com',
+          role: 'INVALID_ROLE'
         }),
       });
 
@@ -230,7 +226,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -240,7 +236,7 @@ describe('/api/family/invites', () => {
       } as any);
 
       // Mock existing user
-      mockPrisma.user.findFirst.mockResolvedValue({
+      (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue({
         id: 'existinguser',
         email: 'test@example.com',
         appUser: {
@@ -265,7 +261,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -275,10 +271,10 @@ describe('/api/family/invites', () => {
       } as any);
 
       // No existing user
-      mockPrisma.user.findFirst.mockResolvedValue(null);
+      (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(null);
 
       // Existing pending invite
-      mockPrisma.familyInvite.findFirst.mockResolvedValue({
+      (mockPrisma.familyInvite.findFirst as jest.Mock).mockResolvedValue({
         id: 'existinginvite',
         email: 'test@example.com',
         familyId: 'family1',
@@ -303,7 +299,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -313,13 +309,13 @@ describe('/api/family/invites', () => {
       } as any);
 
       // No existing user
-      mockPrisma.user.findFirst.mockResolvedValue(null);
+      (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(null);
 
       // No existing invite
-      mockPrisma.familyInvite.findFirst.mockResolvedValue(null);
+      (mockPrisma.familyInvite.findFirst as jest.Mock).mockResolvedValue(null);
 
       // Family exists
-      mockPrisma.family.findUnique.mockResolvedValue({
+      (mockPrisma.family.findUnique as jest.Mock).mockResolvedValue({
         id: 'family1',
         name: 'Test Family',
       } as any);
@@ -342,11 +338,11 @@ describe('/api/family/invites', () => {
         },
       };
 
-      mockPrisma.familyInvite.create.mockResolvedValue(mockCreatedInvite as any);
+      (mockPrisma.familyInvite.create as jest.Mock).mockResolvedValue(mockCreatedInvite as any);
 
       const request = new NextRequest('http://localhost/api/family/invites', {
         method: 'POST',
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           email: 'test@example.com',
           role: 'ADULT',
           expiresInHours: 72,
@@ -393,7 +389,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -402,9 +398,9 @@ describe('/api/family/invites', () => {
         },
       } as any);
 
-      mockPrisma.user.findFirst.mockResolvedValue(null);
-      mockPrisma.familyInvite.findFirst.mockResolvedValue(null);
-      mockPrisma.family.findUnique.mockResolvedValue({
+      (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(null);
+      (mockPrisma.familyInvite.findFirst as jest.Mock).mockResolvedValue(null);
+      (mockPrisma.family.findUnique as jest.Mock).mockResolvedValue({
         id: 'family1',
         name: 'Test Family',
       } as any);
@@ -422,7 +418,7 @@ describe('/api/family/invites', () => {
         family: { name: 'Test Family' },
       };
 
-      mockPrisma.familyInvite.create.mockResolvedValue(mockCreatedInvite as any);
+      (mockPrisma.familyInvite.create as jest.Mock).mockResolvedValue(mockCreatedInvite as any);
 
       const request = new NextRequest('http://localhost/api/family/invites', {
         method: 'POST',
@@ -436,7 +432,7 @@ describe('/api/family/invites', () => {
       expect(data.invite.role).toBe('ADULT'); // Default role
 
       // Verify default values were used
-      const createCall = mockPrisma.familyInvite.create.mock.calls[0][0];
+      const createCall = (mockPrisma.familyInvite.create as jest.Mock).mock.calls[0][0];
       expect(createCall.data.role).toBe('ADULT');
       // Expiration should be approximately 72 hours from now (default)
       const expirationTime = new Date(createCall.data.expires_at).getTime();
@@ -465,7 +461,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -490,7 +486,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -515,7 +511,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -524,7 +520,7 @@ describe('/api/family/invites', () => {
         },
       } as any);
 
-      mockPrisma.familyInvite.findFirst.mockResolvedValue(null);
+      (mockPrisma.familyInvite.findFirst as jest.Mock).mockResolvedValue(null);
 
       const request = new NextRequest('http://localhost/api/family/invites?id=nonexistent', {
         method: 'DELETE',
@@ -542,7 +538,7 @@ describe('/api/family/invites', () => {
         user: { id: 'user1' }
       } as any);
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user1',
         appUser: {
           id: 'appuser1',
@@ -558,8 +554,8 @@ describe('/api/family/invites', () => {
         accepted: false,
       };
 
-      mockPrisma.familyInvite.findFirst.mockResolvedValue(mockInvite as any);
-      mockPrisma.familyInvite.delete.mockResolvedValue(mockInvite as any);
+      (mockPrisma.familyInvite.findFirst as jest.Mock).mockResolvedValue(mockInvite as any);
+      (mockPrisma.familyInvite.delete as jest.Mock).mockResolvedValue(mockInvite as any);
 
       const request = new NextRequest('http://localhost/api/family/invites?id=invite1', {
         method: 'DELETE',

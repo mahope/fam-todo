@@ -42,7 +42,7 @@ describe('ActivityLogService', () => {
         },
       };
 
-      mockPrisma.activityLog.create.mockResolvedValue(mockCreatedLog);
+      (mockPrisma.activityLog.create as jest.Mock).mockResolvedValue(mockCreatedLog);
 
       const result = await ActivityLogService.log(logData);
 
@@ -70,7 +70,7 @@ describe('ActivityLogService', () => {
         entityType: 'task' as const,
       };
 
-      mockPrisma.activityLog.create.mockRejectedValue(new Error('Database error'));
+      (mockPrisma.activityLog.create as jest.Mock).mockRejectedValue(new Error('Database error'));
 
       const result = await ActivityLogService.log(logData);
 
@@ -101,7 +101,7 @@ describe('ActivityLogService', () => {
         },
       ];
 
-      mockPrisma.activityLog.findMany.mockResolvedValue(mockLogs);
+      (mockPrisma.activityLog.findMany as jest.Mock).mockResolvedValue(mockLogs);
 
       const result = await ActivityLogService.getForFamily(familyId);
 
@@ -136,7 +136,7 @@ describe('ActivityLogService', () => {
         offset: 5,
       };
 
-      mockPrisma.activityLog.findMany.mockResolvedValue([]);
+      (mockPrisma.activityLog.findMany as jest.Mock).mockResolvedValue([]);
 
       await ActivityLogService.getForFamily(familyId, options);
 
@@ -179,7 +179,7 @@ describe('ActivityLogService', () => {
         user: { id: 'user-123', displayName: 'Test User', email: 'test@example.com' },
       };
 
-      mockPrisma.activityLog.create.mockResolvedValue(mockCreatedLog);
+      (mockPrisma.activityLog.create as jest.Mock).mockResolvedValue(mockCreatedLog);
 
       const result = await ActivityLogService.logTaskCreated(
         'family-123',
@@ -226,7 +226,7 @@ describe('ActivityLogService', () => {
         user: { id: 'user-123', displayName: 'Test User', email: 'test@example.com' },
       };
 
-      mockPrisma.activityLog.create.mockResolvedValue(mockCreatedLog);
+      (mockPrisma.activityLog.create as jest.Mock).mockResolvedValue(mockCreatedLog);
 
       const result = await ActivityLogService.logTaskCompleted(
         'family-123',
@@ -266,7 +266,7 @@ describe('ActivityLogService', () => {
       const expectedCutoffDate = new Date();
       expectedCutoffDate.setDate(expectedCutoffDate.getDate() - daysToKeep);
 
-      mockPrisma.activityLog.deleteMany.mockResolvedValue({ count: 150 });
+      (mockPrisma.activityLog.deleteMany as jest.Mock).mockResolvedValue({ count: 150 });
 
       const result = await ActivityLogService.cleanup(daysToKeep);
 
