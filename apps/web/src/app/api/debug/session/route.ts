@@ -20,7 +20,7 @@ export async function GET() {
       } : null,
       authOptions: {
         providersCount: authOptions.providers?.length || 0,
-        hasJwtConfig: !!authOptions.jwt,
+        hasJwtConfig: authOptions.session?.strategy === 'jwt',
         hasSessionConfig: !!authOptions.session,
         callbackUrl: authOptions.callbacks ? 'configured' : 'not configured'
       },

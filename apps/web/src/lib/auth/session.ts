@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth/next';
+import { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
@@ -20,8 +21,8 @@ export interface SessionData {
 export async function getSessionData(): Promise<SessionData> {
   try {
     logger.info('getSessionData: Starting session retrieval');
-    
-    const session = await getServerSession(authOptions) as any;
+
+    const session = await getServerSession(authOptions) as Session | null;
     logger.info('getSessionData: Session retrieved', { 
       hasSession: !!session, 
       hasUser: !!session?.user,
@@ -75,7 +76,7 @@ export async function getSessionData(): Promise<SessionData> {
  * Use this when you only need to check if the user is authenticated
  */
 export async function validateSession(): Promise<{ userId: string; email: string }> {
-  const session = await getServerSession(authOptions) as any;
+  const session = await getServerSession(authOptions) as Session | null;
   
   if (!session?.user?.id) {
     throw new Error('Unauthorized');

@@ -1,12 +1,16 @@
 // Authentication and authorization middleware
 import { NextRequest, NextResponse } from 'next/server';
+import { Session } from 'next-auth';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit } from './rate-limiter';
 import { SecurityHeaders } from './input-validation';
 import { logger } from '@/lib/logger';
-import { SessionData } from '@/lib/auth/session';
+import { SessionData as SessionDataType } from '@/lib/auth/session';
+
+// Re-export SessionData for convenience
+export type { SessionDataType as SessionData };
 
 // Authorization options
 export interface AuthOptions {
@@ -18,8 +22,8 @@ export interface AuthOptions {
 }
 
 // Get and validate session data
-export async function getSessionData(): Promise<SessionData> {
-  const session = await getServerSession(authOptions) as any;
+export async function getSessionData(): Promise<SessionDataType> {
+  const session = await getServerSession(authOptions) as Session | null;
   
   if (!session?.user?.id) {
     throw new AuthenticationError('No valid session found');

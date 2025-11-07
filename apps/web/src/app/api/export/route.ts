@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { withAuth, SessionData } from '@/lib/security/auth-middleware';
+import { withAuth } from '@/lib/security/auth-middleware';
+import { SessionData } from '@/lib/auth/session';
 import { logger } from '@/lib/logger';
 
 // GET /api/export - Export family data

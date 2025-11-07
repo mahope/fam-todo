@@ -187,13 +187,13 @@ export const sanitize = {
   },
   
   // Sanitize for logging (remove sensitive info)
-  log: (input: any): any => {
+  log: (input: unknown): unknown => {
     if (typeof input === 'string') {
       return input.replace(/password|token|secret|key/gi, '[REDACTED]');
     }
-    
+
     if (typeof input === 'object' && input !== null) {
-      const sanitized: any = Array.isArray(input) ? [] : {};
+      const sanitized: Record<string, unknown> | unknown[] = Array.isArray(input) ? [] : {};
       for (const [key, value] of Object.entries(input)) {
         if (/password|token|secret|key/i.test(key)) {
           sanitized[key] = '[REDACTED]';

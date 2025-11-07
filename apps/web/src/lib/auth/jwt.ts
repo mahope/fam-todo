@@ -40,6 +40,7 @@ export async function verifyJwt(token: string): Promise<JWTPayload | null> {
 /**
  * Create a JWT token from a NextAuth session
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function createJwtFromSession(session: any): Promise<string | null> {
   if (!session?.user?.id) return null;
 

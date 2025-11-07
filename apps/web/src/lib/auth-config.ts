@@ -1,10 +1,37 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import type { JWT } from 'next-auth/jwt';
+import type { Session, User } from 'next-auth';
+import type { Role } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth/password';
 import { logger } from '@/lib/logger';
 import { env } from '@/lib/env-validation';
 
+// Extend NextAuth types to include our custom fields
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      name?: string;
+      image?: string;
+    };
+    appUserId?: string;
+    familyId?: string;
+    role?: Role;
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    appUserId?: string;
+    familyId?: string;
+    role?: Role;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const authOptions: any = {
   adapter: PrismaAdapter(prisma),
   secret: env.NEXTAUTH_SECRET,
@@ -67,6 +94,7 @@ export const authOptions: any = {
     }),
   ],
   callbacks: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async jwt({ token, user }: any) {
       if (user) {
         const dbUser = await prisma.user.findUnique({
@@ -82,12 +110,13 @@ export const authOptions: any = {
       }
       return token;
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async session({ session, token }: any) {
       if (token && session.user) {
         session.user.id = token.sub!;
-        (session as any).appUserId = token.appUserId;
-        (session as any).familyId = token.familyId;
-        (session as any).role = token.role;
+        session.appUserId = token.appUserId;
+        session.familyId = token.familyId;
+        session.role = token.role;
       }
       return session;
     },
