@@ -22,7 +22,8 @@ const withSerwistConfig = withSerwist({
 
 const nextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
+  // Temporarily remove standalone output to test
+  // output: 'standalone',
   
   experimental: {
     reactCompiler: true,

@@ -32,25 +32,25 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    // Protected pages
-    '/dashboard/:path*',
-    '/lists/:path*', 
-    '/tasks/:path*',
-    '/family/:path*',
-    '/settings/:path*',
-    '/calendar/:path*',
-    '/search/:path*',
-    '/shopping/:path*',
+    // Temporarily disabled to diagnose 404 issues
+    // '/dashboard/:path*',
+    // '/lists/:path*',
+    // '/tasks/:path*',
+    // '/family/:path*',
+    // '/settings/:path*',
+    // '/calendar/:path*',
+    // '/search/:path*',
+    // '/shopping/:path*',
     // Protected API routes
-    '/api/lists/:path*',
-    '/api/tasks/:path*',
-    '/api/family/:path*',
-    '/api/folders/:path*',
-    '/api/shopping/:path*',
-    '/api/notifications/:path*',
-    '/api/profile/:path*',
-    '/api/settings/:path*',
-    '/api/search/:path*',
-    '/api/export/:path*'
+    // '/api/lists/:path*',
+    // '/api/tasks/:path*',
+    // '/api/family/:path*',
+    // '/api/folders/:path*',
+    // '/api/shopping/:path*',
+    // '/api/notifications/:path*',
+    // '/api/profile/:path*',
+    // '/api/settings/:path*',
+    // '/api/search/:path*',
+    // '/api/export/:path*'
   ]
 };
