@@ -97,15 +97,28 @@ export const authOptions: any = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async jwt({ token, user }: any) {
       if (user) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          include: { appUser: { include: { family: true } } },
-        });
+        logger.debug('JWT callback - user login', { userId: user.id });
 
-        if (dbUser?.appUser) {
-          token.appUserId = dbUser.appUser.id;
-          token.familyId = dbUser.appUser.familyId;
-          token.role = dbUser.appUser.role;
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            include: { appUser: { include: { family: true } } },
+          });
+
+          if (dbUser?.appUser) {
+            token.appUserId = dbUser.appUser.id;
+            token.familyId = dbUser.appUser.familyId;
+            token.role = dbUser.appUser.role;
+            logger.debug('JWT callback - token enriched', {
+              appUserId: token.appUserId,
+              familyId: token.familyId,
+              role: token.role
+            });
+          } else {
+            logger.error('JWT callback - appUser not found', { userId: user.id, hasUser: !!dbUser });
+          }
+        } catch (error) {
+          logger.error('JWT callback error', { error: error instanceof Error ? error.message : String(error) });
         }
       }
       return token;
@@ -117,6 +130,12 @@ export const authOptions: any = {
         session.appUserId = token.appUserId;
         session.familyId = token.familyId;
         session.role = token.role;
+
+        logger.debug('Session callback', {
+          userId: session.user.id,
+          hasAppUserId: !!session.appUserId,
+          hasFamilyId: !!session.familyId
+        });
       }
       return session;
     },
