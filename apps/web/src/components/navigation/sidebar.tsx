@@ -110,54 +110,66 @@ export function Sidebar({ className }: SidebarProps) {
   const { data: recentLists = [] } = useQuery({
     queryKey: ["recent-lists"],
     queryFn: async () => {
-      const response = await fetch("/api/lists?limit=5&sortBy=updated_at&sortOrder=desc", {
-        headers: {
-        },
-      });
+      try {
+        const response = await fetch("/api/lists?limit=5&sortBy=updated_at&sortOrder=desc", {
+          headers: {
+          },
+        });
 
-      if (!response.ok) {
+        if (!response.ok) {
+          return [];
+        }
+
+        const data = await response.json();
+        // Handle both array and object API responses
+        if (Array.isArray(data)) {
+          return data as List[];
+        }
+        // Handle new API format { lists: [], meta: {...} }
+        if (data?.lists && Array.isArray(data.lists)) {
+          return data.lists as List[];
+        }
+        return [];
+      } catch (error) {
+        console.error('Failed to fetch recent lists:', error);
         return [];
       }
-
-      const data = await response.json();
-      // Handle both array and object API responses
-      if (Array.isArray(data)) {
-        return data as List[];
-      }
-      // Handle new API format { lists: [], meta: {...} }
-      if (data?.lists && Array.isArray(data.lists)) {
-        return data.lists as List[];
-      }
-      return [];
     },
     enabled: api.status === "authenticated" && !!session?.user,
+    retry: false,
   });
 
   // Fetch folders
   const { data: folders = [] } = useQuery({
     queryKey: ["sidebar-folders"],
     queryFn: async () => {
-      const response = await fetch("/api/folders", {
-        headers: {
-        },
-      });
+      try {
+        const response = await fetch("/api/folders", {
+          headers: {
+          },
+        });
 
-      if (!response.ok) {
+        if (!response.ok) {
+          return [];
+        }
+
+        const data = await response.json();
+        // Handle both array and object API responses
+        if (Array.isArray(data)) {
+          return data as Folder[];
+        }
+        // Handle object with folders property
+        if (data?.folders && Array.isArray(data.folders)) {
+          return data.folders as Folder[];
+        }
+        return [];
+      } catch (error) {
+        console.error('Failed to fetch folders:', error);
         return [];
       }
-
-      const data = await response.json();
-      // Handle both array and object API responses
-      if (Array.isArray(data)) {
-        return data as Folder[];
-      }
-      // Handle object with folders property
-      if (data?.folders && Array.isArray(data.folders)) {
-        return data.folders as Folder[];
-      }
-      return [];
     },
     enabled: api.status === "authenticated" && !!session?.user,
+    retry: false,
   });
 
   const isActive = (href: string) => {
