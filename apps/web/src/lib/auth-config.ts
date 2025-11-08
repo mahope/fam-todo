@@ -131,7 +131,41 @@ export const authOptions: any = {
         session.familyId = token.familyId;
         session.role = token.role;
 
-        logger.debug('Session callback', {
+        // Fallback: If token doesn't have required fields, fetch from database
+        if (!token.appUserId || !token.familyId) {
+          logger.warn('Session callback - token missing required fields, fetching from database', {
+            userId: session.user.id,
+            hasAppUserId: !!token.appUserId,
+            hasFamilyId: !!token.familyId
+          });
+
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { id: session.user.id },
+              include: { appUser: true },
+            });
+
+            if (dbUser?.appUser) {
+              session.appUserId = dbUser.appUser.id;
+              session.familyId = dbUser.appUser.familyId;
+              session.role = dbUser.appUser.role;
+
+              logger.info('Session callback - successfully fetched missing data', {
+                appUserId: session.appUserId,
+                familyId: session.familyId,
+                role: session.role
+              });
+            } else {
+              logger.error('Session callback - appUser not found in database', { userId: session.user.id });
+            }
+          } catch (error) {
+            logger.error('Session callback - database fetch failed', {
+              error: error instanceof Error ? error.message : String(error)
+            });
+          }
+        }
+
+        logger.debug('Session callback complete', {
           userId: session.user.id,
           hasAppUserId: !!session.appUserId,
           hasFamilyId: !!session.familyId
