@@ -11,7 +11,7 @@ const withNextIntlConfig = withNextIntl(
 const withSerwistConfig = withSerwist({
   swSrc: 'src/sw.ts',
   swDest: 'public/sw.js',
-  disable: process.env.NODE_ENV === 'development', // Disable in development to avoid issues
+  disable: true, // Temporarily disable service worker to diagnose issues
   additionalPrecacheEntries: [
     { url: '/', revision: null },
     { url: '/login', revision: null },
