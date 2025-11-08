@@ -100,7 +100,7 @@ export function hasRequiredRole(userRole: string, requiredRoles: string[]): bool
 
 // Middleware wrapper for API routes
 export function withAuth<T extends any[]>(
-  handler: (request: NextRequest, sessionData: SessionData, ...args: T) => Promise<NextResponse>,
+  handler: (request: NextRequest, sessionData: SessionDataType, ...args: T) => Promise<NextResponse>,
   options: AuthOptions = {}
 ) {
   return async function authMiddleware(
@@ -146,7 +146,7 @@ export function withAuth<T extends any[]>(
       
       // Authentication check
       if (options.requireAuth !== false) {
-        let sessionData: SessionData;
+        let sessionData: SessionDataType;
         
         try {
           sessionData = await getSessionData();
@@ -200,7 +200,7 @@ export function withAuth<T extends any[]>(
       }
       
       // For non-authenticated routes, create dummy session data
-      const dummySessionData = {} as SessionData;
+      const dummySessionData = {} as SessionDataType;
       const response = await handler(request, dummySessionData, ...args);
       
       // Add security headers
@@ -250,7 +250,7 @@ export function withAuth<T extends any[]>(
 export async function validateResourceAccess(
   resourceType: 'list' | 'task' | 'folder' | 'family_invite',
   resourceId: string,
-  sessionData: SessionData,
+  sessionData: SessionDataType,
   requireOwnership: boolean = false
 ): Promise<boolean> {
   try {
@@ -358,7 +358,7 @@ export async function validateResourceAccess(
 // Helper to validate family membership
 export async function validateFamilyAccess(
   familyId: string,
-  sessionData: SessionData
+  sessionData: SessionDataType
 ): Promise<boolean> {
   return sessionData.familyId === familyId;
 }

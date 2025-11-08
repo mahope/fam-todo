@@ -193,7 +193,11 @@ export const sanitize = {
     }
 
     if (typeof input === 'object' && input !== null) {
-      const sanitized: Record<string, unknown> | unknown[] = Array.isArray(input) ? [] : {};
+      if (Array.isArray(input)) {
+        return input.map(item => sanitize.log(item));
+      }
+
+      const sanitized: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(input)) {
         if (/password|token|secret|key/i.test(key)) {
           sanitized[key] = '[REDACTED]';
@@ -203,7 +207,7 @@ export const sanitize = {
       }
       return sanitized;
     }
-    
+
     return input;
   },
 };
