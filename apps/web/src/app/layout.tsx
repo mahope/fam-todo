@@ -11,6 +11,7 @@ import { ClientOnly } from "@/components/client-only";
 import { logger } from '@/lib/logger';
 import { SkipLinks, KeyboardHints, RouteAnnouncer } from '@/components/accessibility/skip-links';
 import DiagnosticsPanel from '@/components/debug/DiagnosticsPanel';
+import { UnregisterServiceWorker } from '@/components/unregister-sw';
 
 // Initialize logging on app start (server-side only)
 if (typeof window === 'undefined') {
@@ -108,6 +109,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={inter.className}>
+        <UnregisterServiceWorker />
         <SkipLinks />
         <KeyboardHints />
         <RouteAnnouncer />
